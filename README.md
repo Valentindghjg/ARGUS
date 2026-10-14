@@ -15,9 +15,10 @@ that no account exists. Synthetic demo data and personal profiles stay separate.
 
 ## License status
 
-No open-source license has been selected yet. The repository owner needs to add
-one before publication so that other people know how they may use the project.
-See [LICENSING.md](LICENSING.md) and the
+Account Compass Free is licensed under the
+[Mozilla Public License 2.0](LICENSE) (MPL-2.0). A future commercial Pro edition
+will be distributed separately under its own terms; it is not included in this
+repository. See [LICENSING.md](LICENSING.md) and the
 [publication checklist](docs/PUBLISHING.md).
 
 ## Account Compass Free and Pro

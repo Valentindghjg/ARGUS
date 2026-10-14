@@ -12,9 +12,10 @@ Künstliche Demo und persönliche Ergebnisse bleiben getrennt.
 
 ## Lizenzstatus
 
-Es wurde noch keine Open-Source-Lizenz ausgewählt. Vor der Veröffentlichung muss
-der Repository-Inhaber eine Lizenz hinzufügen, damit andere die erlaubte Nutzung
-kennen. Details stehen in [LICENSING.md](LICENSING.md) und in der
+Account Compass Free steht unter der
+[Mozilla Public License 2.0](LICENSE) (MPL-2.0). Eine spätere kommerzielle
+Pro-Edition wird getrennt unter eigenen Bedingungen angeboten und ist nicht Teil
+dieses Repositorys. Details stehen in [LICENSING.md](LICENSING.md) und in der
 [Veröffentlichungs-Checkliste](docs/PUBLISHING.md).
 
 ## Account Compass Free und Pro

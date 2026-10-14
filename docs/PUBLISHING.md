@@ -12,8 +12,9 @@ publish itself.
   files are ignored. Do not rely on `.gitignore` for files already committed.
 - Run `python -m unittest discover -s tests -v` and the optional browser suite.
 - Review README, security guidance and screenshots as a first-time user would.
-- Choose a license and add its exact unmodified text as `LICENSE`. Until then,
-  public source visibility does not grant others permission to reuse the code.
+- The repository includes the exact MPL-2.0 text as `LICENSE`. Confirm that the
+  publication model still separates future proprietary Pro code and terms from
+  this Free repository.
 - For the Freemium product, complete
   [COMMERCIAL_RELEASE.md](COMMERCIAL_RELEASE.md) before offering a paid Pro
   edition. The current dashboard only presents a Pro preview; it has no checkout

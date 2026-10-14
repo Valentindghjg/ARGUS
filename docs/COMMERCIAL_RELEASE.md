@@ -10,10 +10,10 @@ legal terms on the owner's behalf.
 - Set the Pro price, currency, trial policy, upgrades, refunds and support scope.
 - Have applicable terms, privacy notice, license and tax/invoice obligations
   reviewed for the intended market.
-- Decide whether the public repository is source-available proprietary software,
-  open core with a proprietary Pro add-on, or uses another reviewed model.
-- Replace the current license-status notice with the exact final license text and
-  copyright notice before public commercial distribution.
+- Account Compass Free is licensed under MPL-2.0. Keep future proprietary Pro
+  code, commercial terms and publisher signing keys separate from this repository.
+- Add the copyright notice and exact commercial Pro terms before distributing a
+  paid Pro edition.
 
 ## Checkout and entitlement design
 
