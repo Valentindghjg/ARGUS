@@ -30,6 +30,19 @@ künstliche Nachrichten, 12 gefundene Anbieter, zwei simulierte manuelle
 Bestätigungen und eine erledigte Checkliste. **Das sind keine echten Accounts.**
 Mit `--port 8766` lässt sich ein bereits belegter Port umgehen.
 
+Alternativ das private GitHub-Repository mit einem berechtigten GitHub-Konto
+klonen:
+
+```bash
+git clone https://github.com/Valentindghjg/account-compass.git
+cd account-compass
+python -m account_finder --data-dir .local/demo demo --serve --open
+```
+
+Eine bestehende Arbeitskopie ohne lokale Änderungen aktualisierst du mit
+`git pull --ff-only`. Persönliche Profile und Zugangsdaten sind von Git
+ausgeschlossen; sichere sie separat geschützt.
+
 ## Sprache wählen
 
 Im Dashboard oben **Sprache → Deutsch / English** wählen. Der Schalter ist auch

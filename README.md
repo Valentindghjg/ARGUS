@@ -26,6 +26,18 @@ stops the server. Use `--port 8766` if the port is occupied. On Windows, replace
 The demo uses 17 synthetic messages, 12 discovered providers, two simulated manual
 confirmations and one completed checklist. **These are not your real accounts.**
 
+You can also clone the private GitHub repository using an authorized GitHub
+account:
+
+```bash
+git clone https://github.com/Valentindghjg/account-compass.git
+cd account-compass
+python -m account_finder --data-dir .local/demo demo --serve --open
+```
+
+Use `git pull --ff-only` to update an existing clean checkout. Personal profiles
+and credentials are excluded from Git; keep their protected backups separately.
+
 ## Choose your language
 
 Use **Language → English / Deutsch** in the dashboard header. The same selector
