@@ -1,4 +1,4 @@
-# Account Compass 1.6 – lokaler Account-Finder
+# Account Compass 1.6.1 – lokaler Account-Finder
 
 Deutsch · [English](README.md)
 

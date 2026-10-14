@@ -1,5 +1,17 @@
 # Change log
 
+## 1.6.1 — Optional Bitwarden CLI handoff, 14 October 2026
+
+- Added an opt-in dashboard handoff to an already-unlocked official Bitwarden CLI.
+  It creates only explicitly selected, password-free metadata items and never
+  reads, changes or overwrites existing vault items.
+- Added German and English guidance for the local CLI handoff and a secure
+  provider-change workflow. Passwords stay in Bitwarden; provider password
+  changes still require the user to complete each service’s authentication, MFA
+  and confirmation flow.
+- Added regression coverage for the password-free CLI payload, required unlocked
+  session and dashboard endpoint.
+
 ## 1.6.0 — Offline Pro licensing foundation, 14 October 2026
 
 - Added Ed25519-signed, privacy-minimized Pro entitlement verification and local
