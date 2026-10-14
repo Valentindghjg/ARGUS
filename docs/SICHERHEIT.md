@@ -32,8 +32,11 @@ Versuchsschleife. IMAP-Debug-Ausgabe ist deaktiviert und serverseitige
 Fehlermeldungen werden durch feste, nicht-sensitive Meldungen ersetzt.
 
 Das Bitwarden-Hauptpasswort wird niemals abgefragt. Die Anwendung meldet sich
-nicht bei Bitwarden an und liest keinen Tresor. Die Bitwarden-Konto-Adresse ist
-unabhängig von den Anmeldeadressen der einzelnen Dienste.
+nicht bei Bitwarden an und liest keinen Tresor. Die optionale direkte Übertragung
+benötigt eine bereits entsperrte offizielle Bitwarden-CLI und erstellt nur
+ausdrücklich ausgewählte, passwortfreie Einträge; bestehende Tresoreinträge werden
+weder gelesen noch geändert. Die Bitwarden-Konto-Adresse ist unabhängig von den
+Anmeldeadressen der einzelnen Dienste.
 
 Python kann unveränderliche Strings im Arbeitsspeicher nicht zuverlässig löschen.
 Zugangsdaten sind daher während der autorisierten Sitzung im Prozessspeicher;

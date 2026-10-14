@@ -121,6 +121,7 @@ def main():
                 page.locator('[data-view="bitwarden"]').click()
                 expect(page.locator('#export-selection input[value="steam"]')).to_be_checked()
                 expect(page.locator('#export-selection input[value="github"]')).to_have_count(0)
+                expect(page.locator("#bitwarden-cli-button")).to_contain_text("unlocked Bitwarden CLI")
                 page.locator('#export-selection input[value="discord"]').check()
                 page.evaluate("refresh()")
                 expect(page.locator('#export-selection input[value="discord"]')).to_be_checked()

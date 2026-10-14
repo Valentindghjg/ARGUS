@@ -299,7 +299,12 @@ Under “Prepare Bitwarden”:
    without duplicate checking. This app never reads or overwrites vault entries.
    Importing an empty item does not mean a password change succeeded.
 
-An explicit CLI selection is also supported:
+Alternatively, after you unlock the official Bitwarden CLI in your own terminal,
+the dashboard can create the explicitly selected password-free items directly.
+It never reads or overwrites existing items and never receives your master
+password. Follow the [Bitwarden CLI handoff guide](docs/BITWARDEN_CLI.md).
+
+A command-line metadata export is also supported:
 
 ```bash
 python -m account_finder bitwarden-export /local/protected/path/account-finder.json --id github --id steam

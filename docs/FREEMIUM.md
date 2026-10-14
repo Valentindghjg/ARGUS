@@ -24,7 +24,8 @@ functionality is not disabled by an artificial trial limit.
 
 - Passwords are generated and stored in Bitwarden, never in Account Compass.
 - Mail content, IMAP secrets, payment data and Bitwarden vault data are not sent
-  to a product service.
+  to a product service. An optional already-unlocked Bitwarden CLI can create
+  explicitly selected password-free items locally without reading existing items.
 - A future purchase flow must be a separate publisher-controlled checkout. It
   must not embed payment keys in the desktop application or this repository.
 - A future Pro entitlement needs independently reviewed, signed offline

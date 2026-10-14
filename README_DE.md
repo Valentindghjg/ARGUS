@@ -327,7 +327,13 @@ Unter „Bitwarden vorbereiten“:
    oder überschreibt bestehende Tresoreinträge nicht. Ein leerer Importeintrag
    bedeutet noch keine erfolgreiche Passwortänderung.
 
-Auch über CLI ist eine ausdrückliche Auswahl möglich:
+Alternativ kann das Dashboard nach dem Entsperren der offiziellen Bitwarden-CLI
+in deinem eigenen Terminal die ausdrücklich ausgewählten passwortfreien Einträge
+direkt erstellen. Es liest oder überschreibt keine bestehenden Einträge und
+erhält nie dein Hauptpasswort. Folge der
+[Bitwarden-CLI-Übergabeanleitung](docs/BITWARDEN_CLI.md).
+
+Auch ein Metadaten-Export über die Kommandozeile ist möglich:
 
 ```bash
 python -m account_finder bitwarden-export /lokaler/geschützter/pfad/account-finder.json --id github --id steam

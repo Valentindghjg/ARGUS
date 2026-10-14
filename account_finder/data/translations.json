@@ -323,7 +323,6 @@
     "The database must not be a symlink": "Datenbank darf kein Symlink sein",
     "The demo requires a separate data directory": "Demo benötigt ein separates Datenverzeichnis",
     "The destination file already exists and will not be overwritten.": "Zieldatei existiert bereits; sie wird nicht überschrieben.",
-    "The download contains only names, official websites and identified email addresses. All password fields stay empty. This app does not access your vault.": "Der Download enthält nur Namen, offizielle Websites und ermittelte E-Mail-Adressen. Alle Passwortfelder bleiben leer. Das Programm greift nicht auf deinen Tresor zu.",
     "The export directory must not be a symlink": "Exportverzeichnis darf kein Symlink sein",
     "The link is outside the provider domains": "Link liegt außerhalb der Anbieter-Domains",
     "The local database is temporarily unavailable": "Lokale Datenbank vorübergehend nicht verfügbar",
@@ -430,6 +429,12 @@
     "Pro licensing is not configured in this build.": "Pro-Lizenzierung ist in dieser Version nicht eingerichtet.",
     "Show the local Free or Pro license status": "Lokalen Status der Free- oder Pro-Lizenz anzeigen",
     "Signed Pro license JSON file": "Signierte Pro-Lizenzdatei im JSON-Format",
-    "Verify and store a signed Pro license locally": "Signierte Pro-Lizenz lokal prüfen und speichern"
+    "Verify and store a signed Pro license locally": "Signierte Pro-Lizenz lokal prüfen und speichern",
+    "Add selected items through unlocked Bitwarden CLI": "Ausgewählte Einträge über die entsperrte Bitwarden-CLI hinzufügen",
+    "Optional direct transfer uses an already-unlocked official Bitwarden CLI. ARGUS creates password-free items only; it never asks for or handles your master password.": "Die optionale direkte Übertragung nutzt eine bereits entsperrte offizielle Bitwarden-CLI. ARGUS erstellt nur passwortfreie Einträge und fragt nie nach deinem Hauptpasswort oder verarbeitet es.",
+    "Official Bitwarden CLI guide ↗": "Offizielle Bitwarden-CLI-Anleitung ↗",
+    "ARGUS will create password-free items in your already-unlocked Bitwarden vault. Existing items are never changed. Continue?": "ARGUS erstellt passwortfreie Einträge in deinem bereits entsperrten Bitwarden-Tresor. Bestehende Einträge werden nie geändert. Fortfahren?",
+    "Added {count} password-free item(s) to Bitwarden. Generate the new password in Bitwarden, use the verified provider link to change it, then test the sign-in.": "{count} passwortfreie Einträge wurden zu Bitwarden hinzugefügt. Erzeuge das neue Passwort in Bitwarden, nutze den verifizierten Anbieter-Link zum Ändern und prüfe anschließend die Anmeldung.",
+    "The download contains only names, official websites and identified email addresses. All password fields stay empty. Optional direct transfer creates selected password-free items through an already-unlocked Bitwarden CLI.": "Der Download enthält nur Namen, offizielle Websites und ermittelte E-Mail-Adressen. Alle Passwortfelder bleiben leer. Die optionale direkte Übertragung erstellt ausgewählte passwortfreie Einträge über eine bereits entsperrte Bitwarden-CLI."
   }
 }

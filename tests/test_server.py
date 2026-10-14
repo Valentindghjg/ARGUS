@@ -6,6 +6,7 @@ import re
 import tempfile
 import threading
 import unittest
+from unittest.mock import patch
 
 from account_finder.registry import Registry
 from account_finder.scan import synthetic_mail
@@ -94,6 +95,16 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(json.loads(body)["items"][0]["login"]["password"],"")
         for payload in ["[]","{invalid}",json.dumps({"password":"not-accepted"})]:
             self.assertEqual(self.request("/api/accounts/discord","PATCH",payload,headers={"Content-Type":"application/json"})[0],400)
+
+    def test_direct_bitwarden_cli_handoff_requires_explicit_selection(self):
+        raw = synthetic_mail("notify@github.com", "Your account has been created", "")
+        self.request("/api/import", "POST", raw, headers={"Content-Type":"message/rfc822"})
+        with patch("account_finder.bitwarden.add_to_unlocked_cli", return_value={"items":1,"providers":["github"]}) as handoff:
+            status, _, body = self.request("/api/bitwarden/cli", "POST", json.dumps({"ids":["github"],"language":"en"}), headers={"Content-Type":"application/json"})
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(body)["items"], 1)
+        handoff.assert_called_once_with(self.store, ["github"], "en")
+        self.assertEqual(self.request("/api/bitwarden/cli", "POST", json.dumps({"ids":["github"]}), headers={"Content-Type":"application/json"})[0], 400)
 
     def test_post_size_limit_and_chunked_rejected(self):
         self.assertEqual(self.request("/api/import","POST",b"x",headers={"Content-Type":"message/rfc822","Content-Length":"3000000"})[0],400)

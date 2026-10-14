@@ -9,6 +9,7 @@ domains may change. The three password-settings links have separate sources.
 |---|---|---|
 | Bitwarden import | [Import to your Vault or Collections](https://bitwarden.com/help/import-data/) | Apps/CLI support import; duplicate checking is not performed |
 | Bitwarden JSON | [Import from a Custom File](https://bitwarden.com/help/condition-bitwarden-import/) | Folder, item and login structure; “Bitwarden (json)” format |
+| Bitwarden CLI | [Bitwarden CLI](https://bitwarden.com/help/cli/) | Optional local creation of explicitly selected password-free items after the user unlocks the CLI |
 | Password generation | [Username & Password Generator](https://bitwarden.com/help/generator/) | Generate passwords in the Bitwarden client |
 | Google settings | [Change or reset your password](https://support.google.com/accounts/answer/41078) | Official Google account settings; no automated reset |
 | GitHub settings | [Updating your GitHub access credentials](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/updating-your-github-access-credentials) | Change an existing password under Password and authentication |

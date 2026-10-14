@@ -3,8 +3,10 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 
-from account_finder.bitwarden import make_export, export_file
+from account_finder.bitwarden import BitwardenCliError, add_to_unlocked_cli, make_export, export_file
 from account_finder.registry import Registry
 from account_finder.scan import file_messages, load_demo, scan_messages, synthetic_mail
 from account_finder.store import Store, CHECKLIST
@@ -97,6 +99,32 @@ class StoreTests(unittest.TestCase):
         self.store.update_account("github", {"checklist":{"saved_in_bitwarden":True}})
         with self.assertRaises(ValueError):
             make_export(self.store, ["github"])
+
+    def test_cli_transfer_creates_password_free_items_without_reading_vault(self):
+        self.scan()
+        calls = []
+        def runner(arguments, **kwargs):
+            calls.append((arguments, kwargs))
+            if arguments[1:] == ["status"]:
+                return SimpleNamespace(returncode=0, stdout='{"status":"unlocked"}')
+            self.assertEqual(arguments[1:3], ["create", "item"])
+            return SimpleNamespace(returncode=0, stdout='{"id":"ignored"}')
+        with patch("account_finder.bitwarden.shutil.which", return_value="/usr/bin/bw"):
+            result = add_to_unlocked_cli(self.store, ["github"], runner=runner, environment={"BW_SESSION":"not-stored"})
+        self.assertEqual(result, {"items": 1, "providers": ["github"]})
+        self.assertTrue(self.account()["checklist"]["saved_in_bitwarden"])
+        self.assertEqual(len(calls), 2)
+        created = calls[1][0][-1]
+        import base64
+        payload = json.loads(base64.b64decode(created))
+        self.assertIsNone(payload["login"]["password"])
+        self.assertNotIn("SECRET-CONTENT", json.dumps(payload))
+        self.assertEqual(calls[1][1]["env"]["BW_SESSION"], "not-stored")
+
+    def test_cli_transfer_requires_preunlocked_session(self):
+        self.scan()
+        with self.assertRaises(BitwardenCliError):
+            add_to_unlocked_cli(self.store, ["github"], environment={})
 
     def test_export_exclusive_no_overwrite(self):
         self.scan()

@@ -28,8 +28,10 @@ list. IMAP debug output is disabled; server error text is replaced with fixed,
 non-sensitive messages.
 
 The app never requests your Bitwarden master password, signs into Bitwarden or
-reads your vault. The Bitwarden account address is independent of individual
-service sign-in addresses.
+reads your vault. Its optional direct transfer requires an already-unlocked
+official Bitwarden CLI and creates only explicitly selected, password-free items;
+it never changes or reads existing vault items. The Bitwarden account address is
+independent of individual service sign-in addresses.
 
 Python cannot reliably erase immutable strings from memory. Authorized-session
 secrets exist in process memory; guaranteed zeroing is not claimed. Local malware

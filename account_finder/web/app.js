@@ -217,6 +217,19 @@ async function exportMetadata(){
     const a=document.createElement("a");a.href=url;a.download="account-finder-bitwarden.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast(t("Metadata downloaded. No vault was changed."));
   }catch(e){error(e.message);}finally{$("export-button").disabled=false;}
 }
+function selectedBitwardenIds(){
+  return Array.from($("export-selection").querySelectorAll("input:checked")).map(x=>x.value);
+}
+async function addToUnlockedBitwarden(){
+  const ids=selectedBitwardenIds();
+  if(!ids.length){error(t("Select the accounts you want to add to Bitwarden first."));return;}
+  if(!window.confirm(t("ARGUS will create password-free items in your already-unlocked Bitwarden vault. Existing items are never changed. Continue?")))return;
+  $("bitwarden-cli-button").disabled=true;$("export-button").disabled=true;
+  try{
+    const result=await api("/api/bitwarden/cli",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids,language})});
+    await refresh();toast(t("Added {count} password-free item(s) to Bitwarden. Generate the new password in Bitwarden, use the verified provider link to change it, then test the sign-in.",{count:result.items}));
+  }catch(e){error(canonicalMessage(e.message));}finally{$("bitwarden-cli-button").disabled=false;$("export-button").disabled=false;}
+}
 async function activateLicense(){
   const file=$("license-file").files[0];
   if(!file){error(t("Choose a license file first."));return;}
@@ -275,6 +288,7 @@ $("detail-priority").onchange=()=>update({priority:$("detail-priority").value});
 $("defer-account").onclick=()=>update({status:"skipped"});
 $("finish-account").onclick=()=>update({status:"done"});
 $("export-button").onclick=exportMetadata;
+$("bitwarden-cli-button").onclick=addToUnlockedBitwarden;
 $("activate-license").onclick=activateLicense;
 $("import-button").onclick=()=>{navigate("setup");$("email-files").click();};
 $("email-files").onchange=importFiles;
