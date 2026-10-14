@@ -1,4 +1,4 @@
-# Prüfbericht – Version 1.5, 14. Oktober 2026
+# Prüfbericht – Version 1.6, 14. Oktober 2026
 
 Geprüft auf Linux mit Python 3.12.14 und Chromium. Ausschließlich künstliche
 E-Mails, Fake-IMAP und lokale Loopback-Verbindungen. Windows/macOS wurden nicht
@@ -6,11 +6,11 @@ separat ausgeführt. [Ausführlicher englischer Bericht](TEST_REPORT.md).
 
 ```text
 python -m unittest discover -s tests -q
-Ran 98 tests
+Ran 101 tests
 OK
 ```
 
-98 automatisierte Tests prüfen Erkennung, Katalog, Datenschutz, TLS/IMAP,
+101 automatisierte Tests prüfen Erkennung, Katalog, Datenschutz, TLS/IMAP,
 Netzwerkfreigaben, Import, Persistenz, Checklisten, API-Schutz und Bitwarden-JSON
 mit leeren Passwortfeldern. Die neuen Sprachprüfungen bestätigen dieselben
 Ergebnisse in Deutsch und Englisch, unveränderte gespeicherte Belege, beide

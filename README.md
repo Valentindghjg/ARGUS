@@ -28,11 +28,12 @@ online account, payment data or telemetry. The dashboard also explains a future
 **Pro preview**. Pro is not implemented, purchasable or activatable yet, so Free
 is not limited by an artificial trial. See [the Freemium plan](docs/FREEMIUM.md).
 
-**Quick start:** Python 3.11 or newer and a modern browser. No third-party runtime
-packages, npm or Docker are required. Extract the archive, open a terminal in
-`account-finder`, then run:
+**Quick start:** Python 3.11 or newer and a modern browser. Install the one
+security dependency from the project metadata; npm and Docker are not required.
+Extract the archive, open a terminal in `account-finder`, then run:
 
 ```bash
+python -m pip install .
 python -m account_finder --data-dir .local/demo demo --serve --open
 ```
 
@@ -48,6 +49,7 @@ You can also clone the GitHub repository:
 ```bash
 git clone https://github.com/Valentindghjg/account-compass.git
 cd account-compass
+python -m pip install .
 python -m account_finder --data-dir .local/demo demo --serve --open
 ```
 
@@ -334,10 +336,11 @@ These use synthetic data and do not connect to personal mailboxes or Bitwarden.
 See [contributing](CONTRIBUTING.md) for development and
 [security reporting](SECURITY.md) for confidential vulnerability reports.
 
-Version 1.5 adds local Free/Pro product presentation without changing detection,
-the database schema or account results. It does not add a checkout, payment data,
-telemetry or license activation. Version 1.4 expands the built-in catalog from
-372 to 527 providers. Existing profiles and checklists remain compatible.
+Version 1.6 adds signed, offline Pro-license verification and local activation.
+The default build contains no publisher public key, so it cannot activate Pro or
+contact a payment service. Version 1.5 adds local Free/Pro product presentation.
+Detection, the database schema and account results remain compatible. Version 1.4
+expands the built-in catalog from 372 to 527 providers. Existing profiles and checklists remain compatible.
 Re-import local source emails or run a separately authorized
 `scan-imap --allow-imap --full-scan` to evaluate the new domains against them.
 This does not modify the original emails. See [the change log](docs/CHANGELOG.md).
@@ -369,6 +372,7 @@ python scripts/browser_smoke.py --browser /usr/bin/chromium --screenshots-dir do
 | [Catalog policy](docs/CATALOG.md) | Scope, review standards and how to propose providers |
 | [Freemium plan](docs/FREEMIUM.md) | Available Free functionality, transparent Pro preview and product boundaries |
 | [Commercial-release checklist](docs/COMMERCIAL_RELEASE.md) | Owner decisions before accepting a Pro payment |
+| [License implementation](docs/LICENSE_IMPLEMENTATION.md) | Signed offline Pro licenses and publisher key handling |
 | [Publishing checklist](docs/PUBLISHING.md) | Owner-controlled steps before making the repository public |
 | [Technical plan](docs/PLAN.md) | Architecture and development sequence |
 | [Security model](docs/SECURITY.md) | Privacy, protections and limits |

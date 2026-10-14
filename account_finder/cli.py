@@ -54,6 +54,9 @@ def parser(language="en"):
     export = sub.add_parser('bitwarden-export', help=t('Selected metadata as Bitwarden JSON, no passwords'))
     export.add_argument('path', type=Path)
     export.add_argument('--id', action='append', required=True, help=t('Provider ID; may be repeated'))
+    sub.add_parser('license-status', help=t('Show the local Free or Pro license status'))
+    activation = sub.add_parser('activate-license', help=t('Verify and store a signed Pro license locally'))
+    activation.add_argument('path', type=Path, help=t('Signed Pro license JSON file'))
     return p
 
 def main(argv=None):
@@ -125,6 +128,11 @@ def main(argv=None):
         elif args.command == 'bitwarden-export':
             count = export_file(store, args.path, args.id, language=language)
             print(t('Saved {p0} metadata items privately; password fields are empty. Import the file into Bitwarden yourself, only once.', p0=count))
+        elif args.command == 'license-status':
+            print(json.dumps(store.snapshot()["product"]["license"], ensure_ascii=False, indent=2))
+        elif args.command == 'activate-license':
+            from .licensing import read_document
+            print(json.dumps(store.activate_license(read_document(args.path)), ensure_ascii=False, indent=2))
         return 0
     except (MailboxError, DNSError) as exc:
         print(t(str(exc)), file=sys.stderr)

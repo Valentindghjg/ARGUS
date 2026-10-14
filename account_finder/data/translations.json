@@ -419,6 +419,17 @@
     "Security checklists and password-free Bitwarden metadata": "Sicherheitschecklisten und passwortfreie Bitwarden-Metadaten",
     "The Free edition works entirely locally. Pro is a preview and cannot be purchased or activated in this build.": "Die Free-Edition arbeitet vollständig lokal. Pro ist eine Vorschau und kann in dieser Version weder gekauft noch aktiviert werden.",
     "Your data stays local in every edition.": "Deine Daten bleiben in jeder Edition lokal.",
-    "Account Compass Free is available now; Pro is a transparent preview.": "Account Compass Free ist jetzt verfügbar; Pro ist eine transparente Vorschau."
+    "Account Compass Free is available now; Pro is a transparent preview.": "Account Compass Free ist jetzt verfügbar; Pro ist eine transparente Vorschau.",
+    "Activate a Pro license": "Pro-Lizenz aktivieren",
+    "Activate locally": "Lokal aktivieren",
+    "Account Compass Free is active.": "Account Compass Free ist aktiv.",
+    "Account Compass Pro is active.": "Account Compass Pro ist aktiv.",
+    "Choose a license file first.": "Wähle zuerst eine Lizenzdatei aus.",
+    "Choose a signed license file you received from the publisher. It is verified locally; this dashboard does not send it anywhere.": "Wähle eine signierte Lizenzdatei, die du vom Herausgeber erhalten hast. Sie wird lokal geprüft; dieses Dashboard sendet sie nirgends hin.",
+    "Invalid license file.": "Ungültige Lizenzdatei.",
+    "Pro licensing is not configured in this build.": "Pro-Lizenzierung ist in dieser Version nicht eingerichtet.",
+    "Show the local Free or Pro license status": "Lokalen Status der Free- oder Pro-Lizenz anzeigen",
+    "Signed Pro license JSON file": "Signierte Pro-Lizenzdatei im JSON-Format",
+    "Verify and store a signed Pro license locally": "Signierte Pro-Lizenz lokal prüfen und speichern"
   }
 }

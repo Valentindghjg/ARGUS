@@ -61,6 +61,7 @@ def main():
                 expect(page.locator("#free-plan-features li")).to_have_count(3)
                 expect(page.locator("#pro-plan-features li")).to_have_count(3)
                 expect(page.locator("#plans-view")).to_contain_text("not for sale yet")
+                expect(page.locator("#license-activation")).to_be_hidden()
                 if args.screenshots_dir:
                     page.screenshot(path=str(args.screenshots_dir / "plans.png"), full_page=True)
                 checks.append("Local Free edition and transparent Pro preview without checkout")

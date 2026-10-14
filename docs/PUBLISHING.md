@@ -33,7 +33,7 @@ publish itself.
    if they are available for the selected visibility and plan.
 5. In **General → Danger Zone**, change visibility to Public only after the
    preceding review. GitHub may show an irreversible-effects confirmation.
-6. Create a release from a signed-off tag after publication, for example `v1.5.0`.
+6. Create a release from a signed-off tag after publication, for example `v1.6.0`.
    Do not attach personal databases, exports or email files.
 
 ## What a public user gets

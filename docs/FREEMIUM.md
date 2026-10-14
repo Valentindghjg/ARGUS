@@ -15,8 +15,10 @@ local edition; it does not require an account, payment details or telemetry.
 
 The dashboard lists three planned Pro capabilities: encrypted local backup and
 recovery workflow, scheduled local review reminders, and advanced personal
-security reports. They are not implemented, purchasable or activatable in this
-release. Free functionality is not disabled by an artificial trial limit.
+security reports. They are not implemented or purchasable in this release. The
+application has a signed offline licensing foundation, but this default build
+does not include a publisher public key and cannot activate Pro. Free
+functionality is not disabled by an artificial trial limit.
 
 ## Product boundaries
 
@@ -28,6 +30,8 @@ release. Free functionality is not disabled by an artificial trial limit.
 - A future Pro entitlement needs independently reviewed, signed offline
   verification before paid features are enforced. A writable local flag is not a
   valid payment or license control.
+- The implemented entitlement format and publisher key process are documented in
+  [LICENSE_IMPLEMENTATION.md](LICENSE_IMPLEMENTATION.md).
 
 ## Before selling Pro
 

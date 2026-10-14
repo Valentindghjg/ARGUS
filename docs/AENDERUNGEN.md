@@ -1,15 +1,15 @@
-# Änderungen – Version 1.5
+# Änderungen – Version 1.6
 
 [English change log](CHANGELOG.md) · [Deutsche Anleitung](../README_DE.md)
 
-- Lokale Free-Edition und eine transparente, noch nicht kauf- oder aktivierbare
-  Pro-Vorschau im Dashboard ergänzt.
-- Weder Checkout noch Zahlungsdaten, Telemetrie, Online-Konto oder künstliche
-  Testlimits hinzugefügt. Die bisherigen Free-Funktionen bleiben erhalten.
-- Freemium-Plan und Checkliste für kommerzielle Veröffentlichung dokumentieren
-  die noch nötigen Entscheidungen zu Verkäufer, Lizenz, Rechtstexten und
-  Zahlungsanbieter.
-- 98 Python-Tests und 15 Browser-Prüfgruppen verwenden ausschließlich künstliche
+- Ed25519-signierte Offline-Prüfung und lokale Aktivierung von Pro-Lizenzen
+  ergänzt. Ohne eingebauten Herausgeber-Öffentlichkeitsschlüssel bleibt jede
+  Installation Free und kann keine beliebige Datei freischalten.
+- Herausgeberwerkzeuge für Schlüsselgenerierung und Lizenz-Ausstellung sowie eine
+  technische Dokumentation für den getrennten Zahlungs-/Webhook-Dienst ergänzt.
+- Weiterhin kein Checkout, keine Zahlungsdaten, Telemetrie oder Online-Konto in
+  der Anwendung. Die bisherigen Free-Funktionen bleiben erhalten.
+- 101 Python-Tests und 15 Browser-Prüfgruppen verwenden ausschließlich künstliche
   Daten.
 
 ## Update von 1.1 bis 1.3

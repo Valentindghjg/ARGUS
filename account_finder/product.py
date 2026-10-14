@@ -19,10 +19,17 @@ CURRENT_EDITION = {
 }
 
 
-def public_product() -> dict:
+def public_product(data_dir=None) -> dict:
     """Return only non-personal product facts for the local dashboard or CLI."""
+    from .licensing import license_status
+    license_info = license_status(data_dir) if data_dir else {
+        "edition": "free", "state": "not_configured", "activation_enabled": False,
+        "message": "Pro licensing is not configured in this build.",
+    }
     return {
         **CURRENT_EDITION,
         "free_features": list(CURRENT_EDITION["free_features"]),
         "pro_preview": list(CURRENT_EDITION["pro_preview"]),
+        "current_edition": license_info["edition"],
+        "license": license_info,
     }

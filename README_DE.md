@@ -28,8 +28,9 @@ eingeschränkt. Details stehen im [Freemium-Plan](docs/FREEMIUM_DE.md).
 
 ## In zwei Minuten starten
 
-Voraussetzung: **Python 3.11 oder neuer** und ein aktueller Browser. Keine
-zusätzlichen Python-Pakete und keine Installation von npm oder Docker nötig.
+Voraussetzung: **Python 3.11 oder neuer** und ein aktueller Browser. Installiere
+die eine Sicherheitsabhängigkeit aus den Projektmetadaten; npm und Docker sind
+nicht nötig.
 
 1. Projektarchiv entpacken und Terminal im Ordner `account-finder` öffnen.
 2. Python-Version mit `python --version` prüfen. Auf Windows bei Bedarf alle
@@ -37,6 +38,7 @@ zusätzlichen Python-Pakete und keine Installation von npm oder Docker nötig.
 3. Demo starten:
 
 ```bash
+python -m pip install .
 python -m account_finder --data-dir .local/demo demo --serve --open
 ```
 
@@ -51,6 +53,7 @@ Alternativ das GitHub-Repository klonen:
 ```bash
 git clone https://github.com/Valentindghjg/account-compass.git
 cd account-compass
+python -m pip install .
 python -m account_finder --data-dir .local/demo demo --serve --open
 ```
 
@@ -356,11 +359,13 @@ ausführen und den Server mit dem gleichen Katalog neu starten.
 
 ## Bestehende Profile aktualisieren
 
-Version 1.5 ergänzt die lokale Anzeige von Free und Pro, ohne Erkennung,
-Datenbankschema oder Account-Ergebnisse zu verändern. Es ergänzt weder Checkout,
-Zahlungsdaten, Telemetrie noch Lizenzaktivierung. Version 1.4 erweitert den
-eingebauten Katalog von 372 auf 527 Dienste. Bestehende Profile und Checklisten
-bleiben kompatibel. Lokale Originalmails erneut importieren oder einen separat
+Version 1.6 ergänzt signierte Offline-Prüfung und lokale Aktivierung einer
+Pro-Lizenz. Der Standard-Build enthält keinen Herausgeber-Öffentlichkeitsschlüssel;
+er kann daher weder Pro aktivieren noch einen Zahlungsdienst kontaktieren. Version
+1.5 ergänzt die lokale Anzeige von Free und Pro. Erkennung, Datenbankschema und
+Account-Ergebnisse bleiben kompatibel. Version 1.4 erweitert den eingebauten
+Katalog von 372 auf 527 Dienste. Bestehende Profile und Checklisten bleiben
+kompatibel. Lokale Originalmails erneut importieren oder einen separat
 freigegebenen `scan-imap --allow-imap --full-scan` ausführen, um die neuen Domains
 auszuwerten. Dabei werden die Originalmails nicht verändert.
 
@@ -410,6 +415,7 @@ Spracherkennung und mobile Ansichten.
 | [Katalogrichtlinie](docs/KATALOG.md) | Umfang, Qualitätsmaßstäbe und neue Dienste vorschlagen |
 | [Freemium-Plan](docs/FREEMIUM_DE.md) | Verfügbare Free-Funktionen, transparente Pro-Vorschau und Produktgrenzen |
 | [Checkliste für die kommerzielle Veröffentlichung](docs/COMMERCIAL_RELEASE.md) | Entscheidungen des Inhabers vor dem ersten Pro-Kauf |
+| [Lizenztechnik](docs/LICENSE_IMPLEMENTATION.md) | Signierte Offline-Pro-Lizenzen und Umgang mit Herausgeber-Schlüsseln |
 | [Veröffentlichungs-Checkliste](docs/PUBLISHING.md) | Schritte, die der Inhaber vor der Veröffentlichung selbst prüft |
 | [Technischer Plan](docs/PLAN_DE.md) | Reihenfolge und Architektur |
 | [Sicherheitsmodell](docs/SICHERHEIT.md) | Datenschutz, Grenzen und Schutzmaßnahmen |

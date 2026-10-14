@@ -1,4 +1,4 @@
-# Test report — Version 1.5, 14 October 2026
+# Test report — Version 1.6, 14 October 2026
 
 Tested on Linux with Python 3.12.14 and system Chromium. Runtime requires Python
 3.11 or newer. Windows/macOS have not been separately exercised. All email
@@ -8,7 +8,7 @@ messages used in testing were synthetic.
 
 ```text
 python -m unittest discover -s tests -q
-Ran 98 tests
+Ran 101 tests
 OK
 ```
 
@@ -42,6 +42,8 @@ Coverage includes:
   stored value, manual confirmation and current rule version.
 - Local Free product metadata, unavailable Pro preview, no billing configuration
   and no telemetry flag.
+- Ed25519 Pro-license verification for valid, expired and tampered files;
+  private local activation storage and safe Free fallback without a public key.
 
 ## Language-specific regression checks
 
@@ -91,8 +93,9 @@ uses documented JSON structure and browser download checks. Personal provider
 settings still need individual verification before an authorized connection.
 Not all 527 provider websites were visited. Complete account coverage is not claimed.
 
-Version 1.5 additionally passed browser checks for the local Free edition and
-transparent unavailable Pro preview, as well as switching filters and open
+Version 1.6 additionally passed browser checks for the local Free edition,
+transparent unavailable Pro preview and hidden activation controls without a
+publisher key, as well as switching filters and open
 checklists, remembered language after reload, German metadata export notes,
 retained export selection, German mobile layout, independent browser locales,
 unsupported-language fallback, blocked preference storage and switching during

@@ -27,6 +27,11 @@ legal terms on the owner's behalf.
 - Verify webhook signatures and enforce server-side authorization before sending
   an entitlement. Do not treat a browser redirect as proof of payment.
 
+The repository now includes the offline verification and publisher tooling. The
+exact key process and required separate webhook service are documented in
+[LICENSE_IMPLEMENTATION.md](LICENSE_IMPLEMENTATION.md). It does not include a
+payment provider account, public key or private key.
+
 ## Release and support
 
 - Complete [PUBLISHING.md](PUBLISHING.md), then publish a reviewed release tag.

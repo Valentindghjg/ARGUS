@@ -19,8 +19,10 @@ Telemetrie.
 Das Dashboard nennt drei geplante Pro-Funktionen: lokalen verschlüsselten
 Sicherungs- und Wiederherstellungsablauf, geplante lokale Prüferinnerungen und
 erweiterte persönliche Sicherheitsberichte. Sie sind in dieser Version weder
-implementiert noch kauf- oder aktivierbar. Free wird nicht durch künstliche
-Testlimits eingeschränkt.
+implementiert noch kaufbar. Die Anwendung enthält eine signierte Offline-
+Lizenzgrundlage, aber dieser Standard-Build enthält keinen Herausgeber-
+Öffentlichkeitsschlüssel und kann Pro nicht aktivieren. Free wird nicht durch
+künstliche Testlimits eingeschränkt.
 
 ## Produktgrenzen
 
@@ -33,6 +35,8 @@ Testlimits eingeschränkt.
 - Eine spätere Pro-Lizenz benötigt unabhängig geprüfte, signierte Offline-
   Verifizierung, bevor kostenpflichtige Funktionen durchgesetzt werden. Ein
   lokal veränderbarer Schalter ist keine gültige Zahlungs- oder Lizenzkontrolle.
+- Das umgesetzte Lizenzformat und der Umgang mit Herausgeber-Schlüsseln stehen in
+  [LICENSE_IMPLEMENTATION.md](LICENSE_IMPLEMENTATION.md).
 
 ## Vor dem Verkauf von Pro
 

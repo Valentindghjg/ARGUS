@@ -9,6 +9,7 @@ dist/
 .env.*
 !.env.example
 imap.json
+license.json
 *.log
 *.db
 *.sqlite*

@@ -1,5 +1,16 @@
 # Change log
 
+## 1.6.0 — Offline Pro licensing foundation, 14 October 2026
+
+- Added Ed25519-signed, privacy-minimized Pro entitlement verification and local
+  activation. The default build has no publisher public key, so it stays Free and
+  cannot contact a payment service or activate arbitrary files.
+- Added publisher-only key-generation and license-issuance tools. Private keys
+  are never generated into, read from or committed by the application itself.
+- Added license status and activation commands, a dashboard activation path for a
+  future signed build, tests for valid, expired and tampered licenses, and
+  commercial integration documentation.
+
 ## 1.5.0 — Freemium foundation, 14 October 2026
 
 - Added the local **Account Compass Free** edition and a dashboard Plans page

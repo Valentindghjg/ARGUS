@@ -86,6 +86,11 @@ function renderPlans(){
   $("free-plan-name").textContent=product.name;
   $("free-plan-features").replaceChildren(...product.free_features.map(feature=>node("li",t(feature))));
   $("pro-plan-features").replaceChildren(...product.pro_preview.map(feature=>node("li",t(feature))));
+  const license=product.license;
+  $("license-activation").classList.toggle("hidden",!license.activation_enabled);
+  $("license-status").textContent=t(license.message);
+  setMessage("pro-preview-note",license.state==="active"?"Account Compass Pro is active.":"Pro is not for sale yet. This app does not collect payment details, create an online account or send telemetry.");
+  $("activate-license").disabled=!license.activation_enabled;
 }
 function scanDescription(scan){
   if(!scan)return t("No scan started yet.");
@@ -212,6 +217,17 @@ async function exportMetadata(){
     const a=document.createElement("a");a.href=url;a.download="account-finder-bitwarden.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast(t("Metadata downloaded. No vault was changed."));
   }catch(e){error(e.message);}finally{$("export-button").disabled=false;}
 }
+async function activateLicense(){
+  const file=$("license-file").files[0];
+  if(!file){error(t("Choose a license file first."));return;}
+  $("activate-license").disabled=true;
+  try{
+    const license=JSON.parse(await file.text());
+    const result=await api("/api/license/activate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({license})});
+    await refresh();toast(t(result.message));
+  }catch(e){error(e instanceof SyntaxError?t("Invalid license file."):e.message);}
+  finally{if(state)$('activate-license').disabled=!state.product.license.activation_enabled;}
+}
 async function importFiles(){
   const files=Array.from($("email-files").files);if(!files.length)return;
   $("import-progress").classList.remove("hidden");$("import-button").disabled=true;$("email-files").disabled=true;
@@ -259,6 +275,7 @@ $("detail-priority").onchange=()=>update({priority:$("detail-priority").value});
 $("defer-account").onclick=()=>update({status:"skipped"});
 $("finish-account").onclick=()=>update({status:"done"});
 $("export-button").onclick=exportMetadata;
+$("activate-license").onclick=activateLicense;
 $("import-button").onclick=()=>{navigate("setup");$("email-files").click();};
 $("email-files").onchange=importFiles;
 $("cancel-import").onclick=cancelImport;
