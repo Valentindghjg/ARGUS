@@ -3,7 +3,7 @@
 CURRENT_EDITION = {
     "id": "free",
     "name": "Account Compass Free",
-    "commercial_status": "pro_preview",
+    "commercial_status": "pro_in_development",
     "billing": "not_configured",
     "telemetry": False,
     "free_features": (

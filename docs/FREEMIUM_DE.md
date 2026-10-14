@@ -14,9 +14,9 @@ Telemetrie.
   Metadatenexport.
 - Deutsche und englische Oberfläche.
 
-## Pro-Vorschau
+## Pro-Edition in Entwicklung
 
-Das Dashboard nennt drei geplante Pro-Funktionen: lokalen verschlüsselten
+Das Dashboard nennt drei Pro-Funktionen in Entwicklung: lokalen verschlüsselten
 Sicherungs- und Wiederherstellungsablauf, geplante lokale Prüferinnerungen und
 erweiterte persönliche Sicherheitsberichte. Sie sind in dieser Version weder
 implementiert noch kaufbar. Die Anwendung enthält eine signierte Offline-

@@ -11,10 +11,10 @@ local edition; it does not require an account, payment details or telemetry.
 - Account review, security checklists and password-free Bitwarden metadata export.
 - German and English interface.
 
-## Pro preview
+## Pro edition in development
 
-The dashboard lists three planned Pro capabilities: encrypted local backup and
-recovery workflow, scheduled local review reminders, and advanced personal
+The dashboard lists three Pro capabilities in development: encrypted local backup
+and recovery workflow, scheduled local review reminders, and advanced personal
 security reports. They are not implemented or purchasable in this release. The
 application has a signed offline licensing foundation, but this default build
 does not include a publisher public key and cannot activate Pro. Free

@@ -45,6 +45,7 @@ class ServerTests(unittest.TestCase):
         self.assertGreaterEqual(snapshot["summary"]["providers"],500)
         self.assertEqual(snapshot["product"]["id"], "free")
         self.assertEqual(snapshot["product"]["billing"], "not_configured")
+        self.assertEqual(snapshot["product"]["commercial_status"], "pro_in_development")
         self.assertFalse(snapshot["product"]["telemetry"])
         self.assertTrue(snapshot["product"]["free_features"])
         self.assertTrue(snapshot["product"]["pro_preview"])

@@ -17,7 +17,7 @@ Ergebnisse in Deutsch und Englisch, unveränderte gespeicherte Belege, beide
 E-Mail-Sprachen, lokalisierte Hinweise, CLI und unveränderte technische Kennungen.
 
 Der Browser-Test hat **15 Prüfgruppen** bestanden: lokale Free-Edition und
-transparente Pro-Vorschau ohne Checkout, Filter, Checklisten, Export, Import,
+transparenter Pro-Status in Entwicklung ohne Checkout, Filter, Checklisten, Export, Import,
 eigene Adressen, mobile Ansicht, Sprachwechsel in beiden Richtungen, gespeicherte
 Sprachwahl, deutsche Exporthinweise, erhaltene Auswahl, Spracherkennung in
 getrennten Browserprofilen, Rückfall auf Englisch und gesperrter Browser-Speicher.

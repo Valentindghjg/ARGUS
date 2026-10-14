@@ -40,7 +40,7 @@ Coverage includes:
   parallel imports, expiry and server shutdown.
 - English display of stored German explanations while retaining the original
   stored value, manual confirmation and current rule version.
-- Local Free product metadata, unavailable Pro preview, no billing configuration
+- Local Free product metadata, Pro marked as in development, no billing configuration
   and no telemetry flag.
 - Ed25519 Pro-license verification for valid, expired and tampered files;
   private local activation storage and safe Free fallback without a public key.
@@ -94,7 +94,7 @@ settings still need individual verification before an authorized connection.
 Not all 527 provider websites were visited. Complete account coverage is not claimed.
 
 Version 1.6 additionally passed browser checks for the local Free edition,
-transparent unavailable Pro preview and hidden activation controls without a
+transparent Pro-in-development notice and hidden activation controls without a
 publisher key, as well as switching filters and open
 checklists, remembered language after reload, German metadata export notes,
 retained export selection, German mobile layout, independent browser locales,

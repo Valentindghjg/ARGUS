@@ -89,7 +89,7 @@ function renderPlans(){
   const license=product.license;
   $("license-activation").classList.toggle("hidden",!license.activation_enabled);
   $("license-status").textContent=t(license.message);
-  setMessage("pro-preview-note",license.state==="active"?"Account Compass Pro is active.":"Pro is not for sale yet. This app does not collect payment details, create an online account or send telemetry.");
+  setMessage("pro-preview-note",license.state==="active"?"Account Compass Pro is active.":"Pro is in development and not for sale. This app does not collect payment details, create an online account or send telemetry.");
   $("activate-license").disabled=!license.activation_enabled;
 }
 function scanDescription(scan){

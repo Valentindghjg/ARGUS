@@ -23,7 +23,7 @@ dieses Repositorys. Details stehen in [LICENSING.md](LICENSING.md) und in der
 Diese Version ist **Account Compass Free**: Account-Inventur, lokaler Mailimport,
 Sicherheitschecklisten und passwortfreie Bitwarden-Metadaten stehen ohne
 Online-Konto, Zahlungsdaten oder Telemetrie bereit. Das Dashboard erläutert
-zusätzlich eine künftige **Pro-Vorschau**. Pro ist noch nicht implementiert,
+zusätzlich eine **Pro-Edition in Entwicklung**. Sie ist noch nicht implementiert,
 kauf- oder aktivierbar; Free wird daher nicht durch ein künstliches Testlimit
 eingeschränkt. Details stehen im [Freemium-Plan](docs/FREEMIUM_DE.md).
 
@@ -414,7 +414,7 @@ Spracherkennung und mobile Ansichten.
 | `account_finder/server.py`, `web/` | Lokales Dashboard |
 | `tests/` | Automatisierte Regressionstests |
 | [Katalogrichtlinie](docs/KATALOG.md) | Umfang, Qualitätsmaßstäbe und neue Dienste vorschlagen |
-| [Freemium-Plan](docs/FREEMIUM_DE.md) | Verfügbare Free-Funktionen, transparente Pro-Vorschau und Produktgrenzen |
+| [Freemium-Plan](docs/FREEMIUM_DE.md) | Verfügbare Free-Funktionen, Pro-Status in Entwicklung und Produktgrenzen |
 | [Checkliste für die kommerzielle Veröffentlichung](docs/COMMERCIAL_RELEASE.md) | Entscheidungen des Inhabers vor dem ersten Pro-Kauf |
 | [Lizenztechnik](docs/LICENSE_IMPLEMENTATION.md) | Signierte Offline-Pro-Lizenzen und Umgang mit Herausgeber-Schlüsseln |
 | [Veröffentlichungs-Checkliste](docs/PUBLISHING.md) | Schritte, die der Inhaber vor der Veröffentlichung selbst prüft |

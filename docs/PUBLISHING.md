@@ -17,7 +17,7 @@ publish itself.
   this Free repository.
 - For the Freemium product, complete
   [COMMERCIAL_RELEASE.md](COMMERCIAL_RELEASE.md) before offering a paid Pro
-  edition. The current dashboard only presents a Pro preview; it has no checkout
+  edition. The current dashboard marks Pro as in development; it has no checkout
   or activation path.
 - Decide whether the current GitHub username, repository name, issues and Actions
   history should be public. Rename or transfer the repository before publishing if

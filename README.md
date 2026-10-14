@@ -26,8 +26,8 @@ repository. See [LICENSING.md](LICENSING.md) and the
 This build is **Account Compass Free**: its account inventory, local mail import,
 security checklists and password-free Bitwarden metadata are available without an
 online account, payment data or telemetry. The dashboard also explains a future
-**Pro preview**. Pro is not implemented, purchasable or activatable yet, so Free
-is not limited by an artificial trial. See [the Freemium plan](docs/FREEMIUM.md).
+**Pro edition in development**. It is not implemented, purchasable or
+activatable yet, so Free is not limited by an artificial trial. See [the Freemium plan](docs/FREEMIUM.md).
 
 **Quick start:** Python 3.11 or newer and a modern browser. Install the one
 security dependency from the project metadata; npm and Docker are not required.
@@ -371,7 +371,7 @@ python scripts/browser_smoke.py --browser /usr/bin/chromium --screenshots-dir do
 | `account_finder/server.py`, `web/` | Local dashboard |
 | `tests/` | Automated regression tests |
 | [Catalog policy](docs/CATALOG.md) | Scope, review standards and how to propose providers |
-| [Freemium plan](docs/FREEMIUM.md) | Available Free functionality, transparent Pro preview and product boundaries |
+| [Freemium plan](docs/FREEMIUM.md) | Available Free functionality, Pro-in-development status and product boundaries |
 | [Commercial-release checklist](docs/COMMERCIAL_RELEASE.md) | Owner decisions before accepting a Pro payment |
 | [License implementation](docs/LICENSE_IMPLEMENTATION.md) | Signed offline Pro licenses and publisher key handling |
 | [Publishing checklist](docs/PUBLISHING.md) | Owner-controlled steps before making the repository public |
