@@ -1,4 +1,4 @@
-# Account Compass 1.4 – lokaler Account-Finder
+# Account Compass 1.5 – lokaler Account-Finder
 
 Deutsch · [English](README.md)
 
@@ -16,6 +16,15 @@ Es wurde noch keine Open-Source-Lizenz ausgewählt. Vor der Veröffentlichung mu
 der Repository-Inhaber eine Lizenz hinzufügen, damit andere die erlaubte Nutzung
 kennen. Details stehen in [LICENSING.md](LICENSING.md) und in der
 [Veröffentlichungs-Checkliste](docs/PUBLISHING.md).
+
+## Account Compass Free und Pro
+
+Diese Version ist **Account Compass Free**: Account-Inventur, lokaler Mailimport,
+Sicherheitschecklisten und passwortfreie Bitwarden-Metadaten stehen ohne
+Online-Konto, Zahlungsdaten oder Telemetrie bereit. Das Dashboard erläutert
+zusätzlich eine künftige **Pro-Vorschau**. Pro ist noch nicht implementiert,
+kauf- oder aktivierbar; Free wird daher nicht durch ein künstliches Testlimit
+eingeschränkt. Details stehen im [Freemium-Plan](docs/FREEMIUM_DE.md).
 
 ## In zwei Minuten starten
 
@@ -347,12 +356,13 @@ ausführen und den Server mit dem gleichen Katalog neu starten.
 
 ## Bestehende Profile aktualisieren
 
-Version 1.4 erweitert den eingebauten Katalog von 372 auf 527 Dienste.
-Bestehende Profile und Checklisten bleiben kompatibel. Lokale Originalmails erneut
-importieren oder einen separat freigegebenen `scan-imap --allow-imap --full-scan`
-ausführen, um die neuen Domains auszuwerten. Dabei werden die Originalmails nicht
-verändert. Version 1.3 ergänzt die Sprachauswahl. Die Erkennungsregeln und das
-Datenbankschema ändern sich gegenüber 1.1/1.2 nicht.
+Version 1.5 ergänzt die lokale Anzeige von Free und Pro, ohne Erkennung,
+Datenbankschema oder Account-Ergebnisse zu verändern. Es ergänzt weder Checkout,
+Zahlungsdaten, Telemetrie noch Lizenzaktivierung. Version 1.4 erweitert den
+eingebauten Katalog von 372 auf 527 Dienste. Bestehende Profile und Checklisten
+bleiben kompatibel. Lokale Originalmails erneut importieren oder einen separat
+freigegebenen `scan-imap --allow-imap --full-scan` ausführen, um die neuen Domains
+auszuwerten. Dabei werden die Originalmails nicht verändert.
 
 Beim Upgrade von Version 1.0 gelten zusätzlich die Hinweise zur erneuten
 Bewertung in [Änderungen](docs/AENDERUNGEN.md).
@@ -398,6 +408,8 @@ Spracherkennung und mobile Ansichten.
 | `account_finder/server.py`, `web/` | Lokales Dashboard |
 | `tests/` | Automatisierte Regressionstests |
 | [Katalogrichtlinie](docs/KATALOG.md) | Umfang, Qualitätsmaßstäbe und neue Dienste vorschlagen |
+| [Freemium-Plan](docs/FREEMIUM_DE.md) | Verfügbare Free-Funktionen, transparente Pro-Vorschau und Produktgrenzen |
+| [Checkliste für die kommerzielle Veröffentlichung](docs/COMMERCIAL_RELEASE.md) | Entscheidungen des Inhabers vor dem ersten Pro-Kauf |
 | [Veröffentlichungs-Checkliste](docs/PUBLISHING.md) | Schritte, die der Inhaber vor der Veröffentlichung selbst prüft |
 | [Technischer Plan](docs/PLAN_DE.md) | Reihenfolge und Architektur |
 | [Sicherheitsmodell](docs/SICHERHEIT.md) | Datenschutz, Grenzen und Schutzmaßnahmen |

@@ -1,4 +1,4 @@
-# Account Compass 1.4
+# Account Compass 1.5
 
 [Deutsch](README_DE.md) · English
 
@@ -19,6 +19,14 @@ No open-source license has been selected yet. The repository owner needs to add
 one before publication so that other people know how they may use the project.
 See [LICENSING.md](LICENSING.md) and the
 [publication checklist](docs/PUBLISHING.md).
+
+## Account Compass Free and Pro
+
+This build is **Account Compass Free**: its account inventory, local mail import,
+security checklists and password-free Bitwarden metadata are available without an
+online account, payment data or telemetry. The dashboard also explains a future
+**Pro preview**. Pro is not implemented, purchasable or activatable yet, so Free
+is not limited by an artificial trial. See [the Freemium plan](docs/FREEMIUM.md).
 
 **Quick start:** Python 3.11 or newer and a modern browser. No third-party runtime
 packages, npm or Docker are required. Extract the archive, open a terminal in
@@ -326,13 +334,13 @@ These use synthetic data and do not connect to personal mailboxes or Bitwarden.
 See [contributing](CONTRIBUTING.md) for development and
 [security reporting](SECURITY.md) for confidential vulnerability reports.
 
-Version 1.4 expands the built-in catalog from 372 to 527 providers. Existing
-profiles and checklists remain compatible. Re-import local source emails or run a
-separately authorized `scan-imap --allow-imap --full-scan` to evaluate the new
-domains against them. This does not modify the original emails. Version 1.3 adds
-selectable German/English presentation without changing detection rules or the
-database schema. Version 1.1/1.2 profiles need no re-import solely for the
-language change. See [the change log](docs/CHANGELOG.md).
+Version 1.5 adds local Free/Pro product presentation without changing detection,
+the database schema or account results. It does not add a checkout, payment data,
+telemetry or license activation. Version 1.4 expands the built-in catalog from
+372 to 527 providers. Existing profiles and checklists remain compatible.
+Re-import local source emails or run a separately authorized
+`scan-imap --allow-imap --full-scan` to evaluate the new domains against them.
+This does not modify the original emails. See [the change log](docs/CHANGELOG.md).
 
 Tests use synthetic messages, fake IMAP and local loopback connections only:
 
@@ -359,6 +367,8 @@ python scripts/browser_smoke.py --browser /usr/bin/chromium --screenshots-dir do
 | `account_finder/server.py`, `web/` | Local dashboard |
 | `tests/` | Automated regression tests |
 | [Catalog policy](docs/CATALOG.md) | Scope, review standards and how to propose providers |
+| [Freemium plan](docs/FREEMIUM.md) | Available Free functionality, transparent Pro preview and product boundaries |
+| [Commercial-release checklist](docs/COMMERCIAL_RELEASE.md) | Owner decisions before accepting a Pro payment |
 | [Publishing checklist](docs/PUBLISHING.md) | Owner-controlled steps before making the repository public |
 | [Technical plan](docs/PLAN.md) | Architecture and development sequence |
 | [Security model](docs/SECURITY.md) | Privacy, protections and limits |

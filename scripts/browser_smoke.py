@@ -56,6 +56,16 @@ def main():
                     args.screenshots_dir.mkdir(parents=True, exist_ok=True)
                     page.screenshot(path=str(args.screenshots_dir / "dashboard.png"), full_page=True)
 
+                page.locator('[data-view="plans"]').click()
+                expect(page.locator("#free-plan-name")).to_have_text("Account Compass Free")
+                expect(page.locator("#free-plan-features li")).to_have_count(3)
+                expect(page.locator("#pro-plan-features li")).to_have_count(3)
+                expect(page.locator("#plans-view")).to_contain_text("not for sale yet")
+                if args.screenshots_dir:
+                    page.screenshot(path=str(args.screenshots_dir / "plans.png"), full_page=True)
+                checks.append("Local Free edition and transparent Pro preview without checkout")
+                page.locator('[data-view="dashboard"]').click()
+
                 page.locator("#search").fill("steam")
                 expect(page.locator("#account-rows tr")).to_have_count(1)
                 page.locator("#search").fill("")

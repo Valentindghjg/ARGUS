@@ -1,4 +1,4 @@
-# Prüfbericht – Version 1.4, 14. Oktober 2026
+# Prüfbericht – Version 1.5, 14. Oktober 2026
 
 Geprüft auf Linux mit Python 3.12.14 und Chromium. Ausschließlich künstliche
 E-Mails, Fake-IMAP und lokale Loopback-Verbindungen. Windows/macOS wurden nicht
@@ -16,11 +16,12 @@ mit leeren Passwortfeldern. Die neuen Sprachprüfungen bestätigen dieselben
 Ergebnisse in Deutsch und Englisch, unveränderte gespeicherte Belege, beide
 E-Mail-Sprachen, lokalisierte Hinweise, CLI und unveränderte technische Kennungen.
 
-Der Browser-Test hat **14 Prüfgruppen** bestanden: Filter, Checklisten, Export,
-Import, eigene Adressen, mobile Ansicht, Sprachwechsel in beiden Richtungen,
-gespeicherte Sprachwahl, deutsche Exporthinweise, erhaltene Auswahl,
-Spracherkennung in getrennten Browserprofilen, Rückfall auf Englisch und
-gesperrter Browser-Speicher. Keine Seitenfehler und keine externen Browseranfragen.
+Der Browser-Test hat **15 Prüfgruppen** bestanden: lokale Free-Edition und
+transparente Pro-Vorschau ohne Checkout, Filter, Checklisten, Export, Import,
+eigene Adressen, mobile Ansicht, Sprachwechsel in beiden Richtungen, gespeicherte
+Sprachwahl, deutsche Exporthinweise, erhaltene Auswahl, Spracherkennung in
+getrennten Browserprofilen, Rückfall auf Englisch und gesperrter Browser-Speicher.
+Keine Seitenfehler und keine externen Browseranfragen.
 
 Es wurden keine echten Postfächer verbunden, DNS-Abfragen für Nutzer-Domains
 ausgeführt oder Bitwarden-Tresore gelesen bzw. verändert. Das fertige Archiv

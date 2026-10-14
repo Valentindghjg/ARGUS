@@ -398,6 +398,27 @@
     "{processed} messages processed · New clues: {evidence} · Updated: {updated} · Duplicates: {duplicates} · Skipped: {skipped} · Errors: {errors}. {outcome}{headers}{folders}{scope}": "{processed} Nachrichten verarbeitet · Neue Hinweise: {evidence} · Aktualisiert: {updated} · Duplikate: {duplicates} · Übersprungen: {skipped} · Fehler: {errors}. {outcome}{headers}{folders}{scope}",
     "“Confirmed” means reviewed by you. Emails can be historical or spoofed. The score describes clue strength, not a verified probability.": "„Bestätigt“ bedeutet von dir geprüft. E-Mail-Hinweise können historisch oder gefälscht sein. Der Score bewertet die Stärke des Hinweises, keine geprüfte Wahrscheinlichkeit.",
     "＋ Import emails": "＋ E-Mails importieren",
-    "Use an app password only if supported by your account; otherwise use OAuth2. Follow your administrator’s IMAP policy.": "App-Passwort nur falls vom Konto unterstützt; andernfalls OAuth2. IMAP-Freigabe des Administrators beachten."
+    "Use an app password only if supported by your account; otherwise use OAuth2. Follow your administrator’s IMAP policy.": "App-Passwort nur falls vom Konto unterstützt; andernfalls OAuth2. IMAP-Freigabe des Administrators beachten.",
+    "ACCOUNT COMPASS EDITIONS": "ACCOUNT COMPASS EDITIONEN",
+    "Account Compass Pro": "Account Compass Pro",
+    "A future optional upgrade for people who want extra local organization and reporting tools.": "Ein künftiges optionales Upgrade für Menschen, die zusätzliche lokale Organisations- und Berichtswerkzeuge möchten.",
+    "Advanced personal security reports": "Erweiterte persönliche Sicherheitsberichte",
+    "Available now": "Jetzt verfügbar",
+    "Choose the edition that fits your workflow.": "Wähle die Edition, die zu deinem Ablauf passt.",
+    "Choose your local edition.": "Wähle deine lokale Edition.",
+    "Continue with Free": "Mit Free fortfahren",
+    "Everything needed to build and secure a personal account inventory locally.": "Alles, was du brauchst, um eine persönliche Account-Inventur lokal aufzubauen und abzusichern.",
+    "Local account inventory and 527-provider catalog": "Lokale Account-Inventur und Katalog mit 527 Anbietern",
+    "Local EML, mbox, Maildir and opt-in read-only IMAP analysis": "Lokale EML-, mbox- und Maildir-Analyse sowie optionaler lesender IMAP-Scan",
+    "Local encrypted backup and recovery workflow": "Lokaler verschlüsselter Sicherungs- und Wiederherstellungsablauf",
+    "Neither edition asks for your Bitwarden master password or sends mailbox content to an external service. Future purchases must use a separate checkout controlled by the publisher; no payment secret belongs in this app or this repository.": "Keine Edition fragt nach deinem Bitwarden-Hauptpasswort oder sendet Postfachinhalte an einen externen Dienst. Künftige Käufe müssen über einen getrennten Checkout des Herausgebers laufen; Zahlungsgeheimnisse gehören weder in die App noch in dieses Repository.",
+    "Plans": "Editionen",
+    "Preview": "Vorschau",
+    "Pro is not for sale yet. This app does not collect payment details, create an online account or send telemetry.": "Pro ist noch nicht erhältlich. Diese App erfasst keine Zahlungsdaten, erstellt kein Online-Konto und sendet keine Telemetrie.",
+    "Scheduled local review reminders": "Geplante lokale Prüferinnerungen",
+    "Security checklists and password-free Bitwarden metadata": "Sicherheitschecklisten und passwortfreie Bitwarden-Metadaten",
+    "The Free edition works entirely locally. Pro is a preview and cannot be purchased or activated in this build.": "Die Free-Edition arbeitet vollständig lokal. Pro ist eine Vorschau und kann in dieser Version weder gekauft noch aktiviert werden.",
+    "Your data stays local in every edition.": "Deine Daten bleiben in jeder Edition lokal.",
+    "Account Compass Free is available now; Pro is a transparent preview.": "Account Compass Free ist jetzt verfügbar; Pro ist eine transparente Vorschau."
   }
 }

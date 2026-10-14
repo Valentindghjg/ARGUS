@@ -1,5 +1,17 @@
 # Change log
 
+## 1.5.0 — Freemium foundation, 14 October 2026
+
+- Added the local **Account Compass Free** edition and a dashboard Plans page
+  with a transparent, unavailable Pro preview.
+- Product metadata is local and test-covered. The build contains no checkout,
+  payment information, telemetry, online account or license activation.
+- Added English/German Freemium documentation and a commercial-release checklist
+  for the future publisher. It requires a real seller, license, legal terms,
+  payment provider and signed entitlement design before paid features ship.
+- Existing profiles, account detection, data schema and Free features remain
+  unchanged.
+
 ## 1.4.0 — Public-release preparation and catalog expansion, 14 October 2026
 
 - Built-in catalog expanded from 372 to **527** provider entries across all

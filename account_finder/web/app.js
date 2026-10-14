@@ -44,7 +44,8 @@ const titles = {
   accounts:["Your digital inventory.","Review your clues and keep unknown services in view.","All accounts"],
   security:["Secure the most important accounts first.","Prioritize your mailbox, finance and central services.","Security priorities"],
   bitwarden:["A secure password for every account.","Prepare new vault items and make the changes yourself.","Prepare Bitwarden"],
-  setup:["Start with your mailbox.","Import existing messages or set up read-only IMAP access.","Mailbox & Import"]
+  setup:["Start with your mailbox.","Import existing messages or set up read-only IMAP access.","Mailbox & Import"],
+  plans:["Choose your local edition.","Account Compass Free is available now; Pro is a transparent preview.","Plans"]
 };
 function node(tag, text, className) { const e=document.createElement(tag); if(text!==undefined)e.textContent=text; if(className)e.className=className; return e; }
 function error(message) { setMessage("error",canonicalMessage(message)); $("error").classList.remove("hidden"); }
@@ -78,7 +79,13 @@ function renderState() {
   $("add-alias-button").disabled=state.demo||addingAlias||Boolean(activeBatch||state.active_import);
   $("alias-email").disabled=state.demo;$("alias-owned").disabled=state.demo;
   if(state.demo)setMessage("alias-message","Add real own addresses in a personal profile on your computer. The demo profile stays separate.");
-  renderRows();renderCandidates();renderExport();
+  renderRows();renderCandidates();renderExport();renderPlans();
+}
+function renderPlans(){
+  const product=state.product;
+  $("free-plan-name").textContent=product.name;
+  $("free-plan-features").replaceChildren(...product.free_features.map(feature=>node("li",t(feature))));
+  $("pro-plan-features").replaceChildren(...product.pro_preview.map(feature=>node("li",t(feature))));
 }
 function scanDescription(scan){
   if(!scan)return t("No scan started yet.");
@@ -107,6 +114,7 @@ function navigate(next,clearError=true){
   $("inventory-view").classList.toggle("hidden",!["dashboard","accounts","security"].includes(next));
   $("bitwarden-view").classList.toggle("hidden",next!=="bitwarden");
   $("setup-view").classList.toggle("hidden",next!=="setup");
+  $("plans-view").classList.toggle("hidden",next!=="plans");
   $("list-title").textContent=next==="security"?t("High-priority accounts"):t("Your account inventory");
   if(state)renderRows();
 }

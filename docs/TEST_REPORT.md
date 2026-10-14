@@ -1,4 +1,4 @@
-# Test report — Version 1.4, 14 October 2026
+# Test report — Version 1.5, 14 October 2026
 
 Tested on Linux with Python 3.12.14 and system Chromium. Runtime requires Python
 3.11 or newer. Windows/macOS have not been separately exercised. All email
@@ -40,6 +40,8 @@ Coverage includes:
   parallel imports, expiry and server shutdown.
 - English display of stored German explanations while retaining the original
   stored value, manual confirmation and current rule version.
+- Local Free product metadata, unavailable Pro preview, no billing configuration
+  and no telemetry flag.
 
 ## Language-specific regression checks
 
@@ -56,20 +58,21 @@ Coverage includes:
 
 ```text
 python scripts/browser_smoke.py --browser /usr/bin/chromium --screenshots-dir docs/preview
-14 functional groups passed
+15 functional groups passed
 page_errors: []
 external_requests: 0
 ```
 
 A separate temporary synthetic profile was used. The checks cover the English
-desktop page and `lang="en"`, statistics, search, category and unknown filters,
+desktop page and `lang="en"`, local Free/Pro product presentation without a
+checkout, statistics, search, category and unknown filters,
 password-free download, manual review and checklist persistence, EML import,
 multi-file totals with a duplicate and invalid file after reload, alias addition,
 preserved export choices, and the mobile layout at 390 px. Outgoing browser
 requests were blocked and none were attempted. Desktop and mobile screenshots
 were inspected visually.
 
-[Desktop preview](preview/dashboard.png) · [Mobile preview](preview/mobile.png)
+[Desktop preview](preview/dashboard.png) · [Plans preview](preview/plans.png) · [Mobile preview](preview/mobile.png)
 
 Additional checks: JavaScript syntax, Python compilation, CLI help, archive
 integrity and running the demo from an extracted archive. The version-1.1, version-1.2 and version-1.3 `RULES` values were compared directly
@@ -88,7 +91,8 @@ uses documented JSON structure and browser download checks. Personal provider
 settings still need individual verification before an authorized connection.
 Not all 527 provider websites were visited. Complete account coverage is not claimed.
 
-Version 1.4 additionally passed browser checks for switching filters and open
+Version 1.5 additionally passed browser checks for the local Free edition and
+transparent unavailable Pro preview, as well as switching filters and open
 checklists, remembered language after reload, German metadata export notes,
 retained export selection, German mobile layout, independent browser locales,
 unsupported-language fallback, blocked preference storage and switching during

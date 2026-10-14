@@ -234,6 +234,8 @@ class Store:
             "last_scan": self.meta("last_scan"),
             "stale_evidence": stale_evidence, "analysis_version": ANALYSIS_VERSION,
         }
+        from .product import public_product
+        snapshot["product"] = public_product()
         from .i18n import localize_snapshot
         return localize_snapshot(snapshot, language)
 

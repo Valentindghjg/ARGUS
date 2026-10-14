@@ -1,15 +1,15 @@
-# Änderungen – Version 1.4
+# Änderungen – Version 1.5
 
 [English change log](CHANGELOG.md) · [Deutsche Anleitung](../README_DE.md)
 
-- Katalog von 372 auf **527** Dienste erweitert. Die Erweiterung ordnet nur
-  lokale Absenderdomains zu und führt keine Anbieterabfragen aus.
-- Katalogrichtlinie, Veröffentlichungs-Checkliste, Support-Hinweise,
-  Verhaltenskodex, Dependabot- und Issue-Konfiguration für eine öffentliche
-  GitHub-Veröffentlichung ergänzt.
-- Lizenz wird bewusst nicht vorausgewählt: Vor einer öffentlichen Freigabe muss
-  der Repository-Inhaber eine Lizenz entscheiden und als `LICENSE` ergänzen.
-- 98 Python-Tests und 14 Browser-Prüfgruppen verwenden ausschließlich künstliche
+- Lokale Free-Edition und eine transparente, noch nicht kauf- oder aktivierbare
+  Pro-Vorschau im Dashboard ergänzt.
+- Weder Checkout noch Zahlungsdaten, Telemetrie, Online-Konto oder künstliche
+  Testlimits hinzugefügt. Die bisherigen Free-Funktionen bleiben erhalten.
+- Freemium-Plan und Checkliste für kommerzielle Veröffentlichung dokumentieren
+  die noch nötigen Entscheidungen zu Verkäufer, Lizenz, Rechtstexten und
+  Zahlungsanbieter.
+- 98 Python-Tests und 15 Browser-Prüfgruppen verwenden ausschließlich künstliche
   Daten.
 
 ## Update von 1.1 bis 1.3

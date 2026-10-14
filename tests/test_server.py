@@ -41,7 +41,13 @@ class ServerTests(unittest.TestCase):
     def test_authenticated_snapshot(self):
         status, _, data = self.request("/api/accounts")
         self.assertEqual(status,200)
-        self.assertGreaterEqual(json.loads(data)["summary"]["providers"],200)
+        snapshot = json.loads(data)
+        self.assertGreaterEqual(snapshot["summary"]["providers"],500)
+        self.assertEqual(snapshot["product"]["id"], "free")
+        self.assertEqual(snapshot["product"]["billing"], "not_configured")
+        self.assertFalse(snapshot["product"]["telemetry"])
+        self.assertTrue(snapshot["product"]["free_features"])
+        self.assertTrue(snapshot["product"]["pro_preview"])
 
     def test_api_requires_token(self):
         self.assertEqual(self.request("/api/accounts",authorized=False)[0],401)
