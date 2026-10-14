@@ -1,4 +1,4 @@
-# Account Compass 1.5
+# Account Compass 1.6
 
 [Deutsch](README_DE.md) · English
 
