@@ -87,7 +87,7 @@ remain unverified candidates.
 
 ## Verification limits
 
-No real MX query for baumgartner.in, real IMAP login or import into a real Bitwarden
+No real MX query for a personal email domain, real IMAP login or import into a real Bitwarden
 vault has been performed. IMAP uses a recording fake implementation; Bitwarden
 uses documented JSON structure and browser download checks. Personal provider
 settings still need individual verification before an authorized connection.
