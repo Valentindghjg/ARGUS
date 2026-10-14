@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "notes": "Curated domain catalog; no account queries. Sender domains and historical services may change. Password links require a separate official source.",
+  "notes": "Curated public-domain catalog; no account queries. Domains are matched only against local email evidence. Sender domains and historical services may change. Password links require a separate official source.",
   "providers": [
     {
       "id": "instagram",
@@ -3808,6 +3808,1556 @@
       "category": "Dating",
       "domains": [
         "lovoo.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "clubhouse",
+      "name": "Clubhouse",
+      "website": "https://clubhouse.com/",
+      "category": "Social Media",
+      "domains": [
+        "clubhouse.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "couchsurfing",
+      "name": "Couchsurfing",
+      "website": "https://couchsurfing.com/",
+      "category": "Social Media",
+      "domains": [
+        "couchsurfing.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "yubo",
+      "name": "Yubo",
+      "website": "https://yubo.live/",
+      "category": "Social Media",
+      "domains": [
+        "yubo.live"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "meetme",
+      "name": "MeetMe",
+      "website": "https://meetme.com/",
+      "category": "Social Media",
+      "domains": [
+        "meetme.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "kik",
+      "name": "Kik",
+      "website": "https://kik.com/",
+      "category": "Communication",
+      "domains": [
+        "kik.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "wechat",
+      "name": "WeChat",
+      "website": "https://wechat.com/",
+      "category": "Communication",
+      "domains": [
+        "wechat.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "zalo",
+      "name": "Zalo",
+      "website": "https://zalo.me/",
+      "category": "Communication",
+      "domains": [
+        "zalo.me"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "kakao",
+      "name": "KakaoTalk",
+      "website": "https://kakao.com/",
+      "category": "Communication",
+      "domains": [
+        "kakao.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "session",
+      "name": "Session",
+      "website": "https://getsession.org/",
+      "category": "Communication",
+      "domains": [
+        "getsession.org"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "guilded",
+      "name": "Guilded",
+      "website": "https://guilded.gg/",
+      "category": "Communication",
+      "domains": [
+        "guilded.gg"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "gamejolt",
+      "name": "Game Jolt",
+      "website": "https://gamejolt.com/",
+      "category": "Gaming",
+      "domains": [
+        "gamejolt.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "indiegala",
+      "name": "IndieGala",
+      "website": "https://indiegala.com/",
+      "category": "Gaming",
+      "domains": [
+        "indiegala.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "gamersgate",
+      "name": "GamersGate",
+      "website": "https://gamersgate.com/",
+      "category": "Gaming",
+      "domains": [
+        "gamersgate.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "greenmangaming",
+      "name": "Green Man Gaming",
+      "website": "https://greenmangaming.com/",
+      "category": "Gaming",
+      "domains": [
+        "greenmangaming.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "fanatical",
+      "name": "Fanatical",
+      "website": "https://fanatical.com/",
+      "category": "Gaming",
+      "domains": [
+        "fanatical.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "eneba",
+      "name": "Eneba",
+      "website": "https://eneba.com/",
+      "category": "Gaming",
+      "domains": [
+        "eneba.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "kinguin",
+      "name": "Kinguin",
+      "website": "https://kinguin.net/",
+      "category": "Gaming",
+      "domains": [
+        "kinguin.net"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "gamivo",
+      "name": "GAMIVO",
+      "website": "https://gamivo.com/",
+      "category": "Gaming",
+      "domains": [
+        "gamivo.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "razer",
+      "name": "Razer",
+      "website": "https://razer.com/",
+      "category": "Gaming",
+      "domains": [
+        "razer.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "corsair",
+      "name": "Corsair",
+      "website": "https://corsair.com/",
+      "category": "Gaming",
+      "domains": [
+        "corsair.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "overwolf",
+      "name": "Overwolf",
+      "website": "https://overwolf.com/",
+      "category": "Gaming",
+      "domains": [
+        "overwolf.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "wayfair",
+      "name": "Wayfair",
+      "website": "https://wayfair.com/",
+      "category": "Shopping",
+      "domains": [
+        "wayfair.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "homedepot",
+      "name": "The Home Depot",
+      "website": "https://homedepot.com/",
+      "category": "Shopping",
+      "domains": [
+        "homedepot.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "lowes",
+      "name": "Lowe’s",
+      "website": "https://lowes.com/",
+      "category": "Shopping",
+      "domains": [
+        "lowes.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "costco",
+      "name": "Costco",
+      "website": "https://costco.com/",
+      "category": "Shopping",
+      "domains": [
+        "costco.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "chewy",
+      "name": "Chewy",
+      "website": "https://chewy.com/",
+      "category": "Shopping",
+      "domains": [
+        "chewy.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "sephora",
+      "name": "Sephora",
+      "website": "https://sephora.com/",
+      "category": "Shopping",
+      "domains": [
+        "sephora.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "ulta",
+      "name": "Ulta Beauty",
+      "website": "https://ulta.com/",
+      "category": "Shopping",
+      "domains": [
+        "ulta.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "macys",
+      "name": "Macy’s",
+      "website": "https://macys.com/",
+      "category": "Shopping",
+      "domains": [
+        "macys.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "nordstrom",
+      "name": "Nordstrom",
+      "website": "https://nordstrom.com/",
+      "category": "Shopping",
+      "domains": [
+        "nordstrom.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "boohoo",
+      "name": "boohoo",
+      "website": "https://boohoo.com/",
+      "category": "Shopping",
+      "domains": [
+        "boohoo.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "farfetch",
+      "name": "FARFETCH",
+      "website": "https://farfetch.com/",
+      "category": "Shopping",
+      "domains": [
+        "farfetch.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "jcrew",
+      "name": "J.Crew",
+      "website": "https://jcrew.com/",
+      "category": "Shopping",
+      "domains": [
+        "jcrew.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "carhartt",
+      "name": "Carhartt",
+      "website": "https://carhartt.com/",
+      "category": "Shopping",
+      "domains": [
+        "carhartt.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "newbalance",
+      "name": "New Balance",
+      "website": "https://newbalance.com/",
+      "category": "Shopping",
+      "domains": [
+        "newbalance.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "underarmour",
+      "name": "Under Armour",
+      "website": "https://underarmour.com/",
+      "category": "Shopping",
+      "domains": [
+        "underarmour.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "lego",
+      "name": "LEGO",
+      "website": "https://lego.com/",
+      "category": "Shopping",
+      "domains": [
+        "lego.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "crocs",
+      "name": "Crocs",
+      "website": "https://crocs.com/",
+      "category": "Shopping",
+      "domains": [
+        "crocs.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "thomann",
+      "name": "Thomann",
+      "website": "https://thomann.de/",
+      "category": "Shopping",
+      "domains": [
+        "thomann.de"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "musicstore",
+      "name": "MUSIC STORE",
+      "website": "https://musicstore.com/",
+      "category": "Shopping",
+      "domains": [
+        "musicstore.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "bose",
+      "name": "Bose",
+      "website": "https://bose.com/",
+      "category": "Shopping",
+      "domains": [
+        "bose.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "sonos",
+      "name": "Sonos",
+      "website": "https://sonos.com/",
+      "category": "Shopping",
+      "domains": [
+        "sonos.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "nebula",
+      "name": "Nebula",
+      "website": "https://nebula.tv/",
+      "category": "Streaming",
+      "domains": [
+        "nebula.tv"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "dropout",
+      "name": "Dropout",
+      "website": "https://dropout.tv/",
+      "category": "Streaming",
+      "domains": [
+        "dropout.tv"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "curiositystream",
+      "name": "Curiosity Stream",
+      "website": "https://curiositystream.com/",
+      "category": "Streaming",
+      "domains": [
+        "curiositystream.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "kanopy",
+      "name": "Kanopy",
+      "website": "https://kanopy.com/",
+      "category": "Streaming",
+      "domains": [
+        "kanopy.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "shudder",
+      "name": "Shudder",
+      "website": "https://shudder.com/",
+      "category": "Streaming",
+      "domains": [
+        "shudder.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "britbox",
+      "name": "BritBox",
+      "website": "https://britbox.com/",
+      "category": "Streaming",
+      "domains": [
+        "britbox.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "fubo",
+      "name": "Fubo",
+      "website": "https://fubo.tv/",
+      "category": "Streaming",
+      "domains": [
+        "fubo.tv"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "plutotv",
+      "name": "Pluto TV",
+      "website": "https://pluto.tv/",
+      "category": "Streaming",
+      "domains": [
+        "pluto.tv"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "tubi",
+      "name": "Tubi",
+      "website": "https://tubitv.com/",
+      "category": "Streaming",
+      "domains": [
+        "tubitv.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "crave",
+      "name": "Crave",
+      "website": "https://crave.ca/",
+      "category": "Streaming",
+      "domains": [
+        "crave.ca"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "hayu",
+      "name": "hayu",
+      "website": "https://hayu.com/",
+      "category": "Streaming",
+      "domains": [
+        "hayu.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "kick",
+      "name": "Kick",
+      "website": "https://kick.com/",
+      "category": "Media & Community",
+      "domains": [
+        "kick.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "rumble",
+      "name": "Rumble",
+      "website": "https://rumble.com/",
+      "category": "Media & Community",
+      "domains": [
+        "rumble.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "spreaker",
+      "name": "Spreaker",
+      "website": "https://spreaker.com/",
+      "category": "Media & Community",
+      "domains": [
+        "spreaker.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "podimo",
+      "name": "Podimo",
+      "website": "https://podimo.com/",
+      "category": "Media & Community",
+      "domains": [
+        "podimo.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "tunein",
+      "name": "TuneIn",
+      "website": "https://tunein.com/",
+      "category": "Media & Community",
+      "domains": [
+        "tunein.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "pocketcasts",
+      "name": "Pocket Casts",
+      "website": "https://pocketcasts.com/",
+      "category": "Media & Community",
+      "domains": [
+        "pocketcasts.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "overcast",
+      "name": "Overcast",
+      "website": "https://overcast.fm/",
+      "category": "Media & Community",
+      "domains": [
+        "overcast.fm"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "linear",
+      "name": "Linear",
+      "website": "https://linear.app/",
+      "category": "Productivity",
+      "domains": [
+        "linear.app"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "coda",
+      "name": "Coda",
+      "website": "https://coda.io/",
+      "category": "Productivity",
+      "domains": [
+        "coda.io"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "loom",
+      "name": "Loom",
+      "website": "https://loom.com/",
+      "category": "Productivity",
+      "domains": [
+        "loom.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "obsidian",
+      "name": "Obsidian",
+      "website": "https://obsidian.md/",
+      "category": "Productivity",
+      "domains": [
+        "obsidian.md"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "basecamp",
+      "name": "Basecamp",
+      "website": "https://basecamp.com/",
+      "category": "Productivity",
+      "domains": [
+        "basecamp.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "wetransfer",
+      "name": "WeTransfer",
+      "website": "https://wetransfer.com/",
+      "category": "Productivity",
+      "domains": [
+        "wetransfer.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "mural",
+      "name": "Mural",
+      "website": "https://mural.co/",
+      "category": "Productivity",
+      "domains": [
+        "mural.co"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "whimsical",
+      "name": "Whimsical",
+      "website": "https://whimsical.com/",
+      "category": "Productivity",
+      "domains": [
+        "whimsical.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "milanote",
+      "name": "Milanote",
+      "website": "https://milanote.com/",
+      "category": "Productivity",
+      "domains": [
+        "milanote.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "craft",
+      "name": "Craft",
+      "website": "https://craft.do/",
+      "category": "Productivity",
+      "domains": [
+        "craft.do"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "ticktick",
+      "name": "TickTick",
+      "website": "https://ticktick.com/",
+      "category": "Productivity",
+      "domains": [
+        "ticktick.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "anytype",
+      "name": "Anytype",
+      "website": "https://anytype.io/",
+      "category": "Productivity",
+      "domains": [
+        "anytype.io"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "readwise",
+      "name": "Readwise",
+      "website": "https://readwise.io/",
+      "category": "Productivity",
+      "domains": [
+        "readwise.io"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "toggl",
+      "name": "Toggl",
+      "website": "https://toggl.com/",
+      "category": "Productivity",
+      "domains": [
+        "toggl.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "clockify",
+      "name": "Clockify",
+      "website": "https://clockify.me/",
+      "category": "Productivity",
+      "domains": [
+        "clockify.me"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "rescuetime",
+      "name": "RescueTime",
+      "website": "https://rescuetime.com/",
+      "category": "Productivity",
+      "domains": [
+        "rescuetime.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "mailchimp",
+      "name": "Mailchimp",
+      "website": "https://mailchimp.com/",
+      "category": "Technology",
+      "domains": [
+        "mailchimp.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "sendgrid",
+      "name": "Twilio SendGrid",
+      "website": "https://sendgrid.com/",
+      "category": "Technology",
+      "domains": [
+        "sendgrid.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "twilio",
+      "name": "Twilio",
+      "website": "https://twilio.com/",
+      "category": "Technology",
+      "domains": [
+        "twilio.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "postman",
+      "name": "Postman",
+      "website": "https://postman.com/",
+      "category": "Technology",
+      "domains": [
+        "postman.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "circleci",
+      "name": "CircleCI",
+      "website": "https://circleci.com/",
+      "category": "Technology",
+      "domains": [
+        "circleci.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "travis",
+      "name": "Travis CI",
+      "website": "https://travis-ci.com/",
+      "category": "Technology",
+      "domains": [
+        "travis-ci.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "codecov",
+      "name": "Codecov",
+      "website": "https://codecov.io/",
+      "category": "Technology",
+      "domains": [
+        "codecov.io"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "hashicorp",
+      "name": "HashiCorp",
+      "website": "https://hashicorp.com/",
+      "category": "Technology",
+      "domains": [
+        "hashicorp.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "plausible",
+      "name": "Plausible",
+      "website": "https://plausible.io/",
+      "category": "Technology",
+      "domains": [
+        "plausible.io"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "umami",
+      "name": "Umami",
+      "website": "https://umami.is/",
+      "category": "Technology",
+      "domains": [
+        "umami.is"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "heroku",
+      "name": "Heroku",
+      "website": "https://heroku.com/",
+      "category": "Technology",
+      "domains": [
+        "heroku.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "salesforce",
+      "name": "Salesforce",
+      "website": "https://salesforce.com/",
+      "category": "Technology",
+      "domains": [
+        "salesforce.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "oracle",
+      "name": "Oracle",
+      "website": "https://oracle.com/",
+      "category": "Technology",
+      "domains": [
+        "oracle.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "sap",
+      "name": "SAP",
+      "website": "https://sap.com/",
+      "category": "Technology",
+      "domains": [
+        "sap.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "firebase",
+      "name": "Firebase",
+      "website": "https://firebase.google.com/",
+      "category": "Technology",
+      "domains": [
+        "firebase.google.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "cashapp",
+      "name": "Cash App",
+      "website": "https://cash.app/",
+      "category": "Finance",
+      "domains": [
+        "cash.app"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "venmo",
+      "name": "Venmo",
+      "website": "https://venmo.com/",
+      "category": "Finance",
+      "domains": [
+        "venmo.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "payoneer",
+      "name": "Payoneer",
+      "website": "https://payoneer.com/",
+      "category": "Finance",
+      "domains": [
+        "payoneer.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "worldremit",
+      "name": "WorldRemit",
+      "website": "https://worldremit.com/",
+      "category": "Finance",
+      "domains": [
+        "worldremit.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "remitly",
+      "name": "Remitly",
+      "website": "https://remitly.com/",
+      "category": "Finance",
+      "domains": [
+        "remitly.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "westernunion",
+      "name": "Western Union",
+      "website": "https://westernunion.com/",
+      "category": "Finance",
+      "domains": [
+        "westernunion.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "moneygram",
+      "name": "MoneyGram",
+      "website": "https://moneygram.com/",
+      "category": "Finance",
+      "domains": [
+        "moneygram.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "affirm",
+      "name": "Affirm",
+      "website": "https://affirm.com/",
+      "category": "Finance",
+      "domains": [
+        "affirm.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "afterpay",
+      "name": "Afterpay",
+      "website": "https://afterpay.com/",
+      "category": "Finance",
+      "domains": [
+        "afterpay.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "sezzle",
+      "name": "Sezzle",
+      "website": "https://sezzle.com/",
+      "category": "Finance",
+      "domains": [
+        "sezzle.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "zelle",
+      "name": "Zelle",
+      "website": "https://zellepay.com/",
+      "category": "Finance",
+      "domains": [
+        "zellepay.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "wealthfront",
+      "name": "Wealthfront",
+      "website": "https://wealthfront.com/",
+      "category": "Finance",
+      "domains": [
+        "wealthfront.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "robinhood",
+      "name": "Robinhood",
+      "website": "https://robinhood.com/",
+      "category": "Finance",
+      "domains": [
+        "robinhood.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "webull",
+      "name": "Webull",
+      "website": "https://webull.com/",
+      "category": "Finance",
+      "domains": [
+        "webull.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "fidelity",
+      "name": "Fidelity",
+      "website": "https://fidelity.com/",
+      "category": "Finance",
+      "domains": [
+        "fidelity.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "vanguard",
+      "name": "Vanguard",
+      "website": "https://vanguard.com/",
+      "category": "Finance",
+      "domains": [
+        "vanguard.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "sofi",
+      "name": "SoFi",
+      "website": "https://sofi.com/",
+      "category": "Finance",
+      "domains": [
+        "sofi.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "udacity",
+      "name": "Udacity",
+      "website": "https://udacity.com/",
+      "category": "Education",
+      "domains": [
+        "udacity.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "pluralsight",
+      "name": "Pluralsight",
+      "website": "https://pluralsight.com/",
+      "category": "Education",
+      "domains": [
+        "pluralsight.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "masterclass",
+      "name": "MasterClass",
+      "website": "https://masterclass.com/",
+      "category": "Education",
+      "domains": [
+        "masterclass.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "futurelearn",
+      "name": "FutureLearn",
+      "website": "https://futurelearn.com/",
+      "category": "Education",
+      "domains": [
+        "futurelearn.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "openclassrooms",
+      "name": "OpenClassrooms",
+      "website": "https://openclassrooms.com/",
+      "category": "Education",
+      "domains": [
+        "openclassrooms.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "freecodecamp",
+      "name": "freeCodeCamp",
+      "website": "https://freecodecamp.org/",
+      "category": "Education",
+      "domains": [
+        "freecodecamp.org"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "sololearn",
+      "name": "Sololearn",
+      "website": "https://sololearn.com/",
+      "category": "Education",
+      "domains": [
+        "sololearn.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "memrise",
+      "name": "Memrise",
+      "website": "https://memrise.com/",
+      "category": "Education",
+      "domains": [
+        "memrise.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "busuu",
+      "name": "Busuu",
+      "website": "https://busuu.com/",
+      "category": "Education",
+      "domains": [
+        "busuu.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "lingoda",
+      "name": "Lingoda",
+      "website": "https://lingoda.com/",
+      "category": "Education",
+      "domains": [
+        "lingoda.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "hostelworld",
+      "name": "Hostelworld",
+      "website": "https://hostelworld.com/",
+      "category": "Travel & Mobility",
+      "domains": [
+        "hostelworld.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "agoda",
+      "name": "Agoda",
+      "website": "https://agoda.com/",
+      "category": "Travel & Mobility",
+      "domains": [
+        "agoda.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "vrbo",
+      "name": "Vrbo",
+      "website": "https://vrbo.com/",
+      "category": "Travel & Mobility",
+      "domains": [
+        "vrbo.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "tripcom",
+      "name": "Trip.com",
+      "website": "https://trip.com/",
+      "category": "Travel & Mobility",
+      "domains": [
+        "trip.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "trainline",
+      "name": "Trainline",
+      "website": "https://thetrainline.com/",
+      "category": "Travel & Mobility",
+      "domains": [
+        "thetrainline.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "rome2rio",
+      "name": "Rome2Rio",
+      "website": "https://rome2rio.com/",
+      "category": "Travel & Mobility",
+      "domains": [
+        "rome2rio.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "getyourguide",
+      "name": "GetYourGuide",
+      "website": "https://getyourguide.com/",
+      "category": "Travel & Mobility",
+      "domains": [
+        "getyourguide.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "viator",
+      "name": "Viator",
+      "website": "https://viator.com/",
+      "category": "Travel & Mobility",
+      "domains": [
+        "viator.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "tui",
+      "name": "TUI",
+      "website": "https://tui.com/",
+      "category": "Travel & Mobility",
+      "domains": [
+        "tui.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "qatarairways",
+      "name": "Qatar Airways",
+      "website": "https://qatarairways.com/",
+      "category": "Travel & Mobility",
+      "domains": [
+        "qatarairways.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "klm",
+      "name": "KLM",
+      "website": "https://klm.com/",
+      "category": "Travel & Mobility",
+      "domains": [
+        "klm.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "airfrance",
+      "name": "Air France",
+      "website": "https://airfrance.com/",
+      "category": "Travel & Mobility",
+      "domains": [
+        "airfrance.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "swiss",
+      "name": "SWISS",
+      "website": "https://swiss.com/",
+      "category": "Travel & Mobility",
+      "domains": [
+        "swiss.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "turkishairlines",
+      "name": "Turkish Airlines",
+      "website": "https://turkishairlines.com/",
+      "category": "Travel & Mobility",
+      "domains": [
+        "turkishairlines.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "avis",
+      "name": "Avis",
+      "website": "https://avis.com/",
+      "category": "Travel & Mobility",
+      "domains": [
+        "avis.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "enterprise",
+      "name": "Enterprise",
+      "website": "https://enterprise.com/",
+      "category": "Travel & Mobility",
+      "domains": [
+        "enterprise.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "blablacar",
+      "name": "BlaBlaCar",
+      "website": "https://blablacar.com/",
+      "category": "Travel & Mobility",
+      "domains": [
+        "blablacar.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "peloton",
+      "name": "Peloton",
+      "website": "https://onepeloton.com/",
+      "category": "Health & Fitness",
+      "domains": [
+        "onepeloton.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "zwift",
+      "name": "Zwift",
+      "website": "https://zwift.com/",
+      "category": "Health & Fitness",
+      "domains": [
+        "zwift.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "fiton",
+      "name": "FitOn",
+      "website": "https://fitonapp.com/",
+      "category": "Health & Fitness",
+      "domains": [
+        "fitonapp.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "yazio",
+      "name": "YAZIO",
+      "website": "https://yazio.com/",
+      "category": "Health & Fitness",
+      "domains": [
+        "yazio.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "withings",
+      "name": "Withings",
+      "website": "https://withings.com/",
+      "category": "Health & Fitness",
+      "domains": [
+        "withings.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "whoop",
+      "name": "WHOOP",
+      "website": "https://whoop.com/",
+      "category": "Health & Fitness",
+      "domains": [
+        "whoop.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "grubhub",
+      "name": "Grubhub",
+      "website": "https://grubhub.com/",
+      "category": "Food & Delivery",
+      "domains": [
+        "grubhub.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "postmates",
+      "name": "Postmates",
+      "website": "https://postmates.com/",
+      "category": "Food & Delivery",
+      "domains": [
+        "postmates.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "instacart",
+      "name": "Instacart",
+      "website": "https://instacart.com/",
+      "category": "Food & Delivery",
+      "domains": [
+        "instacart.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "gopuff",
+      "name": "Gopuff",
+      "website": "https://gopuff.com/",
+      "category": "Food & Delivery",
+      "domains": [
+        "gopuff.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "gorillas",
+      "name": "Gorillas",
+      "website": "https://gorillas.io/",
+      "category": "Food & Delivery",
+      "domains": [
+        "gorillas.io"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "glovo",
+      "name": "Glovo",
+      "website": "https://glovoapp.com/",
+      "category": "Food & Delivery",
+      "domains": [
+        "glovoapp.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "match",
+      "name": "Match",
+      "website": "https://match.com/",
+      "category": "Dating",
+      "domains": [
+        "match.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "eharmony",
+      "name": "eharmony",
+      "website": "https://eharmony.com/",
+      "category": "Dating",
+      "domains": [
+        "eharmony.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "happn",
+      "name": "happn",
+      "website": "https://happn.com/",
+      "category": "Dating",
+      "domains": [
+        "happn.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "feeld",
+      "name": "Feeld",
+      "website": "https://feeld.co/",
+      "category": "Dating",
+      "domains": [
+        "feeld.co"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "coffeemeetsbagel",
+      "name": "Coffee Meets Bagel",
+      "website": "https://coffeemeetsbagel.com/",
+      "category": "Dating",
+      "domains": [
+        "coffeemeetsbagel.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "plentyoffish",
+      "name": "Plenty of Fish",
+      "website": "https://pof.com/",
+      "category": "Dating",
+      "domains": [
+        "pof.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "hily",
+      "name": "Hily",
+      "website": "https://hily.com/",
+      "category": "Dating",
+      "domains": [
+        "hily.com"
+      ],
+      "priority": "normal"
+    },
+    {
+      "id": "taimi",
+      "name": "Taimi",
+      "website": "https://taimi.com/",
+      "category": "Dating",
+      "domains": [
+        "taimi.com"
       ],
       "priority": "normal"
     }

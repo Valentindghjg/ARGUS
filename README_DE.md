@@ -1,14 +1,21 @@
-# Account Compass 1.3 – lokaler Account-Finder
+# Account Compass 1.4 – lokaler Account-Finder
 
 Deutsch · [English](README.md)
 
-Ein Python-Programm mit **deutscher und englischer Weboberfläche**, **372
+Ein Python-Programm mit **deutscher und englischer Weboberfläche**, **527
 erweiterbaren Diensten**, lokaler E-Mail-Analyse und einer Checkliste zum
 Absichern mit Bitwarden. Die Nutzer wählen ihre Sprache selbst.
 
 Die Anwendung findet **Hinweise in deinen eigenen Nachrichten**. Ein fehlender
 Hinweis bedeutet „Unbekannt“ und beweist nicht, dass kein Account existiert.
 Künstliche Demo und persönliche Ergebnisse bleiben getrennt.
+
+## Lizenzstatus
+
+Es wurde noch keine Open-Source-Lizenz ausgewählt. Vor der Veröffentlichung muss
+der Repository-Inhaber eine Lizenz hinzufügen, damit andere die erlaubte Nutzung
+kennen. Details stehen in [LICENSING.md](LICENSING.md) und in der
+[Veröffentlichungs-Checkliste](docs/PUBLISHING.md).
 
 ## In zwei Minuten starten
 
@@ -30,8 +37,7 @@ künstliche Nachrichten, 12 gefundene Anbieter, zwei simulierte manuelle
 Bestätigungen und eine erledigte Checkliste. **Das sind keine echten Accounts.**
 Mit `--port 8766` lässt sich ein bereits belegter Port umgehen.
 
-Alternativ das private GitHub-Repository mit einem berechtigten GitHub-Konto
-klonen:
+Alternativ das GitHub-Repository klonen:
 
 ```bash
 git clone https://github.com/Valentindghjg/account-compass.git
@@ -42,6 +48,20 @@ python -m account_finder --data-dir .local/demo demo --serve --open
 Eine bestehende Arbeitskopie ohne lokale Änderungen aktualisierst du mit
 `git pull --ff-only`. Persönliche Profile und Zugangsdaten sind von Git
 ausgeschlossen; sichere sie separat geschützt.
+
+## Was dieses Projekt macht
+
+- Es findet lokale Hinweise auf Dienste über Absenderdomains in deinen eigenen
+  E-Mails.
+- Es hilft beim Prüfen von Accounts, beim Nachverfolgen der Absicherung und bei
+  passwortfreien Bitwarden-Metadatenimporten.
+- Es läuft lokal. Es probiert keine Account-Logins massenhaft aus, löst keine
+  Passwort-Resets aus, umgeht keine CAPTCHAs und verändert keine E-Mails.
+
+Fehlende Hinweise beweisen nicht, dass kein Account existiert. Registrierung per
+Telefon, SSO, andere Postfächer oder gelöschte Nachrichten können ohne lokalen
+Hinweis bleiben. Vor persönlichen Daten bitte das
+[Sicherheitsmodell](docs/SICHERHEIT.md) lesen.
 
 ## Sprache wählen
 
@@ -306,7 +326,7 @@ Metadaten. Browser-Downloads haben die Rechte deines Downloadverzeichnisses.
 
 ## Katalog erweitern
 
-`account_finder/data/providers.json` enthält die 372 kuratierten Dienste.
+`account_finder/data/providers.json` enthält 527 kuratierte Dienste.
 Alternativ eigene Einträge ergänzen, ohne den eingebauten Katalog zu ändern:
 
 ```bash
@@ -327,13 +347,12 @@ ausführen und den Server mit dem gleichen Katalog neu starten.
 
 ## Bestehende Profile aktualisieren
 
-Version 1.3 ergänzt die Sprachauswahl. Die Erkennungsregeln und das Datenbankschema
-ändern sich gegenüber 1.1/1.2 nicht. Ein neuer Mailimport ist allein für die
-Sprachauswahl nicht nötig. Beende die App, sichere dein persönliches
-Datenverzeichnis geschützt, ersetze den Programmcode und starte mit demselben
-`--data-dir` und zusätzlichen Katalog. Checklisten, Adressen und Bestätigungen
-bleiben erhalten. Alte deutsche Programmhinweise werden für die Anzeige
-übersetzt, ohne gespeicherte Belege umzuschreiben.
+Version 1.4 erweitert den eingebauten Katalog von 372 auf 527 Dienste.
+Bestehende Profile und Checklisten bleiben kompatibel. Lokale Originalmails erneut
+importieren oder einen separat freigegebenen `scan-imap --allow-imap --full-scan`
+ausführen, um die neuen Domains auszuwerten. Dabei werden die Originalmails nicht
+verändert. Version 1.3 ergänzt die Sprachauswahl. Die Erkennungsregeln und das
+Datenbankschema ändern sich gegenüber 1.1/1.2 nicht.
 
 Beim Upgrade von Version 1.0 gelten zusätzlich die Hinweise zur erneuten
 Bewertung in [Änderungen](docs/AENDERUNGEN.md).
@@ -378,6 +397,8 @@ Spracherkennung und mobile Ansichten.
 | `account_finder/bitwarden.py` | Offizielles Metadaten-Importformat |
 | `account_finder/server.py`, `web/` | Lokales Dashboard |
 | `tests/` | Automatisierte Regressionstests |
+| [Katalogrichtlinie](docs/KATALOG.md) | Umfang, Qualitätsmaßstäbe und neue Dienste vorschlagen |
+| [Veröffentlichungs-Checkliste](docs/PUBLISHING.md) | Schritte, die der Inhaber vor der Veröffentlichung selbst prüft |
 | [Technischer Plan](docs/PLAN_DE.md) | Reihenfolge und Architektur |
 | [Sicherheitsmodell](docs/SICHERHEIT.md) | Datenschutz, Grenzen und Schutzmaßnahmen |
 | [Prüfbericht](docs/PRUEFBERICHT.md) | Tatsächlich ausgeführte Prüfungen |

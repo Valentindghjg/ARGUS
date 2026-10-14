@@ -63,7 +63,7 @@ def main():
                 expect(page.locator("#account-rows tr")).to_have_count(2)
                 page.locator("#category").select_option("")
                 page.locator("#classification").select_option("unknown")
-                expect(page.locator("#account-rows tr")).to_have_count(360)
+                expect(page.locator("#account-rows tr")).to_have_count(len(store.registry.providers) - 12)
                 page.locator("#classification").select_option("found")
                 checks.append("Search, category filters and unknown providers")
 

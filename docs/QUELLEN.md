@@ -3,7 +3,7 @@
 Öffentliche Dokumentation wurde am 13.10.2026 für die Implementierung geprüft.
 Die Dokumentationsaufrufe enthielten keine private Mailadresse, Mailtexte,
 Zugangsdaten oder Tokens. Anbieter-Domains im allgemeinen Katalog sind kuratiert;
-**nicht alle 372 Websites wurden live überprüft**. Dienste und Versanddomains
+**nicht alle 527 Websites wurden live überprüft**. Dienste und Versanddomains
 können sich ändern. Die drei Passwortlinks haben separate Quellenbelege.
 
 | Funktion | Offizielle Quelle | Ergebnis |

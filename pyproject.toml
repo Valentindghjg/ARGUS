@@ -4,10 +4,33 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "local-account-finder"
-version = "1.3.0"
-description = "Local account inventory and Bitwarden security checklist"
+version = "1.4.0"
+description = "Offline-first account inventory, local email evidence and Bitwarden security checklists"
+readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
+keywords = ["account-security", "bitwarden", "email", "imap", "privacy", "password-manager"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: End Users/Desktop",
+  "Natural Language :: English",
+  "Natural Language :: German",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Security",
+]
+
+[project.urls]
+Homepage = "https://github.com/Valentindghjg/account-compass"
+Repository = "https://github.com/Valentindghjg/account-compass"
+Issues = "https://github.com/Valentindghjg/account-compass/issues"
+Security = "https://github.com/Valentindghjg/account-compass/security/advisories"
 
 [project.scripts]
 account-finder = "account_finder.cli:main"

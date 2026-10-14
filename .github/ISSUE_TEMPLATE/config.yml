@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security issue / Sicherheitsproblem
+    url: https://github.com/Valentindghjg/account-compass/security/advisories/new
+    about: Please report vulnerabilities privately. Do not post credentials or personal data.
+  - name: Read the security model / Sicherheitsmodell lesen
+    url: https://github.com/Valentindghjg/account-compass/blob/main/SECURITY.md
+    about: Privacy, local processing and reporting guidance.

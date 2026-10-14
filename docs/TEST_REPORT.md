@@ -1,4 +1,4 @@
-# Test report — Version 1.3, 14 October 2026
+# Test report — Version 1.4, 14 October 2026
 
 Tested on Linux with Python 3.12.14 and system Chromium. Runtime requires Python
 3.11 or newer. Windows/macOS have not been separately exercised. All email
@@ -8,13 +8,13 @@ messages used in testing were synthetic.
 
 ```text
 python -m unittest discover -s tests -q
-Ran 97 tests
+Ran 98 tests
 OK
 ```
 
 Coverage includes:
 
-- 372 catalog entries and every explicitly requested example provider; extensions,
+- 527 catalog entries and every explicitly requested example provider; extensions,
   unique domains, HTTPS and safe provider links.
 - English/German registration, verification, password and sign-in clues;
   newsletters, guest orders, reset requests and unsubscribe footers.
@@ -86,12 +86,14 @@ No real MX query for baumgartner.in, real IMAP login or import into a real Bitwa
 vault has been performed. IMAP uses a recording fake implementation; Bitwarden
 uses documented JSON structure and browser download checks. Personal provider
 settings still need individual verification before an authorized connection.
-Not all 372 provider websites were visited. Complete account coverage is not claimed.
+Not all 527 provider websites were visited. Complete account coverage is not claimed.
 
-Version 1.3 additionally passed browser checks for switching filters and open
+Version 1.4 additionally passed browser checks for switching filters and open
 checklists, remembered language after reload, German metadata export notes,
 retained export selection, German mobile layout, independent browser locales,
 unsupported-language fallback, blocked preference storage and switching during
-an active import without losing progress or releasing import locks. **14 browser groups
-passed, zero page errors and zero external browser requests.** German previews:
+an active import without losing progress or releasing import locks. The unknown
+provider count is derived from the catalog at test time, so the browser suite also
+covers the expanded catalog without a hard-coded provider total. **14 browser
+groups passed, zero page errors and zero external browser requests.** German previews:
 [desktop](preview/dashboard-de.png) and [mobile](preview/mobile-de.png).

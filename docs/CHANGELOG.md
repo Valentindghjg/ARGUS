@@ -1,5 +1,20 @@
 # Change log
 
+## 1.4.0 — Public-release preparation and catalog expansion, 14 October 2026
+
+- Built-in catalog expanded from 372 to **527** provider entries across all
+  supported categories. The registry validates unique roots and specific
+  subdomain precedence; no provider account queries were added.
+- Public project materials: catalog policy, publication checklist, support guide,
+  code of conduct, issue routing and Dependabot configuration.
+- Package metadata now identifies the project, supported Python versions and
+  repository URLs. A license remains an owner decision and is deliberately not
+  assumed by this release.
+- Readme reorganized for first-time users, with clear purpose, limitations,
+  upgrade instructions and public-project links.
+- Existing profiles remain compatible. Re-import local source emails or run an
+  explicitly authorized full IMAP scan to consider new catalog domains.
+
 ## 1.3.0 — German/English interface, 14 October 2026
 
 - Language selectors in the dashboard header and open account checklists;

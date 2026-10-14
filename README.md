@@ -1,8 +1,10 @@
-# Account Compass 1.3
+# Account Compass 1.4
 
 [Deutsch](README_DE.md) · English
 
-A local Python account finder with a **German/English dashboard**, **372
+[![Checks](https://github.com/Valentindghjg/account-compass/actions/workflows/ci.yml/badge.svg)](https://github.com/Valentindghjg/account-compass/actions/workflows/ci.yml)
+
+A local Python account finder with a **German/English dashboard**, **527
 extensible providers**, local email analysis and a Bitwarden security checklist.
 Users choose their interface language. Email detection always supports both
 English and German, independently of that choice.
@@ -10,6 +12,13 @@ English and German, independently of that choice.
 The app finds **evidence in your own messages**. It does not probe accounts on
 provider websites. Missing evidence leaves a service “Unknown”; it does not prove
 that no account exists. Synthetic demo data and personal profiles stay separate.
+
+## License status
+
+No open-source license has been selected yet. The repository owner needs to add
+one before publication so that other people know how they may use the project.
+See [LICENSING.md](LICENSING.md) and the
+[publication checklist](docs/PUBLISHING.md).
 
 **Quick start:** Python 3.11 or newer and a modern browser. No third-party runtime
 packages, npm or Docker are required. Extract the archive, open a terminal in
@@ -26,8 +35,7 @@ stops the server. Use `--port 8766` if the port is occupied. On Windows, replace
 The demo uses 17 synthetic messages, 12 discovered providers, two simulated manual
 confirmations and one completed checklist. **These are not your real accounts.**
 
-You can also clone the private GitHub repository using an authorized GitHub
-account:
+You can also clone the GitHub repository:
 
 ```bash
 git clone https://github.com/Valentindghjg/account-compass.git
@@ -37,6 +45,19 @@ python -m account_finder --data-dir .local/demo demo --serve --open
 
 Use `git pull --ff-only` to update an existing clean checkout. Personal profiles
 and credentials are excluded from Git; keep their protected backups separately.
+
+## What this project does
+
+- Finds local evidence for services by matching sender domains in your own email.
+- Helps you review accounts, track security work and prepare password-free
+  Bitwarden metadata imports.
+- Runs locally; it does not mass-probe provider accounts, automate password
+  resets, bypass CAPTCHAs or modify email.
+
+It cannot prove that an account does not exist. A missing email, a phone-only
+registration, an SSO account, deleted messages or another mailbox can all leave
+no local evidence. Read [the safety model](docs/SECURITY.md) before importing
+personal email.
 
 ## Choose your language
 
@@ -279,7 +300,7 @@ downloads use the permissions and backup settings of your downloads directory.
 
 ## Extend the provider catalog
 
-`account_finder/data/providers.json` contains 372 curated providers. Add a separate
+`account_finder/data/providers.json` contains 527 curated providers. Add a separate
 JSON file without editing the built-in catalog:
 
 ```bash
@@ -305,14 +326,13 @@ These use synthetic data and do not connect to personal mailboxes or Bitwarden.
 See [contributing](CONTRIBUTING.md) for development and
 [security reporting](SECURITY.md) for confidential vulnerability reports.
 
-Version 1.3 adds selectable German/English presentation without changing
-detection rules or the database schema. Version 1.1/1.2 profiles need no re-import
-solely for this language change. Stop the app, protect a backup of your personal
-data directory, replace the source and restart with the same `--data-dir` and
-additional catalog. Checklists, addresses and confirmations stay intact. Older
-German program-generated caveats display in the selected language without
-rewriting stored evidence. Version 1.0 rule upgrades are described in
-[the change log](docs/CHANGELOG.md).
+Version 1.4 expands the built-in catalog from 372 to 527 providers. Existing
+profiles and checklists remain compatible. Re-import local source emails or run a
+separately authorized `scan-imap --allow-imap --full-scan` to evaluate the new
+domains against them. This does not modify the original emails. Version 1.3 adds
+selectable German/English presentation without changing detection rules or the
+database schema. Version 1.1/1.2 profiles need no re-import solely for the
+language change. See [the change log](docs/CHANGELOG.md).
 
 Tests use synthetic messages, fake IMAP and local loopback connections only:
 
@@ -338,6 +358,8 @@ python scripts/browser_smoke.py --browser /usr/bin/chromium --screenshots-dir do
 | `account_finder/bitwarden.py` | Official metadata-only import format |
 | `account_finder/server.py`, `web/` | Local dashboard |
 | `tests/` | Automated regression tests |
+| [Catalog policy](docs/CATALOG.md) | Scope, review standards and how to propose providers |
+| [Publishing checklist](docs/PUBLISHING.md) | Owner-controlled steps before making the repository public |
 | [Technical plan](docs/PLAN.md) | Architecture and development sequence |
 | [Security model](docs/SECURITY.md) | Privacy, protections and limits |
 | [Test report](docs/TEST_REPORT.md) | Checks actually performed |

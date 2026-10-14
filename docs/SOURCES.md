@@ -2,7 +2,7 @@
 
 The public documentation below was checked on 13 October 2026. Those requests
 included no private email address, message content, credentials or tokens. Catalog
-domains are curated; **not all 372 websites have been checked live**. Provider
+domains are curated; **not all 527 websites have been checked live**. Provider
 domains may change. The three password-settings links have separate sources.
 
 | Feature | Official source | Basis |
@@ -30,5 +30,5 @@ Technical references:
 
 Additional MX hints for mailbox.org and Infomaniak are setup candidates requiring
 individual verification in current provider documentation. No connection to a
-hinted host is made automatically. Version 1.2 changes language only and does not
-claim fresh verification of all provider websites.
+hinted host is made automatically. Version 1.4 expands sender-domain coverage but
+does not claim fresh live verification of all provider websites.

@@ -18,9 +18,15 @@ class AnalysisTests(unittest.TestCase):
         return analyze(synthetic_mail(sender, subject, body, **kw), self.registry, ["demo@example.invalid"])
 
     def test_catalogue_minimum_and_requested_services(self):
-        self.assertGreaterEqual(len(self.registry.providers), 200)
-        for ident in ["instagram", "tiktok", "snapchat", "facebook", "x", "reddit", "discord", "telegram", "skype", "steam", "epic", "ubisoft", "ea", "playstation", "xbox", "riot", "amazon", "ebay", "idealo", "zalando", "temu", "aliexpress", "netflix", "spotify", "disney", "twitch", "google", "apple", "microsoft", "adobe", "github", "paypal", "klarna"]:
+        self.assertGreaterEqual(len(self.registry.providers), 500)
+        for ident in ["instagram", "tiktok", "snapchat", "facebook", "x", "reddit", "discord", "telegram", "skype", "steam", "epic", "ubisoft", "ea", "playstation", "xbox", "riot", "amazon", "ebay", "idealo", "zalando", "temu", "aliexpress", "netflix", "spotify", "disney", "twitch", "google", "apple", "microsoft", "adobe", "github", "paypal", "klarna", "linear", "wealthfront", "hostelworld", "yazio", "coffeemeetsbagel"]:
             self.assertIn(ident, self.registry.providers)
+
+    def test_expanded_catalogue_uses_exact_roots_and_more_specific_subdomains(self):
+        self.assertEqual(self.registry.match("mail.wealthfront.com").id, "wealthfront")
+        self.assertEqual(self.registry.match("billing.hostelworld.com").id, "hostelworld")
+        self.assertEqual(self.registry.match("notify.firebase.google.com").id, "firebase")
+        self.assertEqual(self.registry.match("firebase.google.com.attacker.example"), None)
 
     def test_completed_registration(self):
         e = self.inspect()
