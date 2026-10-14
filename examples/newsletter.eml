@@ -1,0 +1,10 @@
+From: newsletter@zalando.de
+To: demo@example.invalid
+Subject: Welcome to the newsletter
+Date: Mon, 05 Oct 2026 10:00:00 +0000
+List-Unsubscribe: <https://example.invalid/unsubscribe>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+Newsletter: special offers. Unsubscribe.

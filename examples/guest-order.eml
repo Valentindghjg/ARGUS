@@ -1,0 +1,9 @@
+From: orders@amazon.de
+To: demo@example.invalid
+Subject: Order confirmation
+Date: Mon, 05 Oct 2026 10:00:00 +0000
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+Your order has shipped. Guest checkout is possible.

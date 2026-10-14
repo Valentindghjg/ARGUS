@@ -1,0 +1,16 @@
+name: Feature request / Verbesserung
+description: Suggest an improvement in English or German.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem should this solve? / Welches Problem soll gelöst werden?
+      description: Do not include personal account information or credentials.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Suggested behavior / Gewünschtes Verhalten
+    validations:
+      required: true

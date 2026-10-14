@@ -1,0 +1,30 @@
+name: Bug report / Fehler melden
+description: Report unexpected behavior using synthetic examples only.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        English and German reports are welcome. Bitte keine echten E-Mails,
+        persönlichen Account-Listen, Passwörter, Tokens oder Datenbanken anhängen.
+        Use only synthetic messages and redact addresses, paths and screenshots.
+        For security vulnerabilities, follow SECURITY.md instead.
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior / Erwartetes und tatsächliches Verhalten
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce / Schritte zum Nachstellen
+      description: Include a minimal synthetic example if relevant.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: App version, Python, OS and browser / Version und Umgebung
+      placeholder: '1.3.0, Python 3.12, Linux, Chromium, language de'
+    validations:
+      required: true

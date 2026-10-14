@@ -1,0 +1,14 @@
+{
+  "providers": [
+    {
+      "id": "example-service",
+      "name": "Example Service (synthetic)",
+      "website": "https://new-service.example/",
+      "category": "Custom Services",
+      "domains": [
+        "new-service.example"
+      ],
+      "priority": "normal"
+    }
+  ]
+}
