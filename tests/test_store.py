@@ -108,10 +108,10 @@ class StoreTests(unittest.TestCase):
             if arguments[1:] == ["status"]:
                 return SimpleNamespace(returncode=0, stdout='{"status":"unlocked"}')
             self.assertEqual(arguments[1:3], ["create", "item"])
-            return SimpleNamespace(returncode=0, stdout='{"id":"ignored"}')
+            return SimpleNamespace(returncode=0, stdout='{"id":"46caf902-0e99-4bc1-bb92-6075b813233c"}')
         with patch("account_finder.bitwarden.shutil.which", return_value="/usr/bin/bw"):
             result = add_to_unlocked_cli(self.store, ["github"], runner=runner, environment={"BW_SESSION":"not-stored"})
-        self.assertEqual(result, {"items": 1, "providers": ["github"]})
+        self.assertEqual(result, {"items": 1, "providers": ["github"], "status": "completed"})
         self.assertTrue(self.account()["checklist"]["saved_in_bitwarden"])
         self.assertEqual(len(calls), 2)
         created = calls[1][0][-1]

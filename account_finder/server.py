@@ -11,6 +11,7 @@ from urllib.parse import urlsplit, unquote
 
 from .analysis import MAX_MESSAGE_BYTES
 from .bitwarden import BitwardenCliError
+from .handoffs import HandoffError
 from .licensing import LicenseError
 from .scan import ScanSession, scan_messages
 from .store import Store
@@ -238,6 +239,12 @@ class Handler(BaseHTTPRequestHandler):
                     raise ValueError("Specify the selected accounts and language")
                 result = add_to_unlocked_cli(self.server.store, data["ids"], data["language"])
                 self._send(200, result)
+            elif path == "/api/bitwarden/resolve":
+                from .handoffs import resolve
+                self._send(200, resolve(self.server.store, self._json()))
+            elif path == "/api/workflow":
+                from .workflow import change_worklist
+                self._send(200, change_worklist(self.server.store, self._json()))
             elif path == "/api/license/activate":
                 data = self._json()
                 if set(data) != {"license"} or not isinstance(data["license"], dict):
@@ -249,7 +256,7 @@ class Handler(BaseHTTPRequestHandler):
             self._error(409, "An EML import is already running. Finish or cancel it first.")
         except LicenseError as exc:
             self._error(400, str(exc))
-        except BitwardenCliError as exc:
+        except (BitwardenCliError, HandoffError) as exc:
             self._error(400, str(exc))
         except (ValueError, TypeError, UnicodeError, json.JSONDecodeError):
             self._error(400, "Request failed; check format, selection and size limits")

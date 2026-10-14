@@ -1,3 +1,28 @@
+# Prüfbericht – Version 1.7.0
+
+Die erste Automatisierungsstufe besteht **119 Python-Tests**, die
+JavaScript-Syntaxprüfung und **18 Browser-Prüfgruppen** in Chromium. Geprüft
+wurden die deutsche und englische Arbeitsliste mit Wiederaufnahme, Pause,
+Schrittanzeige, mobiler Darstellung und Prüfung unklarer Übertragungen sowie die
+bestehenden Import- und Exportabläufe. Keine Seitenfehler und **keine externen
+Browseranfragen**.
+
+Das Wheel wurde ohne Netzzugriff gebaut, in einer separaten Umgebung installiert
+und außerhalb des Quellcodeverzeichnisses geprüft (neue Module, Demo und Bericht).
+Die vorhandene Sicherheitsabhängigkeit wurde wiederverwendet. Es wurden keine
+echten Postfächer, Bitwarden-Tresore oder Anbieterpasswörter verwendet.
+
+Neue Tests prüfen Schemaergänzung, Neustart, ausdrücklichen Abschluss, SSO und
+Passkeys, gleichzeitige Vorgänge, CLI-Zeitüberschreitungen, ungültige Antworten,
+teilweise erfolgreiche Aliasübertragungen, manuelle Klärung und API-Zugriffsschutz.
+Eine künstliche CLI liefert die Tresorantworten. Echte Synchronisierung und
+Passwortwechsel sind damit nicht geprüft. Die Funktion automatisiert die
+Arbeitsführung, keine Passwortwechsel und keine zeitgesteuerten Scans.
+
+Der folgende Bericht dokumentiert die frühere Basisversion 1.6.
+
+---
+
 # Prüfbericht – Version 1.6, 14. Oktober 2026
 
 Geprüft auf Linux mit Python 3.12.14 und Chromium. Ausschließlich künstliche

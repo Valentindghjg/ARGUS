@@ -1,5 +1,19 @@
 # Change log
 
+## 1.7.0 — Resumable security worklist and reliable Bitwarden handoff
+
+- Added a persistent, bilingual security worklist with selection, pause/resume,
+  deferral, manual completion and guided next steps for passwords, SSO and passkeys.
+- Added a durable per-address Bitwarden creation journal and atomic reservations.
+  CLI failures and timeouts require explicit vault review before another attempt.
+  Successful addresses are excluded from later handoffs and metadata exports.
+- Added explicit reconciliation of uncertain transfers, preservation of partial
+  successes and protection against simultaneous creation attempts.
+- Disabled real Bitwarden CLI transfers in the synthetic demo.
+- Added migration, restart, concurrency, timeout, partial-batch, authorization and
+  browser coverage using synthetic data and a fake CLI. No automatic provider
+  password changes or scheduled background scans are included.
+
 ## 1.6.1 — Optional Bitwarden CLI handoff, 14 October 2026
 
 - Added an opt-in dashboard handoff to an already-unlocked official Bitwarden CLI.

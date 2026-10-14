@@ -1,3 +1,25 @@
+# Änderungen – Version 1.7.0
+
+- Fortsetzbare deutsche und englische Sicherheits-Arbeitsliste mit Auswahl,
+  Pause, Zurückstellen, Schrittanzeige und ausdrücklichem Abschluss ergänzt.
+- Bitwarden-Übertragungen werden je Adresse protokolliert. Nach Fehlern oder
+  Zeitüberschreitungen ist vor einem neuen Versuch eine Prüfung im Tresor nötig.
+- Bereits übertragene Adressen werden bei neuen Übergaben und Exporten
+  übersprungen. Teilweise erfolgreiche Übertragungen bleiben erhalten.
+- Gleichzeitige Erstellungsversuche werden atomar getrennt. Die künstliche Demo
+  kann keine echten Bitwarden-CLI-Übertragungen ausführen.
+- 119 Python-Tests und 18 Browser-Prüfgruppen verwenden ausschließlich künstliche
+  Daten. Anbieterpasswörter werden weiterhin nicht automatisch geändert.
+
+## Update auf 1.7.0
+
+Beende die Anwendung, sichere dein geschütztes Datenverzeichnis und installiere
+die neue Version. Starte mit demselben Datenverzeichnis. Zwei zusätzliche Tabellen
+werden automatisch angelegt; Belege und Checklisten bleiben erhalten. Für diese
+Arbeitslistenfunktion ist kein erneuter Mailimport erforderlich.
+
+---
+
 # Änderungen – Version 1.6
 
 [English change log](CHANGELOG.md) · [Deutsche Anleitung](../README_DE.md)
@@ -15,8 +37,7 @@
 ## Update von 1.1 bis 1.3
 
 App beenden, persönliche Daten geschützt sichern, Programmdateien ersetzen und
-mit demselben Datenverzeichnis und Katalog starten. Datenbankschema und
-Erkennungsregeln bleiben gleich. Die Sprachwahl erfordert keinen neuen Mailimport.
+mit demselben Datenverzeichnis und Katalog starten. Die Erkennungsregeln bleiben gleich; Version 1.7 ergänzt zwei lokale Tabellen. Die Sprachwahl erfordert keinen neuen Mailimport.
 Für die neuen Katalogdomains Originalmails erneut lokal importieren oder einen
 IMAP-Scan ausdrücklich freigeben.
 

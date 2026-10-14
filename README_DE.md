@@ -1,4 +1,4 @@
-# Account Compass 1.6.1 – lokaler Account-Finder
+# Account Compass 1.7.0 – lokaler Account-Finder
 
 Deutsch · [English](README.md)
 
@@ -287,6 +287,15 @@ Proton Mail stellt keinen gewöhnlichen direkten IMAP-Zugang bereit. Der lokale
 Bridge-Zugang wird hier nicht automatisch eingerichtet. Nutze offizielle
 Proton-Exportwerkzeuge und den EML-/mbox-Import.
 
+## Sicherheits-Arbeitsliste fortsetzen
+
+Öffne **Sicherheits-Arbeitsliste**, wähle gefundene Accounts und fahre mit dem
+nächsten Account fort. Liste, Pausenstatus und Checklisten bleiben nach Neustarts
+lokal erhalten. Jeder Dialog zeigt den nächsten offenen Schritt. SSO und Passkeys
+überspringen einen separaten Passwortwechsel. Es wird nichts automatisch beim
+Anbieter abgeschickt. Siehe die [Arbeitslisten-Anleitung](docs/WORKLIST.md) und
+[Hinweise zu unterbrochenen Übertragungen](docs/BITWARDEN_CLI.md).
+
 ## Accounts prüfen und mit Bitwarden absichern
 
 Für jeden Katalogdienst gibt es Kategorie, offizielle Website, bekannte eigene
@@ -365,6 +374,12 @@ Quelle. Danach lokal neu importieren bzw. `scan-imap --allow-imap --full-scan`
 ausführen und den Server mit dem gleichen Katalog neu starten.
 
 ## Bestehende Profile aktualisieren
+
+Version 1.7 ergänzt eine dauerhafte Sicherheits-Arbeitsliste und ein lokales
+Bitwarden-Vorgangsprotokoll. Unklare Übertragungen werden vor einem erneuten
+Versuch geprüft. Zwei lokale Tabellen werden automatisch ergänzt; Belege und
+Checklisten bleiben erhalten. Sichere dein geschütztes Datenverzeichnis vor dem
+Update.
 
 Version 1.6 ergänzt signierte Offline-Prüfung und lokale Aktivierung einer
 Pro-Lizenz. Der Standard-Build enthält keinen Herausgeber-Öffentlichkeitsschlüssel;

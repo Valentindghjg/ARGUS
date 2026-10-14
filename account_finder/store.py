@@ -73,6 +73,22 @@ class Store:
                 UNIQUE(fingerprint, sender_domain, signal)
               );
               CREATE INDEX IF NOT EXISTS evidence_provider ON evidence(provider_id);
+              CREATE TABLE IF NOT EXISTS work_queue (
+                provider_id TEXT PRIMARY KEY,
+                position INTEGER NOT NULL,
+                deferred INTEGER NOT NULL DEFAULT 0
+              );
+              CREATE TABLE IF NOT EXISTS bitwarden_handoffs (
+                id TEXT PRIMARY KEY,
+                provider_id TEXT NOT NULL,
+                email TEXT NOT NULL,
+                state TEXT NOT NULL,
+                operation_id TEXT NOT NULL,
+                lease_until REAL NOT NULL DEFAULT 0,
+                vault_item_id TEXT,
+                updated TEXT NOT NULL,
+                UNIQUE(provider_id, email)
+              );
             """)
             # Additive migration for inventories created by earlier local versions.
             columns = {row["name"] for row in db.execute("PRAGMA table_info(accounts)")}
@@ -236,6 +252,10 @@ class Store:
         }
         from .product import public_product
         snapshot["product"] = public_product(self.data_dir)
+        from .workflow import worklist_snapshot
+        from .handoffs import handoff_snapshot
+        snapshot["workflow"] = worklist_snapshot(self, accounts)
+        snapshot["bitwarden_handoffs"] = handoff_snapshot(self)
         from .i18n import localize_snapshot
         return localize_snapshot(snapshot, language)
 
@@ -248,6 +268,7 @@ class Store:
         if provider_id not in self.registry.providers or set(change) - allowed:
             raise ValueError("Invalid account update")
         with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
             state = dict(db.execute("SELECT * FROM accounts WHERE provider_id=?", (provider_id,)).fetchone())
             checklist = json.loads(state["checklist"])
             if "checklist" in change:

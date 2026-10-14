@@ -1,3 +1,27 @@
+# Test report — Version 1.7.0
+
+The first automation stage passed **119 Python tests**, JavaScript syntax
+validation and **18 browser check groups** in Chromium. The browser suite covered
+English/German worklist persistence, pause/resume, guided next steps, mobile
+layout, ambiguous-transfer review and the existing import/export workflows.
+There were no page errors and **zero external browser requests**.
+
+A wheel was built without network access, installed in a separate environment,
+and exercised outside the source checkout (new module imports, demo and report).
+The test environment reused its installed security dependency. No live mailbox,
+Bitwarden vault or provider password was used.
+
+New regression cases cover additive migration, application restart, explicit
+completion, SSO/passkeys, concurrent reservations, CLI timeout, malformed replies,
+partial alias success, manual reconciliation, authentication and origin checks.
+A fake CLI supplies all vault results; actual Bitwarden synchronization and real
+provider changes remain untested. These changes automate workflow guidance, not
+password rotation or scheduled scans.
+
+The following report records the earlier 1.6 baseline.
+
+---
+
 # Test report — Version 1.6, 14 October 2026
 
 Tested on Linux with Python 3.12.14 and system Chromium. Runtime requires Python

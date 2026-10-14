@@ -65,3 +65,57 @@ nicht. Bestehende Tresoreinträge werden weder gelesen, geändert noch
 Die Übergabe erstellt kein Passwort und kann kein Passwort bei einem Anbieter
 ändern. Anbieter-Websites haben unterschiedliche Anmelde- und Sicherheitsabläufe;
 ARGUS umgeht keine MFA, Captchas, Bestätigungen oder Passwortschutzmechanismen.
+
+## Interrupted transfers (1.7)
+
+A local journal records one creation attempt per provider/address, its transfer
+ID and, on success, the new vault item ID. It contains no passwords, session
+values, raw CLI output or mail contents. A successful CLI reply must include an
+item ID before the account is marked assigned. All known addresses must finish
+before a provider's Bitwarden checklist flag is set.
+
+If a request times out or fails, ARGUS stops and shows **Check an interrupted
+transfer**. It may already have created the item. Find the provider/address and
+`ARGUS-Transfer-ID` in Bitwarden manually. Confirm either that you found the item
+or that it was not created. Only the second choice permits another attempt.
+After a hard crash, an in-flight attempt becomes reviewable after at most one
+minute. Previously created addresses are skipped, including during JSON export.
+
+This prevents blind retries of tracked ARGUS transfers. It does not detect
+pre-existing items or items created outside ARGUS; review those manually first.
+The synthetic demo disables direct CLI transfers.
+
+An unlocked `BW_SESSION` has broad vault permissions. ARGUS's code only creates
+selected metadata items; this is a behavior boundary, not a restricted Bitwarden
+credential. Use a short session on your own computer, stop ARGUS after the task,
+then lock the CLI with `bw lock` and remove `BW_SESSION` from that terminal.
+Bitwarden may synchronize the new items with your configured server as part of
+the explicitly requested transfer. The worklist itself makes no network requests.
+
+## Unterbrochene Übertragungen (1.7)
+
+Ein lokales Protokoll speichert pro Anbieter/Adresse einen Erstellungsversuch,
+seine Übertragungs-ID und bei Erfolg die neue Tresoreintrags-ID. Passwörter,
+Sitzungswerte, rohe CLI-Ausgaben und Mailinhalte werden nicht gespeichert. Erst
+nach einer erfolgreichen Antwort mit Eintrags-ID gilt die Adresse als zugeordnet.
+Alle bekannten Adressen müssen fertig sein, bevor der Anbieter abgehakt wird.
+
+Bei Zeitüberschreitung oder Fehler stoppt ARGUS und zeigt **Unterbrochene
+Übertragung prüfen**. Der Eintrag könnte bereits erstellt worden sein. Suche
+Anbieter, Adresse und `ARGUS-Transfer-ID` selbst in Bitwarden. Bestätige entweder,
+dass du den Eintrag gefunden hast oder dass er nicht erstellt wurde. Nur die
+zweite Auswahl erlaubt einen neuen Versuch. Nach einem harten Programmabbruch
+kannst du den laufenden Versuch spätestens nach einer Minute prüfen. Erfolgreiche
+Adressen werden auch beim späteren JSON-Export übersprungen.
+
+Das verhindert blinde Wiederholungen protokollierter ARGUS-Übertragungen. Bereits
+vorhandene oder außerhalb von ARGUS angelegte Einträge werden nicht erkannt;
+prüfe sie vorher selbst. Die künstliche Demo deaktiviert direkte CLI-Übergaben.
+
+Ein entsperrtes `BW_SESSION` besitzt weitreichende Tresorrechte. Der ARGUS-Code
+erstellt nur ausgewählte Metadateneinträge; das ist eine Verhaltensgrenze und
+keine eingeschränkte Bitwarden-Berechtigung. Verwende eine kurze Sitzung auf
+deinem eigenen Computer, beende ARGUS danach, sperre die CLI mit `bw lock` und
+entferne `BW_SESSION` aus dem Terminal. Bitwarden kann die neuen Einträge im
+Rahmen der ausdrücklich angeforderten Übergabe mit deinem konfigurierten Server
+synchronisieren. Die Arbeitsliste selbst sendet keine Netzwerkanfragen.

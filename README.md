@@ -1,4 +1,4 @@
-# Account Compass 1.6.1
+# Account Compass 1.7.0
 
 [Deutsch](README_DE.md) · English
 
@@ -263,6 +263,15 @@ Proton Mail does not provide an ordinary direct IMAP login. The local Bridge is
 not automatically configured by this TLS-only scanner; use official export tools
 and import EML/mbox instead.
 
+## Resume a security worklist
+
+Open **Security worklist**, select discovered accounts and continue with the next
+account. Your queue, pause state and checklists persist locally after a restart.
+Each dialog shows the next missing step. Accounts using SSO or passkeys skip a
+separate password change. Nothing is submitted to a provider automatically.
+See the [worklist guide](docs/WORKLIST.md) and
+[interrupted-transfer guidance](docs/BITWARDEN_CLI.md).
+
 ## Review and secure accounts with Bitwarden
 
 Each provider has an official website, category, known own sign-in addresses,
@@ -341,6 +350,11 @@ installation of the built package, and German/English browser regression tests.
 These use synthetic data and do not connect to personal mailboxes or Bitwarden.
 See [contributing](CONTRIBUTING.md) for development and
 [security reporting](SECURITY.md) for confidential vulnerability reports.
+
+Version 1.7 adds a persistent security worklist and a durable Bitwarden transfer
+journal that blocks retries after ambiguous writes. Existing inventories gain two
+new local tables automatically; evidence and checklists are preserved. Back up
+your protected data directory before upgrading.
 
 Version 1.6 adds signed, offline Pro-license verification and local activation.
 The default build contains no publisher public key, so it cannot activate Pro or

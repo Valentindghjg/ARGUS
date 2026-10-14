@@ -10,6 +10,7 @@ import uuid
 
 from .store import Store, write_private
 from .i18n import translate, validate_language
+from . import handoffs
 
 
 def make_export(store: Store, ids: list[str], language="en"):
@@ -26,9 +27,16 @@ def make_export(store: Store, ids: list[str], language="en"):
     folder_id = str(uuid.uuid4())
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     items = []
+    previous = {(entry["provider_id"], entry["email"]): entry["state"]
+                for entry in handoffs.handoff_snapshot(store)}
     for account in selected:
         # Multiple explicitly configured aliases can have distinct accounts.
         for email in account["registered_emails"] or [""]:
+            state = previous.get((account["id"], email))
+            if state in {"running", "uncertain"}:
+                raise handoffs.HandoffError("Check the unresolved Bitwarden transfer before trying again.")
+            if state == "created":
+                continue
             items.append({
                 "id": str(uuid.uuid4()), "organizationId": None, "folderId": folder_id,
                 "type": 1, "reprompt": 0, "name": account["name"], "favorite": False,
@@ -39,6 +47,8 @@ def make_export(store: Store, ids: list[str], language="en"):
                           "username": email, "password": "", "totp": None},
                 "collectionIds": [],
             })
+    if not items:
+        raise ValueError("Export only discovered accounts not already assigned in Bitwarden")
     return {"encrypted": False, "folders": [{"id": folder_id, "name": "Account-Finder · " + stamp}], "items": items}
 
 
@@ -73,6 +83,9 @@ def add_to_unlocked_cli(store: Store, ids: list[str], language="en", *, runner=s
     Existing vault items are never read, changed or overwritten.
     """
     validate_language(language)
+    if store.meta("demo", False):
+        raise BitwardenCliError("Direct Bitwarden transfer is disabled in the synthetic demo.")
+    exported = make_export(store, ids, language)
     environment = dict(os.environ if environment is None else environment)
     if not environment.get("BW_SESSION"):
         raise BitwardenCliError("Unlock Bitwarden first, then start ARGUS from that same terminal session.")
@@ -85,7 +98,6 @@ def add_to_unlocked_cli(store: Store, ids: list[str], language="en", *, runner=s
     if not isinstance(status, dict) or status.get("status") != "unlocked":
         raise BitwardenCliError("Bitwarden must be unlocked before adding selected items.")
 
-    exported = make_export(store, ids, language)
     created = 0
     completed_providers = []
     items_by_provider: dict[str, list[dict]] = {}
@@ -95,17 +107,29 @@ def add_to_unlocked_cli(store: Store, ids: list[str], language="en", *, runner=s
 
     for provider_id, items in items_by_provider.items():
         for item in items:
+            attempt = handoffs.reserve(store, provider_id, item["login"]["username"])
+            if attempt is None:
+                continue
             # Keep the item intentionally password-free. Its encoded payload is only
             # metadata and is discarded immediately after the CLI accepts it.
             document = {
                 "type": 1, "name": item["name"], "favorite": False,
-                "notes": item["notes"], "fields": item["fields"],
+                "notes": item["notes"], "fields": [*item["fields"],
+                    {"name": "ARGUS-Transfer-ID", "value": attempt["operation_id"], "type": 0}],
                 "login": {"uris": item["login"]["uris"], "username": item["login"]["username"],
                           "password": None, "totp": None},
             }
             encoded = base64.b64encode(json.dumps(document, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).decode("ascii")
-            _run_cli(["create", "item", encoded], environment, runner)
+            try:
+                output = _run_cli(["create", "item", encoded], environment, runner)
+                result = json.loads(output)
+                item_id = str(uuid.UUID(result["id"]))
+            except (BitwardenCliError, ValueError, KeyError, TypeError, AttributeError):
+                # Even a failed process may have committed the server-side write.
+                handoffs.finish(store, attempt, "uncertain")
+                return {"items": created, "providers": completed_providers, "status": "needs_review"}
+            handoffs.finish(store, attempt, "created", item_id)
             created += 1
-        store.update_account(provider_id, {"checklist": {"saved_in_bitwarden": True}})
-        completed_providers.append(provider_id)
-    return {"items": created, "providers": completed_providers}
+        if handoffs.mark_assigned_if_complete(store, provider_id):
+            completed_providers.append(provider_id)
+    return {"items": created, "providers": completed_providers, "status": "completed"}

@@ -109,3 +109,17 @@ class ServerTests(unittest.TestCase):
     def test_post_size_limit_and_chunked_rejected(self):
         self.assertEqual(self.request("/api/import","POST",b"x",headers={"Content-Type":"message/rfc822","Content-Length":"3000000"})[0],400)
         self.assertEqual(self.request("/api/import","POST",b"x",headers={"Content-Type":"message/rfc822","Transfer-Encoding":"chunked"})[0],400)
+
+    def test_worklist_api_and_new_routes_keep_authentication_guards(self):
+        raw = synthetic_mail("notify@discord.com", "Your account has been created", "")
+        self.request("/api/import", "POST", raw, headers={"Content-Type":"message/rfc822"})
+        headers = {"Content-Type":"application/json"}
+        status, _, _ = self.request("/api/workflow", "POST", json.dumps({"action":"add", "ids":["discord"]}), headers=headers)
+        self.assertEqual(status, 200)
+        snapshot = json.loads(self.request("/api/accounts")[2])
+        self.assertIn("discord", [item["id"] for item in snapshot["workflow"]["items"]])
+        for route in ("/api/workflow", "/api/bitwarden/resolve", "/api/bitwarden/cli"):
+            self.assertEqual(self.request(route, "POST", "{}", authorized=False, headers=headers)[0], 401)
+            self.assertEqual(self.request(route, "POST", "{}", headers={**headers, "Origin":"https://attacker.example"})[0], 403)
+        self.assertEqual(self.request("/api/workflow", "POST", json.dumps({"action":"pause", "password":"rejected"}), headers=headers)[0], 400)
+        self.assertEqual(self.request("/api/bitwarden/resolve", "POST", json.dumps({"id":"missing", "created":True, "confirmed":False}), headers=headers)[0], 400)

@@ -38,12 +38,16 @@ let state, view = "dashboard", selected = null, saving = false;
 let activeBatch=null, importCancelled=false, addingAlias=false;
 let displayedScan=null;
 const exportChoices=new Map();
+const worklistChoices=new Map();
+let workflowBusy=false, bitwardenBusy=false;
+const workflowSteps={review:"Review this account and confirm it exists.",bitwarden:"Assign an existing Bitwarden item or prepare a missing one.",change_password:"Use Bitwarden to set a unique password at the provider.",test_signin:"Test the sign-in before completing this account.",finish:"Required steps are checked. You can mark this account done.",done:"This account is complete."};
 const labels = {confirmed:"Confirmed",probable:"Probable",unknown:"Unknown",pending:"Pending",in_progress:"In progress",done:"Done",skipped:"Deferred",critical:"Do first",high:"High",normal:"Normal"};
 const titles = {
   dashboard:["Your accounts, in one place.","Find local evidence and secure your accounts with Bitwarden.","Overview"],
   accounts:["Your digital inventory.","Review your clues and keep unknown services in view.","All accounts"],
   security:["Secure the most important accounts first.","Prioritize your mailbox, finance and central services.","Security priorities"],
   bitwarden:["A secure password for every account.","Prepare new vault items and make the changes yourself.","Prepare Bitwarden"],
+  workflow:["Secure your accounts, one at a time.","A local worklist that remembers your progress.","Security worklist"],
   setup:["Start with your mailbox.","Import existing messages or set up read-only IMAP access.","Mailbox & Import"],
   plans:["Choose your local edition.","Account Compass Free is available now; Pro is a transparent preview.","Plans"]
 };
@@ -79,7 +83,7 @@ function renderState() {
   $("add-alias-button").disabled=state.demo||addingAlias||Boolean(activeBatch||state.active_import);
   $("alias-email").disabled=state.demo;$("alias-owned").disabled=state.demo;
   if(state.demo)setMessage("alias-message","Add real own addresses in a personal profile on your computer. The demo profile stays separate.");
-  renderRows();renderCandidates();renderExport();renderPlans();
+  renderRows();renderCandidates();renderExport();renderPlans();renderWorklist();renderHandoffs();
 }
 function renderPlans(){
   const product=state.product;
@@ -120,6 +124,7 @@ function navigate(next,clearError=true){
   $("bitwarden-view").classList.toggle("hidden",next!=="bitwarden");
   $("setup-view").classList.toggle("hidden",next!=="setup");
   $("plans-view").classList.toggle("hidden",next!=="plans");
+  $("workflow-view").classList.toggle("hidden",next!=="workflow");
   $("list-title").textContent=next==="security"?t("High-priority accounts"):t("Your account inventory");
   if(state)renderRows();
 }
@@ -160,6 +165,11 @@ function openDetail(id){selected=id;renderDetail();$("account-dialog").showModal
 function renderDetail(){
   const a=state.accounts.find(x=>x.id===selected);if(!a)return;
   $("detail-name").textContent=a.name;
+  const queued=state.workflow.items.find(item=>item.id===a.id);
+  $("detail-worklist").disabled=saving||workflowBusy||Boolean(queued)||a.classification==="unknown";
+  $("detail-worklist").textContent=t(queued?"In your worklist":"Add to worklist");
+  const step=a.status==="done"?"done":!a.checklist.reviewed?"review":!a.checklist.saved_in_bitwarden?"bitwarden":a.login_method==="password"&&!a.checklist.password_changed?"change_password":!a.checklist.login_tested?"test_signin":"finish";
+  $("detail-next-step").textContent=t(workflowSteps[step]);
   $("detail-meta").replaceChildren(node("span",t(labels[a.classification]),`chip ${a.classification}`),node("p",`${t(a.category)} · ${a.registered_emails.join(", ")||t("Sign-in address not known from evidence")}`),node("p",t(a.reason)));
   const links=[link(t("Official website ↗"),a.website)];
   if(a.password_url){links.push(link(t("Documented password settings ↗"),a.password_url),link(t("Source · checked {p0} ↗",{p0:(a.password_verified)}),a.password_source));}
@@ -193,7 +203,7 @@ function renderDetail(){
 }
 async function update(change){
   if(saving)return;saving=true;renderDetail();$("detail-error").classList.add("hidden");
-  try{await api(`/api/accounts/${encodeURIComponent(selected)}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(change)});await refresh();toast(t("Change saved locally."));}
+  try{await api(`/api/accounts/${encodeURIComponent(selected)}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(change)});await refresh();toast(t("Change saved locally."));if(change.status==="done"&&view==="workflow"&&!state.workflow.paused&&state.workflow.current)selected=state.workflow.current;}
   catch(e){setMessage("detail-error",canonicalMessage(e.message));$("detail-error").classList.remove("hidden");}
   finally{saving=false;renderDetail();}
 }
@@ -206,29 +216,94 @@ function renderExport(){
     checkbox.onchange=()=>exportChoices.set(a.id,checkbox.checked);label.append(checkbox,node("span",`${a.name} · ${t(labels[a.classification])}`));return label;
   }));
   if(!items.length)$("export-selection").append(node("p",t("No missing items selected. Review your accounts and existing vault items first.")));
+  $("bitwarden-cli-button").disabled=bitwardenBusy||state.demo;
+  $("export-button").disabled=bitwardenBusy;
+}
+function actionButton(text,action,disabled=false){
+  const button=node("button",t(text),"button secondary");button.onclick=action;button.disabled=disabled;return button;
+}
+function renderWorklist(){
+  const workflow=state.workflow,accounts=new Map(state.accounts.map(a=>[a.id,a]));
+  $("worklist-badge").textContent=t(workflow.paused?"Paused":"Ready");
+  $("worklist-summary").textContent=t("{done} of {total} completed · {deferred} deferred",workflow);
+  $("worklist-progress").max=Math.max(1,workflow.total);$("worklist-progress").value=workflow.done;
+  $("worklist-continue").disabled=workflowBusy||workflow.paused||!workflow.current;
+  $("worklist-pause").disabled=workflowBusy;
+  $("worklist-pause").textContent=t(workflow.paused?"Resume worklist":"Pause worklist");
+  $("worklist-items").replaceChildren(...workflow.items.map(item=>{
+    const account=accounts.get(item.id),card=node("article",undefined,"worklist-item");
+    card.append(node("strong",account.name),node("p",t(item.deferred&&item.step!=="done"?"Deferred. Restore this account when you are ready.":workflowSteps[item.step])));
+    const actions=node("div",undefined,"bitwarden-actions");
+    actions.append(actionButton("Review →",()=>continueWorklist(item.id),workflowBusy||workflow.paused),
+      actionButton(item.deferred?"Restore":"Defer",()=>changeWorklist({action:item.deferred?"restore":"defer",id:item.id}),workflowBusy||item.step==="done"),
+      actionButton("Remove from worklist",()=>changeWorklist({action:"remove",id:item.id}),workflowBusy));
+    card.append(actions);return card;
+  }));
+  if(!workflow.items.length)$("worklist-items").append(node("p",t("Your worklist is empty. Choose accounts below.")));
+  const queued=new Set(workflow.items.map(item=>item.id));
+  const available=state.accounts.filter(a=>a.classification!=="unknown"&&a.status!=="done"&&!queued.has(a.id));
+  const eligible=new Set(available.map(a=>a.id));
+  for(const id of worklistChoices.keys())if(!eligible.has(id))worklistChoices.delete(id);
+  $("worklist-selection").replaceChildren(...available.map(account=>{
+    const label=node("label"),checkbox=node("input");checkbox.type="checkbox";checkbox.value=account.id;
+    checkbox.checked=worklistChoices.get(account.id)||false;checkbox.disabled=workflowBusy;
+    checkbox.onchange=()=>worklistChoices.set(account.id,checkbox.checked);
+    label.append(checkbox,node("span",`${account.name} · ${t(labels[account.priority])}`));return label;
+  }));
+  $("worklist-add").disabled=workflowBusy||!available.length;
+}
+async function changeWorklist(data){
+  if(workflowBusy)return false;workflowBusy=true;renderWorklist();
+  try{await api("/api/workflow",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});await refresh();if($("account-dialog").open)renderDetail();return true;}
+  catch(e){error(e.message);return false;}
+  finally{workflowBusy=false;renderWorklist();if($("account-dialog").open)renderDetail();}
+}
+async function continueWorklist(id=state.workflow.current){
+  if(!id||state.workflow.paused)return;
+  if(await changeWorklist({action:"focus",id}))openDetail(id);
+}
+function renderHandoffs(){
+  const pending=state.bitwarden_handoffs.filter(item=>["running","uncertain"].includes(item.state));
+  $("handoff-review").classList.toggle("hidden",!pending.length);
+  $("handoff-items").replaceChildren(...pending.map(item=>{
+    const account=state.accounts.find(a=>a.id===item.provider_id),card=node("article",undefined,"worklist-item");
+    card.append(node("strong",`${account?account.name:item.provider_id} · ${item.email||t("Email evidence only / unknown")}`),node("p",t(item.state==="running"?"Transfer running. Wait before checking its result.":"Outcome unclear. Check Bitwarden before another attempt.")),node("code",item.operation_id));
+    const actions=node("div",undefined,"bitwarden-actions");
+    actions.append(actionButton("I found this item in Bitwarden",()=>resolveHandoff(item,true),bitwardenBusy||!item.can_resolve),actionButton("I checked: this item was not created",()=>resolveHandoff(item,false),bitwardenBusy||!item.can_resolve));
+    card.append(actions);return card;
+  }));
+}
+async function resolveHandoff(item,created){
+  if(bitwardenBusy)return;
+  if(!window.confirm(t(created?"Confirm that you found the matching item and transfer ID in Bitwarden.":"Confirm that you checked Bitwarden and this item does not exist. A new attempt may create a duplicate if the previous item exists.")))return;
+  bitwardenBusy=true;renderExport();renderHandoffs();
+  try{await api("/api/bitwarden/resolve",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:item.id,created,confirmed:true})});await refresh();toast(t("Transfer review saved locally."));}
+  catch(e){error(e.message);}finally{bitwardenBusy=false;renderExport();renderHandoffs();}
 }
 async function exportMetadata(){
+  if(bitwardenBusy)return;
   const ids=Array.from($("export-selection").querySelectorAll("input:checked")).map(x=>x.value);
   if(!ids.length){error(t("Select the accounts you want to add to Bitwarden first."));return;}
-  $("export-button").disabled=true;
+  bitwardenBusy=true;renderExport();
   try{
     const result=await api("/api/bitwarden",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids,language})});
     const url=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:"application/json"}));
     const a=document.createElement("a");a.href=url;a.download="account-finder-bitwarden.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast(t("Metadata downloaded. No vault was changed."));
-  }catch(e){error(e.message);}finally{$("export-button").disabled=false;}
+  }catch(e){error(e.message);}finally{bitwardenBusy=false;renderExport();}
 }
 function selectedBitwardenIds(){
   return Array.from($("export-selection").querySelectorAll("input:checked")).map(x=>x.value);
 }
 async function addToUnlockedBitwarden(){
+  if(bitwardenBusy||state.demo)return;
   const ids=selectedBitwardenIds();
   if(!ids.length){error(t("Select the accounts you want to add to Bitwarden first."));return;}
   if(!window.confirm(t("ARGUS will create password-free items in your already-unlocked Bitwarden vault. Existing items are never changed. Continue?")))return;
-  $("bitwarden-cli-button").disabled=true;$("export-button").disabled=true;
+  bitwardenBusy=true;renderExport();
   try{
     const result=await api("/api/bitwarden/cli",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids,language})});
-    await refresh();toast(t("Added {count} password-free item(s) to Bitwarden. Generate the new password in Bitwarden, use the verified provider link to change it, then test the sign-in.",{count:result.items}));
-  }catch(e){error(canonicalMessage(e.message));}finally{$("bitwarden-cli-button").disabled=false;$("export-button").disabled=false;}
+    await refresh();if(result.status==="needs_review")error(t("The transfer result is unclear. Check Bitwarden below before trying again."));else toast(t("Added {count} password-free item(s) to Bitwarden. Generate the new password in Bitwarden, use the verified provider link to change it, then test the sign-in.",{count:result.items}));
+  }catch(e){error(canonicalMessage(e.message));try{await refresh();}catch(_){} }finally{bitwardenBusy=false;renderExport();renderHandoffs();}
 }
 async function activateLicense(){
   const file=$("license-file").files[0];
@@ -289,6 +364,11 @@ $("defer-account").onclick=()=>update({status:"skipped"});
 $("finish-account").onclick=()=>update({status:"done"});
 $("export-button").onclick=exportMetadata;
 $("bitwarden-cli-button").onclick=addToUnlockedBitwarden;
+$("worklist-add").onclick=()=>{const ids=Array.from($("worklist-selection").querySelectorAll("input:checked")).map(input=>input.value);if(!ids.length){error(t("Select accounts for your worklist first."));return;}changeWorklist({action:"add",ids});};
+$("worklist-continue").onclick=()=>continueWorklist();
+$("worklist-pause").onclick=()=>changeWorklist({action:state.workflow.paused?"resume":"pause"});
+$("detail-worklist").onclick=()=>changeWorklist({action:"add",ids:[selected]});
+$("detail-bitwarden").onclick=()=>{exportChoices.clear();exportChoices.set(selected,true);for(const a of state.accounts)if(a.id!==selected)exportChoices.set(a.id,false);$("account-dialog").close();navigate("bitwarden");renderExport();};
 $("activate-license").onclick=activateLicense;
 $("import-button").onclick=()=>{navigate("setup");$("email-files").click();};
 $("email-files").onchange=importFiles;
