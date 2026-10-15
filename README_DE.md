@@ -1,4 +1,4 @@
-# Account Compass 1.7.0 – lokaler Account-Finder
+# Account Compass 1.8.0 – lokaler Account-Finder
 
 Deutsch · [English](README.md)
 
@@ -269,6 +269,41 @@ Hinweis auf Lücken. Eine während des Scans geänderte Adressauswahl führt zu 
 unterbrochenen Scan und erfordert einen Neustart; vorhandene Hinweise bleiben
 erhalten.
 
+### Optionale geplante Scans
+
+Nachdem du `imap.json` mit einem manuellen schreibgeschützten Scan geprüft hast,
+kannst du inkrementelle Scans aktivieren, solange das lokale ARGUS-Dashboard läuft.
+Installiere dafür zuerst einen unterstützten, **vom Betriebssystem geschützten**
+Python-Schlüsselbund. ARGUS lehnt Klartext-Schlüsselbund-Backends ab und besitzt
+keinen Datei-Fallback:
+
+```bash
+python -m pip install keyring
+python -m account_finder background-imap enable --interval-minutes 1440 --limit 500
+python -m account_finder serve --open
+```
+
+Der Befehl fragt das separate App-Passwort oder ein extern bezogenes OAuth2-Token
+nur verdeckt im Terminal ab. Das Geheimnis wird ausschließlich im Schlüsselbund
+des Betriebssystems gespeichert; die lokale SQLite-Datenbank enthält nur einen
+undurchsichtigen Verweis und Zeitplan-Metadaten. Der erste Scan ist beim Start des
+Dashboards fällig und setzt danach an den normalen IMAP-UID-Checkpoints fort. Er
+läuft nicht, wenn ARGUS geschlossen ist, führt keinen Vollscan aus, verändert keine
+Mails und wartet nach einem festen sicheren Fehler bis zum nächsten Intervall.
+
+Status, Pause und Widerruf:
+
+```bash
+python -m account_finder background-imap status
+python -m account_finder background-imap disable
+python -m account_finder background-imap revoke
+```
+
+`disable` pausiert künftige Scans und behält den Schlüsselbund-Eintrag. `revoke`
+deaktiviert zuerst die Scans und entfernt anschließend den Eintrag aus dem
+Schlüsselbund. Das Dashboard zeigt nur den Status und fragt niemals nach Passwort
+oder Token.
+
 ### OAuth2, Microsoft, Google und Proton
 
 Exchange Online unterstützt kein IMAP mit deaktivierter Basic Authentication;
@@ -286,6 +321,24 @@ haben. Die offizielle Dokumentation entscheidet, nicht der Domain-Hinweis.
 Proton Mail stellt keinen gewöhnlichen direkten IMAP-Zugang bereit. Der lokale
 Bridge-Zugang wird hier nicht automatisch eingerichtet. Nutze offizielle
 Proton-Exportwerkzeuge und den EML-/mbox-Import.
+
+## Optionaler Browser-Begleiter
+
+`browser-companion/` enthält einen entpackten Chromium-Erweiterungsprototyp. Wenn
+du sein Popup öffnest, prüft er ausschließlich den Hostnamen des aktiven Tabs
+gegen den gebündelten öffentlichen ARGUS-Katalog. Wo vorhanden, kann er einen
+verifizierten Passwortverwaltungslink kopieren oder öffnen. Er liest weder
+Seiteninhalt noch Formulare, Cookies, Passwörter, Verlauf, Tokens, E-Mails oder
+Bitwarden-Daten. Ein Webseitenbesuch erstellt oder bestätigt nie einen Account.
+
+```bash
+python browser-companion/scripts/build.py
+python browser-companion/tests/validate.py
+```
+
+Lade das erzeugte `browser-companion/dist/` über **Entpackte Erweiterung laden**
+in einem Chromium-Browser. Details stehen in der
+[Begleiter-Anleitung](browser-companion/README.md).
 
 ## Sicherheits-Arbeitsliste fortsetzen
 
@@ -430,10 +483,12 @@ Spracherkennung und mobile Ansichten.
 | `account_finder/i18n.py`, `data/translations.json` | Lokale Deutsch/Englisch-Texte |
 | `account_finder/store.py` | SQLite und Statuspersistenz |
 | `account_finder/imap_client.py` | TLS-IMAP, PEEK, Wiederaufnahme |
+| `account_finder/background.py` | Ausdrücklich aktivierter Keyring-gestützter inkrementeller IMAP-Zeitplan |
 | `account_finder/discovery.py` | Ausdrücklich aktivierte MX-Hinweise |
 | `account_finder/bitwarden.py` | Offizielles Metadaten-Importformat |
 | `account_finder/server.py`, `web/` | Lokales Dashboard |
 | `tests/` | Automatisierte Regressionstests |
+| `browser-companion/` | Minimaler entpackter Chromium-Begleiter für Domain- und Einstellungslinks |
 | [Katalogrichtlinie](docs/KATALOG.md) | Umfang, Qualitätsmaßstäbe und neue Dienste vorschlagen |
 | [Freemium-Plan](docs/FREEMIUM_DE.md) | Verfügbare Free-Funktionen, Pro-Status in Entwicklung und Produktgrenzen |
 | [Checkliste für die kommerzielle Veröffentlichung](docs/COMMERCIAL_RELEASE.md) | Entscheidungen des Inhabers vor dem ersten Pro-Kauf |

@@ -1,5 +1,22 @@
 # Change log
 
+## 1.8.0 — Opt-in background scans and browser companion
+
+- Added an explicitly enabled, in-process scheduler for incremental read-only
+  IMAP scans. It runs only while the local dashboard is open and uses the
+  existing UID checkpoints, TLS, `EXAMINE` and `BODY.PEEK` path.
+- IMAP authorization for scheduled scans is prompted only in a terminal and
+  stored only in an OS-protected keyring. ARGUS has no file fallback, rejects
+  known plaintext keyring backends, and supports status, pause and revocation.
+- Added the dashboard's safe schedule-status display; it never accepts mailbox
+  credentials. A missing or failing keyring produces only fixed local errors.
+- Added a separate unpacked Chromium Manifest V3 browser companion. It requests
+  only `activeTab`, never treats a visit as account evidence, and exposes only
+  already verified password-management links from the bundled public catalog.
+- Added scheduler, keyring, CLI, dashboard shape and browser-companion static
+  regression coverage using synthetic data. No automatic password changes,
+  mailbox changes or provider logins were added.
+
 ## 1.7.0 — Resumable security worklist and reliable Bitwarden handoff
 
 - Added a persistent, bilingual security worklist with selection, pause/resume,

@@ -1,3 +1,23 @@
+# Test report — Version 1.8.0
+
+The background-scan and browser-companion stage passed **128 Python tests**,
+the existing **18 Chromium dashboard check groups**, Python compilation, JSON
+validation and the companion's isolated static validation. The companion build
+bundled 527 catalog records, requested only `activeTab`, and was checked for
+prohibited host/page/native/network access. The dashboard test recorded zero
+external browser requests and no page errors.
+
+The new tests use a fake OS keyring, a fake incremental IMAP runner and a
+temporary profile. They cover disabled-by-default behavior, runtime network
+consent, keyring-only storage, absence of secrets and selectors from public
+state, safe failure/backoff, CLI enable/revoke, and a background schedule shape
+in the authenticated loopback response. No real keyring secret, mailbox,
+provider, Bitwarden vault or password was used.
+
+The following report records the earlier 1.7 automation stage.
+
+---
+
 # Test report — Version 1.7.0
 
 The first automation stage passed **119 Python tests**, JavaScript syntax

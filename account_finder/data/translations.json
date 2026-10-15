@@ -482,6 +482,24 @@
     "Unlock Bitwarden first, then start ARGUS from that same terminal session.": "Entsperre zuerst Bitwarden und starte ARGUS dann aus derselben Terminal-Sitzung.",
     "The official Bitwarden CLI is not installed or not on PATH.": "Die offizielle Bitwarden-CLI ist nicht installiert oder nicht im Suchpfad.",
     "The Bitwarden CLI returned an unexpected status.": "Die Bitwarden-CLI hat einen unerwarteten Status zurückgegeben.",
-    "Bitwarden must be unlocked before adding selected items.": "Bitwarden muss entsperrt sein, bevor ausgewählte Einträge hinzugefügt werden."
+    "Bitwarden must be unlocked before adding selected items.": "Bitwarden muss entsperrt sein, bevor ausgewählte Einträge hinzugefügt werden.",
+    "Configure explicitly authorized scheduled read-only IMAP scans": "Ausdrücklich freigegebene geplante schreibgeschützte IMAP-Scans einrichten",
+    "Minutes between scheduled scans (15 to 10080)": "Minuten zwischen geplanten Scans (15 bis 10080)",
+    "Maximum messages in each scheduled scan (1 to 10000)": "Maximale Nachrichten je geplantem Scan (1 bis 10000)",
+    "Background IMAP requires an initialized personal local profile": "Hintergrund-IMAP erfordert ein eingerichtetes persönliches lokales Profil",
+    "Scheduled IMAP scans are disabled. The app password remains only in your OS keyring until you revoke it.": "Geplante IMAP-Scans sind deaktiviert. Das App-Passwort verbleibt nur in deinem Betriebssystem-Schlüsselbund, bis du es widerrufst.",
+    "Scheduled IMAP scans are disabled and the IMAP authorization was removed from your OS keyring.": "Geplante IMAP-Scans sind deaktiviert und die IMAP-Freigabe wurde aus deinem Betriebssystem-Schlüsselbund entfernt.",
+    "Scheduled scan interval must be between 15 minutes and 7 days": "Das Intervall geplanter Scans muss zwischen 15 Minuten und 7 Tagen liegen",
+    "Scheduled scan limit must be between 1 and 10000": "Das Limit geplanter Scans muss zwischen 1 und 10000 liegen",
+    "Separate IMAP app password / OAuth2 token for OS keyring: ": "Separates IMAP-App-Passwort / OAuth2-Token für den Betriebssystem-Schlüsselbund: ",
+    "Scheduled read-only IMAP scans are enabled. They run only while the local ARGUS dashboard is running.": "Geplante schreibgeschützte IMAP-Scans sind aktiviert. Sie laufen nur, während das lokale ARGUS-Dashboard geöffnet ist.",
+    "03 / OPTIONAL AUTOMATION": "03 / OPTIONALE AUTOMATISIERUNG",
+    "Scheduled read-only IMAP scans": "Geplante schreibgeschützte IMAP-Scans",
+    "Store a separate IMAP authorization only in your operating system keyring. No secret is accepted by this dashboard, and scheduled scans run only while ARGUS is open.": "Speichere eine separate IMAP-Freigabe nur im Schlüsselbund deines Betriebssystems. Dieses Dashboard akzeptiert keine Geheimnisse, und geplante Scans laufen nur, während ARGUS geöffnet ist.",
+    "Use background-imap disable to pause scans, or background-imap revoke to remove the saved authorization from the OS keyring.": "Verwende background-imap disable, um Scans anzuhalten, oder background-imap revoke, um die gespeicherte Freigabe aus dem Betriebssystem-Schlüsselbund zu entfernen.",
+    "Scheduled read-only IMAP scans are enabled. They run only while this local dashboard is open.": "Geplante schreibgeschützte IMAP-Scans sind aktiviert. Sie laufen nur, während dieses lokale Dashboard geöffnet ist.",
+    "Scheduled IMAP scans are paused. The authorization stays in your OS keyring until you revoke it.": "Geplante IMAP-Scans sind pausiert. Die Freigabe bleibt in deinem Betriebssystem-Schlüsselbund, bis du sie widerrufst.",
+    "Scheduled IMAP scans are disabled. Enable them from a local terminal after configuring IMAP.": "Geplante IMAP-Scans sind deaktiviert. Aktiviere sie nach der IMAP-Einrichtung über ein lokales Terminal.",
+    "Background IMAP schedule needs local setup": "Hintergrund-IMAP-Zeitplan benötigt lokale Einrichtung"
   }
 }

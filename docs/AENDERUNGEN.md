@@ -1,3 +1,28 @@
+# Änderungen – Version 1.8.0
+
+- Opt-in-Zeitplanung für inkrementelle, schreibgeschützte IMAP-Scans ergänzt.
+  Sie läuft nur bei geöffnetem lokalen Dashboard und nutzt vorhandene UID-
+  Checkpoints, TLS, `EXAMINE` und `BODY.PEEK`.
+- Die Freigabe wird nur verdeckt im Terminal abgefragt und ausschließlich im
+  Schlüsselbund des Betriebssystems gespeichert. Es gibt keinen Datei-Fallback;
+  Klartext-Keyring-Backends werden abgelehnt. Status, Pause und Widerruf sind
+  möglich.
+- Das Dashboard zeigt nur den sicheren Zeitplanstatus und akzeptiert keine
+  Mailzugangsdaten. Fehler bleiben feste lokale Meldungen.
+- Entpackter Chromium-Manifest-V3-Browser-Begleiter mit ausschließlich
+  `activeTab` ergänzt. Webseitenbesuche sind keine Account-Belege; angezeigt
+  werden nur bereits verifizierte Passwortverwaltungslinks aus dem Katalog.
+
+## Update auf 1.8.0
+
+Beende die Anwendung, sichere dein geschütztes Datenverzeichnis und installiere
+die neue Version. Es ist keine Datenbankmigration erforderlich. Geplante Scans
+sind nach dem Update deaktiviert, bis sie ausdrücklich über `background-imap
+enable` eingerichtet werden. Installiere `keyring` nur, wenn du diese optionale
+Funktion nutzen möchtest.
+
+---
+
 # Änderungen – Version 1.7.0
 
 - Fortsetzbare deutsche und englische Sicherheits-Arbeitsliste mit Auswahl,

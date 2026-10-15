@@ -50,6 +50,11 @@ class ServerTests(unittest.TestCase):
         self.assertFalse(snapshot["product"]["telemetry"])
         self.assertTrue(snapshot["product"]["free_features"])
         self.assertTrue(snapshot["product"]["pro_preview"])
+        self.assertEqual(snapshot["background_scan"], {"enabled": False, "authorized": False,
+                                                        "interval_seconds": 86400, "limit": 500,
+                                                        "next_run_at": None, "last_started_at": None,
+                                                        "last_finished_at": None, "last_result": None,
+                                                        "last_error": None})
 
     def test_api_requires_token(self):
         self.assertEqual(self.request("/api/accounts",authorized=False)[0],401)

@@ -1,3 +1,24 @@
+# Prüfbericht – Version 1.8.0
+
+Die Stufe mit Hintergrund-Scans und Browser-Begleiter besteht **128 Python-
+Tests**, die vorhandenen **18 Chromium-Dashboard-Prüfgruppen**, Python-
+Kompilierung, JSON-Prüfung und die isolierte statische Prüfung des Begleiters.
+Der Begleiter bündelte 527 Katalogeinträge, fordert nur `activeTab` an und wurde
+auf verbotenen Host-/Seiten-/Native-/Netzwerkzugriff geprüft. Der Dashboard-Test
+meldete keine Seitenfehler und keine externen Browseranfragen.
+
+Die neuen Tests nutzen einen künstlichen Betriebssystem-Schlüsselbund, einen
+Fake für den inkrementellen IMAP-Lauf und ein temporäres Profil. Sie decken den
+standardmäßig deaktivierten Zustand, Laufzeit-Netzwerkfreigabe, reine
+Keyring-Speicherung, fehlende Geheimnisse und Selektoren im öffentlichen Status,
+sicheren Fehler/Backoff, CLI-Aktivierung/Widerruf und die Zeitplanform in der
+authentifizierten Loopback-Antwort ab. Es wurden kein echter Schlüsselbund,
+kein Postfach, kein Anbieter, kein Bitwarden-Tresor und kein Passwort verwendet.
+
+Der folgende Bericht dokumentiert die frühere Automatisierungsstufe 1.7.
+
+---
+
 # Prüfbericht – Version 1.7.0
 
 Die erste Automatisierungsstufe besteht **119 Python-Tests**, die

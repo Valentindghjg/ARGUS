@@ -76,6 +76,13 @@ function renderState() {
   $("category").replaceChildren(new Option(t("All categories"),""),...Array.from(new Set(state.accounts.map(a=>a.category))).sort().map(c=>new Option(t(c),c)));
   $("category").value=previous;
   $("profile-email").textContent=t("Configured addresses: {p0}",{p0:(state.emails.join(", "))});
+  const scheduled=state.background_scan||{};
+  let scheduledText;
+  if(scheduled.enabled) scheduledText=t("Scheduled read-only IMAP scans are enabled. They run only while this local dashboard is open.");
+  else if(scheduled.authorized) scheduledText=t("Scheduled IMAP scans are paused. The authorization stays in your OS keyring until you revoke it.");
+  else scheduledText=t("Scheduled IMAP scans are disabled. Enable them from a local terminal after configuring IMAP.");
+  if(scheduled.last_error) scheduledText+=" "+t(scheduled.last_error);
+  $("background-scan-status").textContent=scheduledText;
   const domain=(state.emails[0]||"").split("@")[1]||"your-domain.example";
   $("discover-command").textContent=`python -m account_finder discover --domain ${domain} --allow-dns`;
   renderScan(state.active_import||state.last_scan);

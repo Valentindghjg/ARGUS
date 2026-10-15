@@ -27,6 +27,16 @@ files or logs. A failed mailbox authentication aborts instead of trying a passwo
 list. IMAP debug output is disabled; server error text is replaced with fixed,
 non-sensitive messages.
 
+Scheduled IMAP scanning is disabled by default. It can be enabled only from an
+interactive terminal after an IMAP configuration exists; it runs only while the
+local dashboard process is open. Its app password or externally obtained OAuth2
+token is stored only in the operating-system keyring through the optional
+`keyring` package. ARGUS has no plaintext file fallback and rejects known
+plaintext keyring backends. SQLite stores only an opaque UUID selector, interval
+and safe status metadata. `disable` stops future runs; `revoke` stops them first
+and removes the keyring entry. Each run uses the existing incremental TLS/IMAP
+path and fixed safe failure text, never a password retry list.
+
 The app never requests your Bitwarden master password, signs into Bitwarden or
 reads your vault. Its optional direct transfer requires an already-unlocked
 official Bitwarden CLI and creates only explicitly selected, password-free items;
@@ -89,6 +99,14 @@ URLs, Local Storage or logs. API requests require the bearer header. Host and
 Origin checks, no CORS permission, CSP, frame protection and `no-store` limit
 browser attacks. Dynamic content uses `textContent`; provider links come from the
 validated catalog rather than emails.
+
+The optional Chromium browser companion is an unpacked Manifest V3 extension
+with only the `activeTab` permission. When the user opens its popup it reads the
+active tab URL locally, matches its hostname against a bundled public catalog,
+and may copy/open an already verified settings URL. It has no host permissions,
+content scripts, background worker, native messaging, network access or access to
+page content, forms, cookies, passwords, history, tokens, email or Bitwarden.
+A visited site is never evidence of an account.
 
 Other local processes can retrieve the page too. This is a single-user app, not
 protection against untrusted users sharing the same computer. Do not expose it as

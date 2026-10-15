@@ -29,8 +29,9 @@ provider password automatically.
    separately started mail import.
 
 The list uses existing provider-level checklists. Independent tracking of several
-accounts at the same provider, scheduled background scanning and browser
-extensions are future work.
+accounts at the same provider remains future work. Optional scheduled mailbox
+scans and the browser companion are separate features: neither changes this
+worklist or treats a site visit as account evidence.
 
 ## Deutsch
 
@@ -64,5 +65,7 @@ Scans und ändert keine Anbieterpasswörter automatisch.
    Das Pausieren dieser Liste pausiert keinen separat gestarteten Mailimport.
 
 Die Arbeitsliste verwendet die bisherigen Checklisten je Anbieter. Getrennte
-Fortschritte für mehrere Accounts beim selben Anbieter, zeitgesteuerte Scans und
-Browser-Erweiterungen sind spätere Ausbaustufen.
+Fortschritte für mehrere Accounts beim selben Anbieter bleiben eine spätere
+Ausbaustufe. Optionale geplante Mail-Scans und der Browser-Begleiter sind
+getrennte Funktionen: Sie ändern diese Arbeitsliste nicht und werten einen
+Webseitenbesuch nicht als Account-Beleg.

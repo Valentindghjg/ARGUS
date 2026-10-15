@@ -31,6 +31,18 @@ Postfach durch; fehlgeschlagene Anmeldung führt zum Abbruch, nicht zu einer
 Versuchsschleife. IMAP-Debug-Ausgabe ist deaktiviert und serverseitige
 Fehlermeldungen werden durch feste, nicht-sensitive Meldungen ersetzt.
 
+Zeitgesteuerte IMAP-Scans sind standardmäßig deaktiviert. Sie lassen sich erst
+nach bestehender IMAP-Konfiguration über ein interaktives Terminal aktivieren und
+laufen nur, während der lokale Dashboard-Prozess geöffnet ist. Das App-Passwort
+oder extern erhaltene OAuth2-Token liegt ausschließlich über das optionale Paket
+`keyring` im Schlüsselbund des Betriebssystems. ARGUS besitzt keinen
+Klartext-Datei-Fallback und lehnt bekannte Klartext-Keyring-Backends ab. SQLite
+speichert nur einen undurchsichtigen UUID-Verweis, Intervall und sichere
+Statusmetadaten. `disable` stoppt künftige Läufe; `revoke` stoppt sie zuerst und
+entfernt den Schlüsselbund-Eintrag. Jeder Lauf nutzt den vorhandenen
+inkrementellen TLS-/IMAP-Pfad und feste sichere Fehlermeldungen, niemals eine
+Passwort-Versuchsliste.
+
 Das Bitwarden-Hauptpasswort wird niemals abgefragt. Die Anwendung meldet sich
 nicht bei Bitwarden an und liest keinen Tresor. Die optionale direkte Übertragung
 benötigt eine bereits entsperrte offizielle Bitwarden-CLI und erstellt nur
@@ -105,6 +117,15 @@ Host-/Origin-Prüfung, fehlende CORS-Freigabe, Content Security Policy,
 Frame-Schutz und `no-store` begrenzen browserbasierte Angriffe. Dynamische Daten
 werden mit `textContent` eingefügt. Passwortlinks stammen ausschließlich aus dem
 validierten Katalog, nie aus Mails.
+
+Der optionale Chromium-Browser-Begleiter ist eine entpackte Manifest-V3-Erweiterung
+mit ausschließlich der Berechtigung `activeTab`. Beim Öffnen des Popups liest sie
+die URL des aktiven Tabs lokal, gleicht nur den Hostnamen mit einem gebündelten
+öffentlichen Katalog ab und kann einen bereits verifizierten Einstellungslink
+kopieren oder öffnen. Sie hat keine Host-Berechtigungen, Content-Skripte,
+Hintergrund-Worker, Native Messaging, Netzwerkzugriffe oder Zugriff auf
+Seiteninhalt, Formulare, Cookies, Passwörter, Verlauf, Tokens, E-Mails oder
+Bitwarden. Ein Webseitenbesuch ist niemals ein Account-Beleg.
 
 Andere lokale Prozesse können wie dein Browser die Startseite abrufen. Dieses
 Programm ist eine Einzelbenutzer-Anwendung und schützt nicht vor anderen

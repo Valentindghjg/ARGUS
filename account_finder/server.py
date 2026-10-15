@@ -11,6 +11,7 @@ from urllib.parse import urlsplit, unquote
 
 from .analysis import MAX_MESSAGE_BYTES
 from .bitwarden import BitwardenCliError
+from .background import BackgroundScanService, KeyringCredentialStore
 from .handoffs import HandoffError
 from .licensing import LicenseError
 from .scan import ScanSession, scan_messages
@@ -32,6 +33,9 @@ class DashboardServer(ThreadingHTTPServer):
         self.token = secrets.token_urlsafe(32)
         self.import_lock = threading.RLock()
         self.import_job = None
+        self.background_service = BackgroundScanService(store, KeyringCredentialStore())
+        self.background_stop = threading.Event()
+        self.background_thread = None
         super().__init__(("127.0.0.1", port), Handler)
         self.origins = {f"http://127.0.0.1:{self.server_port}", f"http://localhost:{self.server_port}"}
         self.hosts = {f"127.0.0.1:{self.server_port}", f"localhost:{self.server_port}"}
@@ -54,7 +58,37 @@ class DashboardServer(ThreadingHTTPServer):
             raise ValueError("Unknown import session")
         return self.import_job
 
+    def background_snapshot(self):
+        try:
+            return self.background_service.snapshot()
+        except ValueError:
+            # A damaged local schedule must not stop the dashboard or reveal
+            # untrusted stored values. It will require a fresh terminal setup.
+            return {"enabled": False, "authorized": False, "last_error": "Background IMAP schedule needs local setup"}
+
+    def start_background_scans(self):
+        """Start the opt-in in-process scheduler only for an enabled profile."""
+        if self.background_thread or not self.background_snapshot().get("enabled"):
+            return
+        self.background_thread = threading.Thread(target=self._background_loop,
+                                                  name="argus-imap-scheduler", daemon=True)
+        self.background_thread.start()
+
+    def _background_loop(self):
+        while not self.background_stop.is_set():
+            # Never overlap a browser EML import with an automatic mailbox run.
+            # The next pass will see the same persistent IMAP checkpoint.
+            if not self.active_import():
+                self.background_service.run_due(allow_network=True)
+            status = self.background_snapshot()
+            due = status.get("next_run_at")
+            seconds = 60
+            if isinstance(due, (int, float)):
+                seconds = max(1, min(60, due - time.time()))
+            self.background_stop.wait(seconds)
+
     def server_close(self):
+        self.background_stop.set()
         with self.import_lock:
             if self.import_job and self.import_job.stats["running"]:
                 self.import_job.finish("partial")
@@ -158,6 +192,7 @@ class Handler(BaseHTTPRequestHandler):
                 job = self.server.active_import()
                 snapshot = self.server.store.snapshot()
                 snapshot["active_import"] = dict(job.stats) if job else None
+                snapshot["background_scan"] = self.server.background_snapshot()
             self._send(200, snapshot)
         else:
             self._error(404, "Not found")
@@ -270,6 +305,7 @@ class Handler(BaseHTTPRequestHandler):
 def serve(store: Store, port=8765, open_browser=False, language="en"):
     from .i18n import translate
     with DashboardServer(store, port) as server:
+        server.start_background_scans()
         print(translate("Local dashboard: ", language) + server.url, flush=True)
         print(translate("Press Ctrl+C to stop the server. No mailbox connection is active.", language), flush=True)
         if open_browser:

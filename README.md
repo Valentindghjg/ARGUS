@@ -1,4 +1,4 @@
-# Account Compass 1.7.0
+# Account Compass 1.8.0
 
 [Deutsch](README_DE.md) · English
 
@@ -247,6 +247,38 @@ folders completes normally. Errors, skips and header-only analysis indicate gaps
 Changing the address scope during a scan interrupts it; restart to use the new
 scope. Use `--full-scan` to explicitly recheck previously read messages.
 
+### Optional scheduled scans
+
+After you have verified `imap.json` with a manual read-only scan, you can opt in
+to incremental scans while the local ARGUS dashboard is running. Install a
+supported **OS-protected** Python keyring first; ARGUS refuses plaintext keyring
+backends and has no file fallback:
+
+```bash
+python -m pip install keyring
+python -m account_finder background-imap enable --interval-minutes 1440 --limit 500
+python -m account_finder serve --open
+```
+
+The command asks for the separate app password or externally obtained OAuth2
+token only in a hidden terminal prompt. It saves that secret only in the OS
+keyring; the local SQLite database keeps an opaque selector and schedule metadata
+only. The first scan is due when the dashboard starts, then it resumes from the
+normal IMAP UID checkpoints. It never runs when ARGUS is closed, does not do a
+full rescan, does not change mail, and backs off after a safe fixed error.
+
+Check, pause, or remove the authorization with:
+
+```bash
+python -m account_finder background-imap status
+python -m account_finder background-imap disable
+python -m account_finder background-imap revoke
+```
+
+`disable` pauses future scans while retaining the keyring entry. `revoke`
+disables scans first and then removes the entry from the OS keyring. Dashboard
+setup shows status only and never accepts a password or token.
+
 ### OAuth2 and provider differences
 
 Exchange Online requires OAuth2 where Basic Authentication is disabled; an app
@@ -262,6 +294,22 @@ may impose further restrictions. Follow the official provider documentation.
 Proton Mail does not provide an ordinary direct IMAP login. The local Bridge is
 not automatically configured by this TLS-only scanner; use official export tools
 and import EML/mbox instead.
+
+## Optional browser companion
+
+`browser-companion/` contains an unpacked Chromium extension prototype. When you
+open its popup, it checks only the active tab’s hostname against a bundled public
+ARGUS catalog. It can copy or open a verified password-management link where one
+exists. It never reads page content, forms, cookies, passwords, history, tokens,
+email or Bitwarden data, and a site visit never creates or confirms an account.
+
+```bash
+python browser-companion/scripts/build.py
+python browser-companion/tests/validate.py
+```
+
+Load the generated `browser-companion/dist/` with your Chromium browser’s
+**Load unpacked** option. See its [companion guide](browser-companion/README.md).
 
 ## Resume a security worklist
 
@@ -385,10 +433,12 @@ python scripts/browser_smoke.py --browser /usr/bin/chromium --screenshots-dir do
 | `account_finder/i18n.py`, `data/translations.json` | Local German/English presentation |
 | `account_finder/store.py` | SQLite evidence and checklist persistence |
 | `account_finder/imap_client.py` | TLS IMAP, PEEK and resuming |
+| `account_finder/background.py` | Explicit keyring-backed incremental IMAP schedule |
 | `account_finder/discovery.py` | Explicitly authorized MX hints |
 | `account_finder/bitwarden.py` | Official metadata-only import format |
 | `account_finder/server.py`, `web/` | Local dashboard |
 | `tests/` | Automated regression tests |
+| `browser-companion/` | Minimal unpacked Chromium domain/settings-link companion |
 | [Catalog policy](docs/CATALOG.md) | Scope, review standards and how to propose providers |
 | [Freemium plan](docs/FREEMIUM.md) | Available Free functionality, Pro-in-development status and product boundaries |
 | [Commercial-release checklist](docs/COMMERCIAL_RELEASE.md) | Owner decisions before accepting a Pro payment |
