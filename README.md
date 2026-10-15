@@ -2,12 +2,20 @@
 
 [Deutsch](README_DE.md) · English
 
-[![Checks](https://github.com/Valentindghjg/account-compass/actions/workflows/ci.yml/badge.svg)](https://github.com/Valentindghjg/account-compass/actions/workflows/ci.yml)
+[![Checks](https://github.com/Valentindghjg/ARGUS/actions/workflows/ci.yml/badge.svg)](https://github.com/Valentindghjg/ARGUS/actions/workflows/ci.yml)
 
 A local Python account finder with a **German/English dashboard**, **527
 extensible providers**, local email analysis and a Bitwarden security checklist.
 Users choose their interface language. Email detection always supports both
 English and German, independently of that choice.
+
+## Preview
+
+The screenshots below use only the bundled synthetic demo data.
+
+| Dashboard | Security worklist |
+| --- | --- |
+| [![ARGUS dashboard](https://github.com/Valentindghjg/ARGUS/releases/download/v1.16.0/argus-dashboard-demo.png)](https://github.com/Valentindghjg/ARGUS/releases/tag/v1.16.0) | [![ARGUS security worklist](https://github.com/Valentindghjg/ARGUS/releases/download/v1.16.0/argus-worklist-demo.png)](https://github.com/Valentindghjg/ARGUS/releases/tag/v1.16.0) |
 
 The app finds **evidence in your own messages**. It does not probe accounts on
 provider websites. Missing evidence leaves a service “Unknown”; it does not prove
@@ -48,8 +56,8 @@ confirmations and one completed checklist. **These are not your real accounts.**
 You can also clone the GitHub repository:
 
 ```bash
-git clone https://github.com/Valentindghjg/account-compass.git
-cd account-compass
+git clone https://github.com/Valentindghjg/ARGUS.git
+cd ARGUS
 python -m pip install .
 python -m account_finder --data-dir .local/demo demo --serve --open
 ```
@@ -488,6 +496,8 @@ python scripts/browser_multi_account.py --browser /usr/bin/chromium
 | [Publishing checklist](docs/PUBLISHING.md) | Owner-controlled steps before making the repository public |
 | [Technical plan](docs/PLAN.md) | Architecture and development sequence |
 | [Security model](docs/SECURITY.md) | Privacy, protections and limits |
+| [Privacy statement](PRIVACY.md) | What the local app processes and when it connects |
+| [Support](SUPPORT.md) | Discussions, issues and safe reporting rules |
 | [Test report](docs/TEST_REPORT.md) | Checks actually performed |
 | [Official sources](docs/SOURCES.md) | Bitwarden, settings links and mail providers |
 

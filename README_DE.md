@@ -52,8 +52,8 @@ Mit `--port 8766` lässt sich ein bereits belegter Port umgehen.
 Alternativ das GitHub-Repository klonen:
 
 ```bash
-git clone https://github.com/Valentindghjg/account-compass.git
-cd account-compass
+git clone https://github.com/Valentindghjg/ARGUS.git
+cd ARGUS
 python -m pip install .
 python -m account_finder --data-dir .local/demo demo --serve --open
 ```
