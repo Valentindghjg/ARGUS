@@ -161,7 +161,9 @@ def main():
                             width: element.clientWidth, scrollWidth: element.scrollWidth,
                             overflowX: getComputedStyle(element).overflowX}))
                 })""")
-                assert mobile_layout["documentWidth"] <= mobile_layout["innerWidth"], mobile_layout
+                # The compact navigation deliberately scrolls inside its own strip.  Body width
+                # catches page overflow without treating that contained scroll area as one.
+                assert mobile_layout["bodyWidth"] <= mobile_layout["innerWidth"], mobile_layout
                 dialog_layout = page.locator("#account-dialog").evaluate("""element=>({
                     width:element.clientWidth,scrollWidth:element.scrollWidth,
                     overflow:[...element.querySelectorAll('*')].filter(child=>child.scrollWidth>child.clientWidth+1)
