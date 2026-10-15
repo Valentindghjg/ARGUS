@@ -145,7 +145,23 @@ def main():
                 page.locator("#detail-language").select_option("de")
                 expect(page.locator("#add-account-panel summary")).to_have_text("Weiteren Account bei diesem Dienst hinzufügen")
                 page.set_viewport_size({"width":390,"height":844})
-                assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+                mobile_layout = page.evaluate("""() => ({
+                    innerWidth: window.innerWidth,
+                    documentWidth: document.documentElement.scrollWidth,
+                    bodyWidth: document.body.scrollWidth,
+                    overflowing: [...document.querySelectorAll('body *')]
+                        .filter(element => {
+                            const rect = element.getBoundingClientRect();
+                            const style = getComputedStyle(element);
+                            return style.position !== 'fixed' && rect.right > window.innerWidth + 1;
+                        })
+                        .slice(0, 12)
+                        .map(element => ({tag: element.tagName, id: element.id, cls: element.className,
+                            right: Math.round(element.getBoundingClientRect().right),
+                            width: element.clientWidth, scrollWidth: element.scrollWidth,
+                            overflowX: getComputedStyle(element).overflowX}))
+                })""")
+                assert mobile_layout["documentWidth"] <= mobile_layout["innerWidth"], mobile_layout
                 dialog_layout = page.locator("#account-dialog").evaluate("""element=>({
                     width:element.clientWidth,scrollWidth:element.scrollWidth,
                     overflow:[...element.querySelectorAll('*')].filter(child=>child.scrollWidth>child.clientWidth+1)
