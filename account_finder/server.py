@@ -277,6 +277,12 @@ class Handler(BaseHTTPRequestHandler):
                     raise ValueError("Specify the selected accounts and language")
                 result = add_to_unlocked_cli(self.server.store, data["ids"], data["language"])
                 self._send(200, result)
+            elif path == "/api/bitwarden/audit":
+                from .bitwarden import audit_unlocked_cli
+                data = self._json()
+                if set(data) != {"ids", "language", "confirmed"} or data["confirmed"] is not True:
+                    raise ValueError("Confirm the local Bitwarden check")
+                self._send(200, audit_unlocked_cli(self.server.store, data["ids"], data["language"]))
             elif path == "/api/secure-next/bitwarden":
                 from .bitwarden import add_to_unlocked_cli
                 data = self._json()

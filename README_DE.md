@@ -1,4 +1,4 @@
-# Account Compass 1.15.0 – lokaler Account-Finder
+# Account Compass 1.16.0 – lokaler Account-Finder
 
 Deutsch · [English](README.md)
 
@@ -352,9 +352,9 @@ einen passwortfreien Eintrag für den aktuellen Account. SSO und Passkeys
 Anbieter abgeschickt. Siehe die [Arbeitslisten-Anleitung](docs/WORKLIST.md) und
 [Hinweise zu unterbrochenen Übertragungen](docs/BITWARDEN_CLI.md).
 
-Bei Prüfung, Passwortwechsel und Anmeldetest speichert **Ich habe diesen Schritt
-erledigt** deine ausdrückliche lokale Bestätigung und führt danach direkt mit dem
-nächsten Schritt weiter.
+Bei Prüfung, Passwortwechsel, Anmeldetest sowie MFA/Wiederherstellung speichert
+**Ich habe diesen Schritt erledigt** deine ausdrückliche lokale Bestätigung und
+führt danach direkt mit dem nächsten Schritt weiter.
 
 ## Accounts prüfen und mit Bitwarden absichern
 
@@ -391,24 +391,31 @@ manuell bestätigt werden.
 
 Unter „Bitwarden vorbereiten“:
 
-1. Vorhandene Tresoreinträge zuerst zuordnen. Diese Accounts werden vom Download
+1. Optional **Ausgewählte Accounts im entsperrten Bitwarden prüfen** wählen.
+   Nach einer separaten Bestätigung durchsucht ARGUS über die bereits entsperrte
+   offizielle CLI nur die ausgewählten Accounts und zeigt ausschließlich
+   **gefunden / möglich / nichts gefunden** mit Anzahl. Die CLI-Antwort kann beim
+   Verarbeiten Tresorfelder enthalten; ARGUS speichert oder zeigt jedoch keine
+   Namen, Benutzernamen oder Passwörter. Mögliche Treffer selbst prüfen.
+2. Vorhandene Tresoreinträge zuerst zuordnen. Diese Accounts werden vom Download
    ausgeschlossen.
-2. Ausschließlich tatsächlich fehlende Einträge auswählen. Wahrscheinliche
+3. Ausschließlich tatsächlich fehlende Einträge auswählen. Wahrscheinliche
    Accounts werden nicht automatisch angehakt.
-3. **Metadaten-JSON** herunterladen. Jeder Eintrag enthält Anbieter, offizielle
+4. **Metadaten-JSON** herunterladen. Jeder Eintrag enthält Anbieter, offizielle
    URI, ermittelte Adresse und Hinweise; Passwort ist leer, TOTP ist null.
-4. In deiner offiziellen Bitwarden-App „Importieren“ → **Bitwarden (json)**
+5. In deiner offiziellen Bitwarden-App „Importieren“ → **Bitwarden (json)**
    wählen und die Datei selbst importieren. Dazu nutzt du deinen bestehenden
    Tresor, unabhängig von dessen Konto-Adresse.
-5. Datei nur **einmal** importieren, kontrollieren und danach löschen. Bitwarden
-   ergänzt beim Import Einträge, prüft jedoch keine Duplikate. Das Programm liest
-   oder überschreibt bestehende Tresoreinträge nicht. Ein leerer Importeintrag
-   bedeutet noch keine erfolgreiche Passwortänderung.
+6. Datei nur **einmal** importieren, kontrollieren und danach löschen. Bitwarden
+   ergänzt beim Import Einträge, prüft jedoch keine Duplikate. Dieser JSON-Import
+   liest oder überschreibt bestehende Tresoreinträge nicht. Ein leerer
+   Importeintrag bedeutet noch keine erfolgreiche Passwortänderung.
 
 Alternativ kann das Dashboard nach dem Entsperren der offiziellen Bitwarden-CLI
 in deinem eigenen Terminal die ausdrücklich ausgewählten passwortfreien Einträge
-direkt erstellen. Es liest oder überschreibt keine bestehenden Einträge und
-erhält nie dein Hauptpasswort. Folge der
+direkt erstellen. Die getrennte optionale Prüfung ist nur lesend; die Erstellung
+liest oder überschreibt keine bestehenden Einträge. Keine Aktion erhält dein
+Hauptpasswort. Folge der
 [Bitwarden-CLI-Übergabeanleitung](docs/BITWARDEN_CLI.md).
 
 Auch ein Metadaten-Export über die Kommandozeile ist möglich:

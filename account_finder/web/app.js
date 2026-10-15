@@ -39,9 +39,10 @@ let activeBatch=null, importCancelled=false, addingAlias=false, addingAccount=fa
 let displayedScan=null;
 const exportChoices=new Map();
 const worklistChoices=new Map();
+let bitwardenAudit=null;
 let workflowBusy=false, bitwardenBusy=false;
-const workflowSteps={identify:"Identify this account before preparing Bitwarden.",review:"Review this account and confirm it exists.",bitwarden:"Assign an existing Bitwarden item or prepare a missing one.",change_password:"Use Bitwarden to set a unique password at the provider.",test_signin:"Test the sign-in before completing this account.",finish:"Required steps are checked. You can mark this account done.",done:"This account is complete."};
-function accountStep(account){return account.identity_review_required?"identify":account.status==="done"?"done":!account.checklist.reviewed?"review":!account.checklist.saved_in_bitwarden?"bitwarden":account.login_method==="password"&&!account.checklist.password_changed?"change_password":!account.checklist.login_tested?"test_signin":"finish";}
+const workflowSteps={identify:"Identify this account before preparing Bitwarden.",review:"Review this account and confirm it exists.",bitwarden:"Assign an existing Bitwarden item or prepare a missing one.",change_password:"Use Bitwarden to set a unique password at the provider.",test_signin:"Test the sign-in before completing this account.",mfa:"Review multi-factor authentication and recovery, then complete this step.",finish:"Required steps are checked. You can mark this account done.",done:"This account is complete."};
+function accountStep(account){return account.identity_review_required?"identify":account.status==="done"?"done":!account.checklist.reviewed?"review":!account.checklist.saved_in_bitwarden?"bitwarden":account.login_method==="password"&&!account.checklist.password_changed?"change_password":!account.checklist.login_tested?"test_signin":!account.checklist.mfa_checked?"mfa":"finish";}
 const labels = {confirmed:"Confirmed",probable:"Probable",unknown:"Unknown",pending:"Pending",in_progress:"In progress",done:"Done",skipped:"Deferred",critical:"Do first",high:"High",normal:"Normal"};
 const titles = {
   dashboard:["Your accounts, in one place.","Find local evidence and secure your accounts with Bitwarden.","Overview"],
@@ -101,7 +102,7 @@ function renderState() {
   $("add-alias-button").disabled=state.demo||addingAlias||Boolean(activeBatch||state.active_import);
   $("alias-email").disabled=state.demo;$("alias-owned").disabled=state.demo;
   if(state.demo)setMessage("alias-message","Add real own addresses in a personal profile on your computer. The demo profile stays separate.");
-  renderRows();renderCandidates();renderExport();renderPlans();renderWorklist();renderGuided();renderHandoffs();
+  renderRows();renderCandidates();renderExport();renderBitwardenAudit();renderPlans();renderWorklist();renderGuided();renderHandoffs();
 }
 function renderPlans(){
   const product=state.product;
@@ -203,7 +204,7 @@ function renderDetail(){
   const guidedBitwarden=$("guided-prepare-bitwarden");
   guidedBitwarden.classList.toggle("hidden",step!=="bitwarden"||!guidedCurrent);
   guidedBitwarden.disabled=busy||bitwardenBusy||state.demo;
-  const completion={review:"reviewed",change_password:"password_changed",test_signin:"login_tested",finish:"done"}[step];
+  const completion={review:"reviewed",change_password:"password_changed",test_signin:"login_tested",mfa:"mfa_checked",finish:"done"}[step];
   const completeButton=$("guided-complete-step");
   completeButton.classList.toggle("hidden",!guidedCurrent||!completion);
   completeButton.dataset.completion=completion||"";
@@ -282,7 +283,19 @@ function renderExport(){
   }));
   if(!items.length)$("export-selection").append(node("p",t("No missing items selected. Review your accounts and existing vault items first.")));
   $("bitwarden-cli-button").disabled=bitwardenBusy||state.demo||!eligible.size;
+  $("bitwarden-audit-button").disabled=bitwardenBusy||state.demo||!eligible.size;
   $("export-button").disabled=bitwardenBusy||!eligible.size;
+}
+function renderBitwardenAudit(){
+  const panel=$("bitwarden-audit");
+  if(!bitwardenAudit||!Array.isArray(bitwardenAudit.accounts)){panel.classList.add("hidden");$("bitwarden-audit-items").replaceChildren();return;}
+  const accounts=new Map(state.accounts.map(account=>[account.id,account]));
+  panel.classList.remove("hidden");
+  $("bitwarden-audit-items").replaceChildren(...bitwardenAudit.accounts.map(result=>{
+    const account=accounts.get(result.account_id),item=node("article",undefined,"worklist-item");
+    const message=result.match==="found"?t("Matching Bitwarden item found ({count}).",{count:result.count}):result.match==="possible"?t("Possible Bitwarden item found ({count}); review it yourself.",{count:result.count}):t("No matching Bitwarden item found.");
+    item.append(node("strong",account?accountTitle(account):t("Account no longer available")),node("p",message));return item;
+  }));
 }
 function actionButton(text,action,disabled=false){
   const button=node("button",t(text),"button secondary");button.onclick=action;button.disabled=disabled;return button;
@@ -339,6 +352,7 @@ function guidedStepCopy(account,step){
   if(step==="bitwarden")return t("Prepare an empty Bitwarden item for this exact account. ARGUS never generates or handles its password.");
   if(step==="change_password")return account.password_url?t("Open the verified provider page, change the password in your browser, then return here and complete the checklist step."):t("No verified password-settings link is available. Open the provider website and navigate manually.");
   if(step==="test_signin")return t("Test the sign-in yourself, then complete this checklist step.");
+  if(step==="mfa")return t("Review multi-factor authentication and recovery options yourself, then complete this checklist step.");
   if(step==="finish")return t("Required steps are checked. You can mark this account done.");
   return t("This account is complete.");
 }
@@ -441,6 +455,15 @@ async function addToUnlockedBitwarden(){
     await refresh();if(result.status==="needs_review")error(t("The transfer result is unclear. Check Bitwarden below before trying again."));else toast(t("Added {count} password-free item(s) to Bitwarden. Generate the new password in Bitwarden, use the verified provider link to change it, then test the sign-in.",{count:result.items}));
   }catch(e){error(canonicalMessage(e.message));try{await refresh();}catch(_){} }finally{bitwardenBusy=false;renderExport();renderHandoffs();}
 }
+async function auditUnlockedBitwarden(){
+  if(bitwardenBusy||state.demo)return;
+  const ids=selectedBitwardenIds();
+  if(!ids.length){error(t("Select the accounts you want to check in Bitwarden first."));return;}
+  if(!window.confirm(t("ARGUS will ask your already-unlocked Bitwarden CLI for selected-item metadata. It returns only a match summary; no vault data is saved or shown. Continue?")))return;
+  bitwardenBusy=true;renderExport();
+  try{bitwardenAudit=await api("/api/bitwarden/audit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids,language,confirmed:true})});renderBitwardenAudit();}
+  catch(e){error(canonicalMessage(e.message));}finally{bitwardenBusy=false;renderExport();}
+}
 async function prepareGuidedBitwarden(){
   const account=state.accounts.find(item=>item.id===selected);
   if(!account||account.id!==state.workflow.current||accountStep(account)!=="bitwarden"||bitwardenBusy||state.demo)return;
@@ -523,6 +546,7 @@ $("defer-account").onclick=()=>update({status:"skipped"});
 $("finish-account").onclick=()=>update({status:"done"});
 $("export-button").onclick=exportMetadata;
 $("bitwarden-cli-button").onclick=addToUnlockedBitwarden;
+$("bitwarden-audit-button").onclick=auditUnlockedBitwarden;
 $("worklist-add").onclick=()=>{const ids=Array.from($("worklist-selection").querySelectorAll("input:checked")).map(input=>input.value);if(!ids.length){error(t("Select accounts for your worklist first."));return;}changeWorklist({action:"add",ids});};
 $("worklist-continue").onclick=()=>continueWorklist();
 $("worklist-pause").onclick=()=>changeWorklist({action:state.workflow.paused?"resume":"pause"});

@@ -14,8 +14,9 @@ provider password automatically.
    builder asks for confirmation and preserves existing queue positions. These
    actions never change a checklist, vault item or provider account by themselves.
 2. Choose **Continue with next account**. The detail dialog explains the next
-   missing step: review, Bitwarden assignment, password change, sign-in test or
-   explicit completion. You can also add a discovered account from its dialog.
+   missing step: review, Bitwarden assignment, password change, sign-in test,
+   MFA/recovery review or explicit completion. You can also add a discovered
+   account from its dialog.
 3. Use **Open Bitwarden preparation** for the current guided account only, or
    **Prepare Bitwarden** for a manual selection. The guided CLI handoff requires
    an additional browser confirmation, an already unlocked official Bitwarden CLI
@@ -25,7 +26,8 @@ provider password automatically.
    the official homepage and navigate to its security settings yourself. Only
    Google, Apple and GitHub currently have separately documented direct links.
 5. Generate and save the new password in Bitwarden, confirm the change at the
-   provider, then test sign-in. Mark only the steps you actually completed.
+   provider, then test sign-in and review MFA and recovery options. Mark only
+   the steps you actually completed.
    SSO and passkey accounts do not require a separate password change.
    For the current guided account, **I completed this step** asks for a second
    local confirmation and then records only that matching checklist step.
@@ -60,8 +62,8 @@ Scans und ändert keine Anbieterpasswörter automatisch.
    bestehende Reihenfolge bleibt erhalten; keine dieser Aktionen ändert selbst
    Checklisten, Tresoreinträge oder Anbieter-Accounts.
 2. Wähle **Mit dem nächsten Account fortfahren**. Im Detaildialog steht der nächste
-   offene Schritt: Prüfung, Bitwarden-Zuordnung, Passwortwechsel, Anmeldetest oder
-   ausdrücklicher Abschluss. Du kannst einen gefundenen Account auch direkt im
+   offene Schritt: Prüfung, Bitwarden-Zuordnung, Passwortwechsel, Anmeldetest,
+   MFA/Wiederherstellung oder ausdrücklicher Abschluss. Du kannst einen gefundenen Account auch direkt im
    Dialog zur Liste hinzufügen.
 3. **Bitwarden-Vorbereitung öffnen** gilt nur für den aktuell geführten Account;
    **Bitwarden vorbereiten** bleibt für eine manuelle Auswahl. Die geführte
@@ -72,8 +74,9 @@ Scans und ändert keine Anbieterpasswörter automatisch.
    offizielle Startseite und gehe selbst zu den Sicherheitseinstellungen. Aktuell
    sind nur für Google, Apple und GitHub direkte Links separat dokumentiert.
 5. Erzeuge und speichere das neue Passwort in Bitwarden, bestätige den Wechsel
-   beim Anbieter und teste die Anmeldung. Hake nur tatsächlich erledigte Schritte
-   ab. SSO- und Passkey-Accounts brauchen keinen separaten Passwortwechsel.
+   beim Anbieter, teste die Anmeldung und prüfe MFA sowie Wiederherstellung.
+   Hake nur tatsächlich erledigte Schritte ab. SSO- und Passkey-Accounts brauchen
+   keinen separaten Passwortwechsel.
    Beim aktuell geführten Account verlangt **Ich habe diesen Schritt erledigt**
    eine weitere lokale Bestätigung und speichert danach nur den passenden
    Checklistenpunkt.

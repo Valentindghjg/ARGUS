@@ -563,6 +563,23 @@
     "Added {count} priority account(s) to your worklist.": "{count} priorisierte Accounts wurden zur Arbeitsliste hinzugefügt.",
     "No additional priority accounts are ready.": "Es sind keine weiteren priorisierten Accounts bereit.",
     "Confirm that you completed every required step for this account.": "Bestätige, dass du jeden erforderlichen Schritt für diesen Account erledigt hast.",
-    "Confirm that you completed this step yourself. ARGUS will only record your confirmation locally.": "Bestätige, dass du diesen Schritt selbst erledigt hast. ARGUS speichert nur deine Bestätigung lokal."
+    "Confirm that you completed this step yourself. ARGUS will only record your confirmation locally.": "Bestätige, dass du diesen Schritt selbst erledigt hast. ARGUS speichert nur deine Bestätigung lokal.",
+    "Review multi-factor authentication and recovery, then complete this step.": "Prüfe Mehrfaktor-Authentifizierung und Wiederherstellung und erledige dann diesen Schritt.",
+    "Review multi-factor authentication and recovery options yourself, then complete this checklist step.": "Prüfe Mehrfaktor-Authentifizierung und Wiederherstellungsoptionen selbst und hake dann diesen Checklistenpunkt ab.",
+    "Check selected vault items": "Ausgewählte Tresoreinträge prüfen",
+    "This optional local check returns only a match summary. Vault names, usernames and passwords are not saved or shown.": "Diese optionale lokale Prüfung liefert nur eine Trefferübersicht. Tresornamen, Benutzernamen und Passwörter werden weder gespeichert noch angezeigt.",
+    "Check selected items in unlocked Bitwarden": "Ausgewählte Einträge im entsperrten Bitwarden prüfen",
+    "Open Bitwarden web vault ↗": "Bitwarden-Webtresor öffnen ↗",
+    "Matching Bitwarden item found ({count}).": "Passender Bitwarden-Eintrag gefunden ({count}).",
+    "Possible Bitwarden item found ({count}); review it yourself.": "Möglicher Bitwarden-Eintrag gefunden ({count}); prüfe ihn selbst.",
+    "No matching Bitwarden item found.": "Kein passender Bitwarden-Eintrag gefunden.",
+    "Account no longer available": "Account nicht mehr verfügbar",
+    "Select the accounts you want to check in Bitwarden first.": "Wähle zuerst die Accounts aus, die du in Bitwarden prüfen möchtest.",
+    "ARGUS will ask your already-unlocked Bitwarden CLI for selected-item metadata. It returns only a match summary; no vault data is saved or shown. Continue?": "ARGUS fragt die bereits entsperrte Bitwarden-CLI nach Metadaten zu ausgewählten Einträgen. Es wird nur eine Trefferübersicht zurückgegeben; keine Tresordaten werden gespeichert oder angezeigt. Fortfahren?",
+    "Confirm the local Bitwarden check": "Lokale Bitwarden-Prüfung bestätigen",
+    "Select discovered accounts for the Bitwarden check": "Wähle gefundene Accounts für die Bitwarden-Prüfung aus",
+    "Review this account's sign-in identity before checking Bitwarden.": "Prüfe die Anmeldezuordnung dieses Accounts vor der Bitwarden-Prüfung.",
+    "The Bitwarden CLI returned an unexpected vault response.": "Die Bitwarden-CLI hat eine unerwartete Tresorantwort zurückgegeben.",
+    "Bitwarden must be unlocked before continuing.": "Bitwarden muss vor dem Fortfahren entsperrt sein."
   }
 }

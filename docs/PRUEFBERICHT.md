@@ -1,3 +1,20 @@
+# Prüfbericht – Version 1.16.0
+
+Die Version mit nur lesender Bitwarden-Prüfung und geführter MFA-Prüfung besteht
+**166 Python-Tests** und **23 Chromium-Prüfgruppen** ohne Seitenfehler und ohne
+externe Browseranfragen. Eine künstliche bereits entsperrte CLI liefert eine
+Tresorantwort mit einem synthetischen Passwort; die Tests belegen, dass ARGUS nur
+die Trefferübersicht zurückgibt und weder dieses Passwort noch den Sitzungswert
+in sein SQLite-Profil schreibt. Loopback-Tests verlangen das genaue Datenformat
+und eine eigene Bestätigung. Workflow-Tests prüfen den MFA-/Wiederherstellungs-
+Schritt nach dem Anmeldetest. Die statische Begleiter-Prüfung mit 527 Diensten
+besteht weiterhin. Es wurden keine echten Postfächer, Anbieter, Passwörter oder
+Bitwarden-Tresore verwendet.
+
+Der folgende Bericht dokumentiert Version 1.15.0.
+
+---
+
 # Prüfbericht – Version 1.15.0
 
 Die Version mit Kalender-Wiedervorlage besteht **163 Python-Tests** und **23

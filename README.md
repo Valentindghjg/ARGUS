@@ -1,4 +1,4 @@
-# Account Compass 1.15.0
+# Account Compass 1.16.0
 
 [Deutsch](README_DE.md) · English
 
@@ -332,8 +332,9 @@ ready again when that date is reached while the dashboard is open. It sends no
 notification and contacts no service.
 For a different date, choose it in the worklist calendar and select **Schedule
 date**. Dates must be in the next 365 days and are saved only locally.
-For review, password-change and sign-in steps, **I completed this step** records
-your explicit local confirmation and immediately advances the guide.
+For review, password-change, sign-in and MFA/recovery steps, **I completed this
+step** records your explicit local confirmation and immediately advances the
+guide.
 See the [worklist guide](docs/WORKLIST.md) and
 [interrupted-transfer guidance](docs/BITWARDEN_CLI.md).
 
@@ -370,21 +371,29 @@ You can manually confirm a catalog provider even without email evidence.
 
 Under “Prepare Bitwarden”:
 
-1. Assign existing vault items first. Those providers are excluded from downloads.
-2. Select genuinely missing items. Probable accounts are not selected by default;
+1. Optionally choose **Check selected accounts in unlocked Bitwarden**. After a
+   separate confirmation, ARGUS uses the already-unlocked official CLI to search
+   only for each selected account and returns only **found / possible / none**
+   plus a count. The CLI response may contain vault fields while it is being
+   processed, but ARGUS neither saves nor displays names, usernames or passwords.
+   Review any possible match yourself.
+2. Assign existing vault items first. Those providers are excluded from downloads.
+3. Select genuinely missing items. Probable accounts are not selected by default;
    your explicit selection survives automatic refreshes.
-3. Download **metadata JSON**. Items contain provider name, official URI, identified
+4. Download **metadata JSON**. Items contain provider name, official URI, identified
    address and notes. Password fields are empty; TOTP is null.
-4. In the official Bitwarden app, choose Import → **Bitwarden (json)** and import
+5. In the official Bitwarden app, choose Import → **Bitwarden (json)** and import
    into your existing vault, regardless of its account email address.
-5. Import the file **once**, check the result, then delete it. Bitwarden adds items
-   without duplicate checking. This app never reads or overwrites vault entries.
-   Importing an empty item does not mean a password change succeeded.
+6. Import the file **once**, check the result, then delete it. Bitwarden adds items
+   without duplicate checking. This JSON-import path never reads or overwrites
+   vault entries. Importing an empty item does not mean a password change
+   succeeded.
 
 Alternatively, after you unlock the official Bitwarden CLI in your own terminal,
 the dashboard can create the explicitly selected password-free items directly.
-It never reads or overwrites existing items and never receives your master
-password. Follow the [Bitwarden CLI handoff guide](docs/BITWARDEN_CLI.md).
+The separate optional audit is read-only; the creation action never reads or
+overwrites existing items. Neither action receives your master password. Follow
+the [Bitwarden CLI handoff guide](docs/BITWARDEN_CLI.md).
 
 A command-line metadata export is also supported:
 

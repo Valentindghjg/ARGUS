@@ -1,5 +1,17 @@
 # Change log
 
+## 1.16.0 — Read-only vault audit and guided MFA recovery
+
+- Added an explicitly confirmed, read-only audit for selected accounts through
+  an already-unlocked official Bitwarden CLI. It returns only a local
+  **found / possible / none** match summary and count; vault names, usernames,
+  passwords, CLI output and sessions are never persisted, logged or displayed.
+- The guided local worklist now includes an explicit MFA and recovery review
+  after sign-in testing. It records only the user's confirmation and never
+  contacts a provider or changes a setting.
+- Added narrow loopback API, fake-CLI and workflow regression coverage, plus
+  English/German dashboard and safety documentation.
+
 ## 1.15.0 — Calendar worklist scheduling
 
 - Added a local calendar date picker and **Schedule date** for worklist snoozes

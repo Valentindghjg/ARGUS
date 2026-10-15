@@ -1,3 +1,19 @@
+# Test report — Version 1.16.0
+
+The read-only Bitwarden-audit and guided-MFA release passed **166 Python tests**
+and **23 Chromium browser check groups** with zero page errors and zero external
+browser requests. A fake already-unlocked CLI supplies a vault response containing
+a synthetic password; tests verify that ARGUS returns only the match summary and
+does not write that password or the session value to its SQLite profile. Loopback
+tests require the exact request shape and a separate confirmation. Workflow tests
+verify that MFA/recovery review follows sign-in testing. The companion static
+validation still passes with 527 provider records. No real mailbox, provider,
+password or Bitwarden vault was used.
+
+The following report records version 1.15.0.
+
+---
+
 # Test report — Version 1.15.0
 
 The calendar-scheduling release passed **163 Python tests** and **23 Chromium

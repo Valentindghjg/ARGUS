@@ -3,9 +3,9 @@
 ## English
 
 ARGUS can create **selected, password-free metadata items** in Bitwarden through
-the official Bitwarden CLI. This is optional and local. ARGUS never asks for,
-stores or generates your Bitwarden master password. It never reads, edits or
-overwrites existing vault items.
+the official Bitwarden CLI. It can also run an explicitly confirmed, read-only
+duplicate audit for selected local accounts. Both actions are optional and local.
+ARGUS never asks for, stores or generates your Bitwarden master password.
 
 1. Install the official [Bitwarden CLI](https://bitwarden.com/help/cli/).
 2. In your own terminal, log in and unlock Bitwarden:
@@ -22,9 +22,16 @@ overwrites existing vault items.
    ```
 
 3. Start ARGUS **from that same terminal session**.
-4. In **Prepare Bitwarden**, select only items that do not already exist, then
-   choose **Add selected items through unlocked Bitwarden CLI** and confirm.
-5. Use Bitwarden to generate the new password. Open the verified provider
+4. In **Prepare Bitwarden**, optionally choose **Check selected accounts in
+   unlocked Bitwarden**. Confirm again in the browser. ARGUS runs one official
+   `bw list items --search` request for each selected account and returns only
+   **found / possible / none** and a count. The CLI response may include vault
+   fields, but ARGUS immediately reduces it to that summary and never stores,
+   logs or displays item names, usernames or passwords. Review possible matches
+   yourself.
+5. Select only genuinely missing items, then choose **Add selected items through
+   unlocked Bitwarden CLI** and confirm.
+6. Use Bitwarden to generate the new password. Open the verified provider
    password-settings link, complete any sign-in or MFA step yourself, then test
    the sign-in and mark the checklist complete.
 
@@ -35,10 +42,10 @@ bypass MFA, CAPTCHAs, confirmations or password-reset protections.
 ## Deutsch
 
 ARGUS kann **ausgewählte passwortfreie Metadaten-Einträge** über die offizielle
-Bitwarden-CLI in Bitwarden erstellen. Das ist optional und lokal. ARGUS fragt
-niemals nach deinem Bitwarden-Hauptpasswort, speichert es nicht und erzeugt es
-nicht. Bestehende Tresoreinträge werden weder gelesen, geändert noch
-überschrieben.
+Bitwarden-CLI in Bitwarden erstellen. Außerdem kann es für ausgewählte lokale
+Accounts eine ausdrücklich bestätigte, nur lesende Duplikatprüfung ausführen.
+Beides ist optional und lokal. ARGUS fragt niemals nach deinem
+Bitwarden-Hauptpasswort, speichert es nicht und erzeugt es nicht.
 
 1. Installiere die offizielle [Bitwarden-CLI](https://bitwarden.com/help/cli/).
 2. Melde dich in deinem eigenen Terminal bei Bitwarden an und entsperre es:
@@ -55,10 +62,17 @@ nicht. Bestehende Tresoreinträge werden weder gelesen, geändert noch
    ```
 
 3. Starte ARGUS **aus derselben Terminal-Sitzung**.
-4. Wähle unter **Bitwarden vorbereiten** nur Einträge, die noch nicht im Tresor
-   bestehen. Wähle dann **Ausgewählte Einträge über die entsperrte Bitwarden-CLI
-   hinzufügen** und bestätige den Schritt.
-5. Erzeuge das neue Passwort in Bitwarden. Öffne den verifizierten Link zu den
+4. Unter **Bitwarden vorbereiten** kannst du optional **Ausgewählte Accounts im
+   entsperrten Bitwarden prüfen** wählen und im Browser erneut bestätigen. ARGUS
+   führt je ausgewähltem Account `bw list items --search` aus und gibt nur
+   **gefunden / möglich / nichts gefunden** mit Anzahl zurück. Die CLI-Antwort
+   kann Tresorfelder enthalten, wird aber sofort auf diese Übersicht reduziert;
+   Namen, Benutzernamen und Passwörter werden nie gespeichert, geloggt oder
+   angezeigt. Mögliche Treffer prüfst du selbst.
+5. Wähle anschließend nur tatsächlich fehlende Einträge. Wähle dann
+   **Ausgewählte Einträge über die entsperrte Bitwarden-CLI hinzufügen** und
+   bestätige den Schritt.
+6. Erzeuge das neue Passwort in Bitwarden. Öffne den verifizierten Link zu den
    Passwort-Einstellungen des Anbieters, erledige Anmeldung oder MFA selbst,
    teste danach die Anmeldung und schließe die Checkliste ab.
 

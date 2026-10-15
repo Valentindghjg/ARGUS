@@ -132,6 +132,22 @@ class ServerTests(unittest.TestCase):
         handoff.assert_called_once_with(self.store, ["github"], "en")
         self.assertEqual(self.request("/api/bitwarden/cli", "POST", json.dumps({"ids":["github"]}), headers={"Content-Type":"application/json"})[0], 400)
 
+    def test_bitwarden_audit_requires_confirmation_and_returns_only_summary(self):
+        raw = synthetic_mail("notify@github.com", "Your account has been created", "")
+        self.request("/api/import", "POST", raw, headers={"Content-Type":"message/rfc822"})
+        headers = {"Content-Type": "application/json"}
+        self.assertEqual(self.request("/api/bitwarden/audit", "POST",
+                                      json.dumps({"ids":["github"], "language":"en", "confirmed":False}),
+                                      headers=headers)[0], 400)
+        with patch("account_finder.bitwarden.audit_unlocked_cli",
+                   return_value={"accounts":[{"account_id":"github", "match":"found", "count":1}]}) as audit:
+            status, _, body = self.request("/api/bitwarden/audit", "POST",
+                                           json.dumps({"ids":["github"], "language":"en", "confirmed":True}),
+                                           headers=headers)
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(body), {"accounts":[{"account_id":"github", "match":"found", "count":1}]})
+        audit.assert_called_once_with(self.store, ["github"], "en")
+
     def test_guided_bitwarden_handoff_requires_current_account_and_confirmation(self):
         raw = synthetic_mail("notify@github.com", "Your account has been created", "")
         self.request("/api/import", "POST", raw, headers={"Content-Type":"message/rfc822"})
@@ -168,7 +184,7 @@ class ServerTests(unittest.TestCase):
         self.assertNotIn("discord", priority_result["added"])
         snapshot = json.loads(self.request("/api/accounts")[2])
         self.assertIn("discord", [item["id"] for item in snapshot["workflow"]["items"]])
-        for route in ("/api/workflow", "/api/bitwarden/resolve", "/api/bitwarden/cli", "/api/secure-next/bitwarden"):
+        for route in ("/api/workflow", "/api/bitwarden/resolve", "/api/bitwarden/cli", "/api/bitwarden/audit", "/api/secure-next/bitwarden"):
             self.assertEqual(self.request(route, "POST", "{}", authorized=False, headers=headers)[0], 401)
             self.assertEqual(self.request(route, "POST", "{}", headers={**headers, "Origin":"https://attacker.example"})[0], 403)
         self.assertEqual(self.request("/api/workflow", "POST", json.dumps({"action":"pause", "password":"rejected"}), headers=headers)[0], 400)

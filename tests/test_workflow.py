@@ -148,6 +148,15 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
         self.store.update_account('github', {'login_method':'password'})
         self.assertEqual(next_step(self.account()), 'change_password')
 
+    def test_guided_workflow_includes_mfa_and_recovery_review_before_finish(self):
+        self.store.update_account('github', {'checklist': {
+            'reviewed': True, 'saved_in_bitwarden': True, 'password_changed': True,
+            'login_tested': True,
+        }})
+        self.assertEqual(next_step(self.account()), 'mfa')
+        self.store.update_account('github', {'checklist': {'mfa_checked': True}})
+        self.assertEqual(next_step(self.account()), 'finish')
+
     def test_guided_start_selects_priority_without_changing_checklists(self):
         self.store.update_account('github', {'priority': 'normal'})
         self.store.update_account('discord', {'priority': 'critical'})

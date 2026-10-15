@@ -1,3 +1,18 @@
+# Änderungen – Version 1.16.0
+
+- Eine ausdrücklich bestätigte, nur lesende Prüfung für ausgewählte Accounts über
+  die bereits entsperrte offizielle Bitwarden-CLI ergänzt. Sie gibt lokal nur
+  **gefunden / möglich / nichts gefunden** mit Anzahl zurück; Tresornamen,
+  Benutzernamen, Passwörter, CLI-Ausgaben und Sitzungen werden weder gespeichert,
+  protokolliert noch angezeigt.
+- Die geführte lokale Arbeitsliste enthält nach dem Anmeldetest nun die
+  ausdrückliche Prüfung von MFA und Wiederherstellung. Sie speichert nur deine
+  Bestätigung und kontaktiert weder Anbieter noch verändert sie Einstellungen.
+- Strenge Loopback-API-, Fake-CLI- und Workflow-Regressionstests sowie englische/
+  deutsche Oberfläche und Sicherheitsdokumentation ergänzt.
+
+---
+
 # Änderungen – Version 1.15.0
 
 - Die Arbeitsliste enthält nun einen lokalen Kalender und **Datum planen** für

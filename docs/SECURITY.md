@@ -40,11 +40,15 @@ An atomic SQLite lease ensures that only one scheduled runner per profile may
 open the mailbox at a time; a stale worker cannot overwrite a later result or
 reactivate a disabled schedule. Folder checkpoints merge atomically.
 
-The app never requests your Bitwarden master password, signs into Bitwarden or
-reads your vault. Its optional direct transfer requires an already-unlocked
-official Bitwarden CLI and creates only explicitly selected, password-free items;
-it never changes or reads existing vault items. The Bitwarden account address is
-independent of individual service sign-in addresses.
+The app never requests your Bitwarden master password or signs into Bitwarden.
+Its optional direct transfer requires an already-unlocked official Bitwarden CLI
+and creates only explicitly selected, password-free items; it never changes or
+reads existing vault items. A separate optional audit requires a second explicit
+browser confirmation and uses `bw list items --search` for each selected local
+account. The CLI response can contain decrypted vault fields in process memory;
+ARGUS immediately derives only **found / possible / none** plus a count and does
+not persist, log or return item names, usernames or passwords. The Bitwarden
+account address is independent of individual service sign-in addresses.
 
 The guided **Secure next account** view only ranks locally stored account state.
 Starting it adds or resumes one local worklist item. Its Bitwarden action accepts

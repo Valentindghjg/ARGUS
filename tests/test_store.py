@@ -6,7 +6,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from account_finder.bitwarden import BitwardenCliError, add_to_unlocked_cli, make_export, export_file
+from account_finder.bitwarden import BitwardenCliError, add_to_unlocked_cli, audit_unlocked_cli, make_export, export_file
 from account_finder.registry import Registry
 from account_finder.scan import file_messages, load_demo, scan_messages, synthetic_mail
 from account_finder.store import Store, CHECKLIST
@@ -133,6 +133,32 @@ class StoreTests(unittest.TestCase):
         self.scan()
         with self.assertRaises(BitwardenCliError):
             add_to_unlocked_cli(self.store, ["github"], environment={})
+
+    def test_cli_audit_returns_only_match_summary_and_never_persists_vault_fields(self):
+        self.scan()
+        vault_password = "VAULT-PASSWORD-MUST-NOT-BE-STORED"
+        calls = []
+
+        def runner(arguments, **kwargs):
+            calls.append((arguments, kwargs))
+            if arguments[1:] == ["status"]:
+                return SimpleNamespace(returncode=0, stdout='{"status":"unlocked"}')
+            self.assertEqual(arguments[1:3], ["list", "items"])
+            return SimpleNamespace(returncode=0, stdout=json.dumps([{
+                "name": "GitHub personal",
+                "fields": [{"name": "Account-Finder-ID", "value": "github"}],
+                "login": {"username": "demo@example.invalid", "password": vault_password,
+                          "uris": [{"uri": "https://github.com/"}]},
+            }]))
+
+        with patch("account_finder.bitwarden.shutil.which", return_value="/usr/bin/bw"):
+            result = audit_unlocked_cli(self.store, ["github"], runner=runner,
+                                        environment={"BW_SESSION": "not-stored"})
+        self.assertEqual(result, {"accounts": [{"account_id": "github", "match": "found", "count": 1}]})
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[1][0][1:3], ["list", "items"])
+        self.assertNotIn(vault_password.encode(), self.store.path.read_bytes())
+        self.assertNotIn(b"not-stored", self.store.path.read_bytes())
 
     def test_export_exclusive_no_overwrite(self):
         self.scan()

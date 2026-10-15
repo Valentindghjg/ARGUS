@@ -48,11 +48,17 @@ Ergebnis überschreiben noch einen deaktivierten Zeitplan wieder aktivieren.
 Ordner-Checkpoints werden atomar zusammengeführt.
 
 Das Bitwarden-Hauptpasswort wird niemals abgefragt. Die Anwendung meldet sich
-nicht bei Bitwarden an und liest keinen Tresor. Die optionale direkte Übertragung
-benötigt eine bereits entsperrte offizielle Bitwarden-CLI und erstellt nur
+nicht bei Bitwarden an. Die optionale direkte Übertragung benötigt eine bereits
+entsperrte offizielle Bitwarden-CLI und erstellt nur
 ausdrücklich ausgewählte, passwortfreie Einträge; bestehende Tresoreinträge werden
-weder gelesen noch geändert. Die Bitwarden-Konto-Adresse ist unabhängig von den
-Anmeldeadressen der einzelnen Dienste.
+weder gelesen noch geändert. Eine getrennte optionale Prüfung verlangt eine
+zweite ausdrückliche Browserbestätigung und verwendet für jeden ausgewählten
+lokalen Account `bw list items --search`. Die CLI-Antwort kann entschlüsselte
+Tresorfelder im Arbeitsspeicher enthalten; ARGUS leitet sofort nur
+**gefunden / möglich / nichts gefunden** mit Anzahl ab und speichert, protokolliert
+oder gibt keine Eintragsnamen, Benutzernamen oder Passwörter zurück. Die
+Bitwarden-Konto-Adresse ist unabhängig von den Anmeldeadressen der einzelnen
+Dienste.
 
 Die geführte Ansicht **Nächsten Account absichern** bewertet nur lokal gespeicherte
 Accountdaten. Ein Start ergänzt oder setzt genau einen lokalen Arbeitslisten-Eintrag

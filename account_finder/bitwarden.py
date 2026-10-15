@@ -6,6 +6,7 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
+from urllib.parse import urlparse
 import uuid
 
 from .store import Store, write_private
@@ -82,17 +83,9 @@ def _run_cli(arguments: list[str], environment: dict[str, str], runner):
     return result.stdout
 
 
-def add_to_unlocked_cli(store: Store, ids: list[str], language="en", *, runner=subprocess.run, environment=None):
-    """Create selected password-free items through an already-unlocked official CLI.
-
-    The user must unlock Bitwarden before launching ARGUS. No master password,
-    generated password, CLI output or session value is written to disk or returned.
-    Existing vault items are never read, changed or overwritten.
-    """
-    validate_language(language)
+def _unlocked_environment(store: Store, environment, runner):
     if store.meta("demo", False):
         raise BitwardenCliError("Direct Bitwarden transfer is disabled in the synthetic demo.")
-    exported = make_export(store, ids, language)
     environment = dict(os.environ if environment is None else environment)
     if not environment.get("BW_SESSION"):
         raise BitwardenCliError("Unlock Bitwarden first, then start ARGUS from that same terminal session.")
@@ -103,7 +96,93 @@ def add_to_unlocked_cli(store: Store, ids: list[str], language="en", *, runner=s
     except json.JSONDecodeError as exc:
         raise BitwardenCliError("The Bitwarden CLI returned an unexpected status.") from exc
     if not isinstance(status, dict) or status.get("status") != "unlocked":
-        raise BitwardenCliError("Bitwarden must be unlocked before adding selected items.")
+        raise BitwardenCliError("Bitwarden must be unlocked before continuing.")
+    return environment
+
+
+def _audit_accounts(store: Store, ids: list[str], language):
+    validate_language(language)
+    if not isinstance(ids, list) or not ids or len(ids) > 10_000 or any(not isinstance(item, str) for item in ids):
+        raise ValueError("An explicit selection is required")
+    accounts = {account["id"]: account for account in store.snapshot(language)["accounts"]}
+    selected = []
+    for account_id in dict.fromkeys(ids):
+        account = accounts.get(account_id)
+        if not account or account["classification"] == "unknown":
+            raise ValueError("Select discovered accounts for the Bitwarden check")
+        if account.get("identity_review_required"):
+            raise handoffs.HandoffError("Review this account's sign-in identity before checking Bitwarden.")
+        selected.append(account)
+    return selected
+
+
+def _host(value):
+    if not isinstance(value, str):
+        return ""
+    parsed = urlparse(value if "://" in value else "https://" + value)
+    return (parsed.hostname or "").casefold()
+
+
+def _audit_result(account, items):
+    """Return only a small match summary; never retain vault fields or secrets."""
+    official_host = _host(account["website"])
+    email = (account["identity_email"] or account["manual_email"] or "").casefold()
+    exact = possible = 0
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        fields = item.get("fields") if isinstance(item.get("fields"), list) else []
+        argus_id = next((field.get("value") for field in fields if isinstance(field, dict)
+                         and field.get("name") == "Account-Finder-ID"), None)
+        if argus_id == account["id"]:
+            exact += 1
+            continue
+        login = item.get("login") if isinstance(item.get("login"), dict) else {}
+        uris = login.get("uris") if isinstance(login.get("uris"), list) else []
+        hosts = {_host(uri.get("uri")) for uri in uris if isinstance(uri, dict)}
+        same_host = bool(official_host and official_host in hosts)
+        same_email = bool(email and isinstance(login.get("username"), str)
+                          and login["username"].casefold() == email)
+        if same_host and same_email:
+            exact += 1
+        elif same_host or (isinstance(item.get("name"), str)
+                           and item["name"].casefold() == account["name"].casefold()):
+            possible += 1
+    return {"account_id": account["id"], "match": "found" if exact else "possible" if possible else "none",
+            "count": exact or possible}
+
+
+def audit_unlocked_cli(store: Store, ids: list[str], language="en", *, runner=subprocess.run, environment=None):
+    """Check selected account metadata in an already-unlocked vault without writes.
+
+    Bitwarden's CLI response can contain password fields. They are examined only
+    inside this function to derive a tiny local result and are neither persisted,
+    logged nor returned to the browser.
+    """
+    selected = _audit_accounts(store, ids, language)
+    environment = _unlocked_environment(store, environment, runner)
+    results = []
+    for account in selected:
+        try:
+            payload = json.loads(_run_cli(["list", "items", "--search", account["name"]], environment, runner))
+        except json.JSONDecodeError as exc:
+            raise BitwardenCliError("The Bitwarden CLI returned an unexpected vault response.") from exc
+        if not isinstance(payload, list) or len(payload) > 10_000:
+            raise BitwardenCliError("The Bitwarden CLI returned an unexpected vault response.")
+        results.append(_audit_result(account, payload))
+    return {"accounts": results}
+
+
+def add_to_unlocked_cli(store: Store, ids: list[str], language="en", *, runner=subprocess.run, environment=None):
+    """Create selected password-free items through an already-unlocked official CLI.
+
+    The user must unlock Bitwarden before launching ARGUS. No master password,
+    generated password, CLI output or session value is written to disk or returned.
+    Existing vault items are never read, changed or overwritten.
+    """
+    validate_language(language)
+    exported = make_export(store, ids, language)
+    environment = _unlocked_environment(store, environment, runner)
 
     created = 0
     completed_providers = []

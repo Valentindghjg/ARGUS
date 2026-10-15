@@ -59,7 +59,8 @@ def next_step(account):
     if account["status"] == "done":
         return "done"
     for key, step in (("reviewed", "review"), ("saved_in_bitwarden", "bitwarden"),
-                      ("password_changed", "change_password"), ("login_tested", "test_signin")):
+                      ("password_changed", "change_password"), ("login_tested", "test_signin"),
+                      ("mfa_checked", "mfa")):
         if key == "password_changed" and account["login_method"] != "password":
             continue
         if not account["checklist"][key]:
