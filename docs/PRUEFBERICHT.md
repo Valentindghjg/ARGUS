@@ -1,3 +1,19 @@
+# Prüfbericht – Version 1.15.0
+
+Die Version mit Kalender-Wiedervorlage besteht **163 Python-Tests** und **23
+Chromium-Prüfgruppen** ohne Seitenfehler und ohne externe Browseranfragen. Neue
+Workflow-Tests prüfen den zulässigen Datumsbereich und den exakten UTC-Termin.
+Der Browser-Test wählt das früheste Datum im Kalender, plant es und prüft die
+synthetische Zurückstellung auf Englisch und Deutsch. Die Mehrkonto-
+Browserprüfung und die statische Begleiter-Prüfung mit 527 Diensten bestehen
+weiterhin. Das Offline-Wheel wurde als Version 1.15.0 gebaut und in einer
+sauberen temporären Umgebung installiert. Es wurden keine echten Postfächer,
+Anbieter, Passwörter oder Bitwarden-Tresore verwendet.
+
+Der folgende Bericht dokumentiert Version 1.14.0.
+
+---
+
 # Prüfbericht – Version 1.14.0
 
 Die Version mit lokaler Wiedervorlage besteht **162 Python-Tests** und **23

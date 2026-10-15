@@ -1,3 +1,15 @@
+# Änderungen – Version 1.15.0
+
+- Die Arbeitsliste enthält nun einen lokalen Kalender und **Datum planen** für
+  Wiedervorlagen außerhalb der festen Optionen Morgen und eine Woche.
+- Die strenge lokale Aktion akzeptiert ISO-Kalenderdaten von morgen bis maximal
+  365 Tage in die Zukunft und speichert den resultierenden UTC-Termin ohne
+  Netzwerkverbindung.
+- Unit- und Browser-Tests für begrenzte Datumseingaben und die zugängliche
+  Kalender-Steuerung ergänzt.
+
+---
+
 # Änderungen – Version 1.14.0
 
 - **Morgen** und **In einer Woche** stellen einen Arbeitslisten-Eintrag bis zu

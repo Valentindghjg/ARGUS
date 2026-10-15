@@ -1,5 +1,5 @@
 """Persistent, secret-free worklist. Account checklists remain the source of truth."""
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 import json
 
 
@@ -39,6 +39,18 @@ def expired_snooze(row, current):
 
 def effectively_deferred(row, current):
     return bool(row["deferred"]) and not expired_snooze(row, current)
+
+
+def custom_snooze_date(value, current):
+    if not isinstance(value, str):
+        raise ValueError("Choose a future local date")
+    try:
+        selected = date.fromisoformat(value)
+    except ValueError as exc:
+        raise ValueError("Choose a future local date") from exc
+    if not current.date() < selected <= current.date() + timedelta(days=365):
+        raise ValueError("Choose a future local date")
+    return datetime.combine(selected, time.min, tzinfo=timezone.utc).isoformat()
 
 
 def next_step(account):
@@ -108,7 +120,8 @@ def change_worklist(store, data):
               "defer": {"action", "id"}, "restore": {"action", "id"},
               "focus": {"action", "id"}, "pause": {"action"}, "resume": {"action"},
               "start": {"action"}, "prioritize": {"action"},
-              "snooze": {"action", "id", "days"}}
+              "snooze": {"action", "id", "days"},
+              "snooze_until": {"action", "id", "date"}}
     if not isinstance(action, str) or action not in shapes or set(data) != shapes[action]:
         raise ValueError("Invalid worklist action")
     if action == "add":
@@ -175,6 +188,7 @@ def change_worklist(store, data):
             raise ValueError("Invalid worklist account")
         if action == "snooze" and (type(data["days"]) is not int or not 1 <= data["days"] <= 365):
             raise ValueError("Choose a valid local snooze period")
+        resume_after = custom_snooze_date(data["date"], utcnow()) if action == "snooze_until" else None
         with store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             if not db.execute("SELECT 1 FROM instance_work_queue WHERE account_id=?", (account_id,)).fetchone():
@@ -186,6 +200,9 @@ def change_worklist(store, data):
                            (int(action == "defer"), account_id))
             elif action == "snooze":
                 resume_after = (utcnow() + timedelta(days=data["days"])).isoformat()
+                db.execute("UPDATE instance_work_queue SET deferred=1,resume_after=? WHERE account_id=?",
+                           (resume_after, account_id))
+            elif action == "snooze_until":
                 db.execute("UPDATE instance_work_queue SET deferred=1,resume_after=? WHERE account_id=?",
                            (resume_after, account_id))
             else:

@@ -34,9 +34,11 @@ provider password automatically.
 7. **Pause worklist** preserves your place. **Defer** skips one queued account
    until you restore it. **Tomorrow** and **In one week** record a local resume
    date; ARGUS makes the item ready again when the date is reached while the
-   dashboard is open. They send no notification and contact no service. Removing
-   an account removes only its queue membership, not its evidence, checklist or
-   vault entry. Pausing this list does not pause a separately started mail import.
+   dashboard is open. Use the calendar and **Schedule date** for another date in
+   the next 365 days. These options send no notification and contact no service.
+   Removing an account removes only its queue membership, not its evidence,
+   checklist or vault entry. Pausing this list does not pause a separately
+   started mail import.
 
 The list tracks each account identity separately, including several accounts
 at the same provider. See [separate accounts](ACCOUNTS.md). Optional scheduled mailbox
@@ -81,11 +83,12 @@ Scans und ändert keine Anbieterpasswörter automatisch.
 7. **Arbeitsliste pausieren** behält deinen Platz. **Zurückstellen** überspringt
    einen Account, bis du ihn wieder aufnimmst. **Morgen** und **In einer Woche**
    speichern einen lokalen Wiedervorlagetermin; ARGUS macht den Eintrag wieder
-   bereit, sobald dieses Datum bei geöffnetem Dashboard erreicht ist. Dabei
-   werden keine Benachrichtigungen versandt oder Dienste kontaktiert. Entfernen
-   löscht nur den Eintrag aus der Arbeitsliste; Belege, Checkliste und
-   Tresoreintrag bleiben erhalten. Das Pausieren dieser Liste pausiert keinen
-   separat gestarteten Mailimport.
+   bereit, sobald dieses Datum bei geöffnetem Dashboard erreicht ist. Wähle für
+   ein anderes Datum innerhalb der nächsten 365 Tage den Kalender und **Datum
+   planen**. Dabei werden keine Benachrichtigungen versandt oder Dienste
+   kontaktiert. Entfernen löscht nur den Eintrag aus der Arbeitsliste; Belege,
+   Checkliste und Tresoreintrag bleiben erhalten. Das Pausieren dieser Liste
+   pausiert keinen separat gestarteten Mailimport.
 
 Die Arbeitsliste verwaltet jeden Account getrennt, auch mehrere Accounts beim
 selben Anbieter. Siehe die [Mehrkonto-Anleitung](ACCOUNTS.md). Optionale geplante

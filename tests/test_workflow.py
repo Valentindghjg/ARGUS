@@ -115,6 +115,19 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
             self.assertEqual(snapshot['current'], 'github')
         self.assertEqual(self.account('github'), before)
 
+    def test_custom_snooze_date_is_bounded_and_stored_at_utc_midnight(self):
+        change_worklist(self.store, {'action':'add', 'ids':['github']})
+        fixed = datetime(2030, 1, 1, 12, tzinfo=timezone.utc)
+        with patch('account_finder.workflow.utcnow', return_value=fixed):
+            change_worklist(self.store, {'action':'snooze_until', 'id':'github', 'date':'2030-01-08'})
+            item = self.queue()['items'][0]
+            self.assertEqual(item['snoozed_until'], '2030-01-08T00:00:00+00:00')
+            self.assertTrue(item['deferred'])
+        for value in ('2030-01-01', '2029-12-31', '2031-01-02', 'not-a-date', None):
+            with patch('account_finder.workflow.utcnow', return_value=fixed):
+                with self.assertRaises(ValueError):
+                    change_worklist(self.store, {'action':'snooze_until', 'id':'github', 'date':value})
+
     def test_completion_advances_and_reopening_restores_pending_work(self):
         change_worklist(self.store, {'action':'add', 'ids':['github', 'discord']})
         self.store.update_account('github', {'checklist': {k: True for k in CHECKLIST}})
@@ -177,7 +190,8 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
                      {'action':'pause','password':'secret'}, {'action':[]},
                      {'action':'focus','id':'github'}, {'action':'add','ids':[None]},
                      {'action':'start','password':'rejected'}, {'action':'prioritize','password':'rejected'},
-                     {'action':'snooze','id':'github','days':0}, {'action':'snooze','id':'github','days':'7'}):
+                     {'action':'snooze','id':'github','days':0}, {'action':'snooze','id':'github','days':'7'},
+                     {'action':'snooze_until','id':'github','date':'not-a-date','password':'rejected'}):
             with self.assertRaises(ValueError):
                 change_worklist(self.store, data)
             self.assertEqual(self.queue()['total'], 0)

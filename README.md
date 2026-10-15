@@ -1,4 +1,4 @@
-# Account Compass 1.14.0
+# Account Compass 1.15.0
 
 [Deutsch](README_DE.md) · English
 
@@ -330,6 +330,8 @@ For an account that cannot be handled immediately, choose **Tomorrow** or **In
 one week**. ARGUS stores the date only in the local worklist and makes the item
 ready again when that date is reached while the dashboard is open. It sends no
 notification and contacts no service.
+For a different date, choose it in the worklist calendar and select **Schedule
+date**. Dates must be in the next 365 days and are saved only locally.
 For review, password-change and sign-in steps, **I completed this step** records
 your explicit local confirmation and immediately advances the guide.
 See the [worklist guide](docs/WORKLIST.md) and

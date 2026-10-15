@@ -291,6 +291,10 @@ function localDate(value){
   const date=new Date(value);
   return Number.isNaN(date.getTime())?value:date.toLocaleDateString(language==="de"?"de-DE":"en-GB",{day:"numeric",month:"short",year:"numeric"});
 }
+function localDateInput(days){
+  const date=new Date();date.setDate(date.getDate()+days);
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+}
 function renderWorklist(){
   const workflow=state.workflow,accounts=new Map(state.accounts.map(a=>[a.id,a]));
   $("worklist-badge").textContent=t(workflow.paused?"Paused":"Ready");
@@ -310,6 +314,10 @@ function renderWorklist(){
     if(!item.deferred&&item.step!=="done")actions.append(
       actionButton("Tomorrow",()=>changeWorklist({action:"snooze",id:item.id,days:1}),workflowBusy),
       actionButton("In one week",()=>changeWorklist({action:"snooze",id:item.id,days:7}),workflowBusy));
+    if(!item.deferred&&item.step!=="done"){
+      const picker=node("input",undefined,"snooze-date");picker.type="date";picker.min=localDateInput(1);picker.max=localDateInput(365);picker.setAttribute("aria-label",t("Choose a resume date"));picker.disabled=workflowBusy;
+      actions.append(picker,actionButton("Schedule date",()=>{if(!picker.value){error("Choose a future local date");return;}changeWorklist({action:"snooze_until",id:item.id,date:picker.value});},workflowBusy));
+    }
     card.append(actions);return card;
   }));
   if(!workflow.items.length)$("worklist-items").append(node("p",t("Your worklist is empty. Choose accounts below.")));

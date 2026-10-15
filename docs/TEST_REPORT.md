@@ -1,3 +1,18 @@
+# Test report — Version 1.15.0
+
+The calendar-scheduling release passed **163 Python tests** and **23 Chromium
+browser check groups** with zero page errors and zero external browser requests.
+New workflow tests verify the accepted date range and the exact UTC resume time.
+The browser test selects the date picker's minimum date, schedules it and checks
+the resulting synthetic snooze in English and German. Separate-account browser
+checks and the static companion validation still pass with 527 provider records.
+The offline wheel was built and installed in a clean temporary environment as
+version 1.15.0. No real mailbox, provider, password or Bitwarden vault was used.
+
+The following report records version 1.14.0.
+
+---
+
 # Test report — Version 1.14.0
 
 The local-snooze release passed **162 Python tests** and **23 Chromium browser

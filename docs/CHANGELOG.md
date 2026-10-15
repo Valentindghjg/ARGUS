@@ -1,5 +1,15 @@
 # Change log
 
+## 1.15.0 — Calendar worklist scheduling
+
+- Added a local calendar date picker and **Schedule date** for worklist snoozes
+  beyond the preset tomorrow/week choices.
+- The strict local action accepts ISO calendar dates from tomorrow through the
+  next 365 days and records the resulting UTC resume time without any network
+  connection.
+- Added unit and browser coverage for the bounded date input and accessible
+  calendar control.
+
 ## 1.14.0 — Local worklist snoozes
 
 - Added **Tomorrow** and **In one week** to defer a local worklist item until a
