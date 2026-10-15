@@ -527,6 +527,26 @@
     "Identify this account before marking it done": "Ordne diesen Account zu, bevor du ihn als erledigt markierst",
     "Show local account IDs for individual selections": "Lokale Account-Kennungen für einzelne Auswahlen anzeigen",
     "Include entries without reliable account evidence": "Einträge ohne zuverlässige Account-Belege einschließen",
-    "Account ID from list-accounts; may be repeated": "Account-Kennung aus list-accounts; mehrfach möglich"
+    "Account ID from list-accounts; may be repeated": "Account-Kennung aus list-accounts; mehrfach möglich",
+    "Secure next account": "Nächsten Account absichern",
+    "Secure {p0} next": "Als Nächstes {p0} absichern",
+    "Continue to next account": "Mit dem nächsten Account fortfahren",
+    "Your current security work is complete.": "Deine aktuelle Sicherheitsarbeit ist abgeschlossen.",
+    "No incomplete discovered account is ready for a guided session.": "Kein unvollständiger gefundener Account ist für eine geführte Sitzung bereit.",
+    "Ready": "Bereit",
+    "Action required": "Aktion erforderlich",
+    "Blocked: identify the sign-in address": "Blockiert: Anmeldeadresse zuordnen",
+    "This account needs an assigned sign-in address first.": "Diesem Account muss zuerst eine Anmeldeadresse zugeordnet werden.",
+    "Confirm the account after your own review, then complete this checklist step.": "Bestätige den Account nach deiner eigenen Prüfung und hake dann diesen Checklistenpunkt ab.",
+    "Prepare an empty Bitwarden item for this exact account. ARGUS never generates or handles its password.": "Bereite einen leeren Bitwarden-Eintrag für genau diesen Account vor. ARGUS erzeugt oder verarbeitet niemals sein Passwort.",
+    "Open the verified provider page, change the password in your browser, then return here and complete the checklist step.": "Öffne die geprüfte Anbieterseite, ändere das Passwort im Browser und kehre dann hierher zurück, um den Checklistenpunkt abzuhaken.",
+    "No verified password-settings link is available. Open the provider website and navigate manually.": "Es gibt keinen geprüften direkten Passwortlink. Öffne die Anbieter-Website und navigiere manuell.",
+    "Test the sign-in yourself, then complete this checklist step.": "Prüfe die Anmeldung selbst und hake dann diesen Checklistenpunkt ab.",
+    "Open verified provider page ↗": "Geprüfte Anbieterseite öffnen ↗",
+    "Open Bitwarden preparation": "Bitwarden-Vorbereitung öffnen",
+    "ARGUS will create one password-free item for this exact account in your already-unlocked Bitwarden vault. Existing items are never changed. Continue?": "ARGUS erstellt einen passwortfreien Eintrag für genau diesen Account in deinem bereits entsperrten Bitwarden-Tresor. Bestehende Einträge werden nie geändert. Fortfahren?",
+    "Bitwarden preparation saved locally. Generate the password in Bitwarden, then continue with the verified provider page.": "Bitwarden-Vorbereitung lokal gespeichert. Erzeuge das Passwort in Bitwarden und fahre dann mit der geprüften Anbieterseite fort.",
+    "Confirm the guided Bitwarden preparation": "Bestätige die geführte Bitwarden-Vorbereitung",
+    "Choose the current guided account": "Wähle den aktuell geführten Account"
   }
 }

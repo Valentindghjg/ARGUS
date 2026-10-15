@@ -1,4 +1,4 @@
-# Account Compass 1.9.0
+# Account Compass 1.10.0
 
 [Deutsch](README_DE.md) · English
 
@@ -313,10 +313,13 @@ Load the generated `browser-companion/dist/` with your Chromium browser’s
 
 ## Resume a security worklist
 
-Open **Security worklist**, select discovered accounts and continue with the next
-account. Your queue, pause state and checklists persist locally after a restart.
-Each dialog shows the next missing step. Accounts using SSO or passkeys skip a
-separate password change. Nothing is submitted to a provider automatically.
+Open **Security worklist** and choose **Secure next account** to let ARGUS add
+one highest-priority incomplete local account to the worklist. Your queue, pause
+state and checklists persist locally after a restart. Each dialog shows the next
+missing step. The guided Bitwarden button has a second confirmation and creates
+one password-free item only for the current account. Accounts using SSO or
+passkeys skip a separate password change. Nothing is submitted to a provider
+automatically.
 See the [worklist guide](docs/WORKLIST.md) and
 [interrupted-transfer guidance](docs/BITWARDEN_CLI.md).
 

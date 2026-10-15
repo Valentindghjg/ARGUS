@@ -46,6 +46,11 @@ official Bitwarden CLI and creates only explicitly selected, password-free items
 it never changes or reads existing vault items. The Bitwarden account address is
 independent of individual service sign-in addresses.
 
+The guided **Secure next account** view only ranks locally stored account state.
+Starting it adds or resumes one local worklist item. Its Bitwarden action accepts
+only the current account ID and requires a second explicit browser confirmation;
+opening a verified provider link never completes a checklist step.
+
 Python cannot reliably erase immutable strings from memory. Authorized-session
 secrets exist in process memory; guaranteed zeroing is not claimed. Local malware
 or another process with the same user privileges remains outside this model.

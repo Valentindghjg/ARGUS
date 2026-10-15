@@ -1,3 +1,23 @@
+# Prüfbericht – Version 1.10.0
+
+Die geführte Sicherheitsversion besteht **158 Python-Tests** und **23 Chromium-
+Prüfgruppen** (18 Dashboard- und fünf Account-Zuordnungsgruppen), ohne
+Seitenfehler und ohne externe Browseranfragen. Die statische Begleiter-Prüfung
+bündelt weiterhin 527 Einträge und behält ausschließlich die Berechtigung
+`activeTab`.
+
+Neue Fälle prüfen die deterministische lokale Prioritätsauswahl, das Fortsetzen
+eines bereiten Arbeitslisten-Eintrags, unveränderte Checklisten beim Start einer
+geführten Sitzung und den strengen lokalen Bitwarden-Endpunkt: Er akzeptiert nur
+den aktuellen Account und eine zweite ausdrückliche Bestätigung. Der Browserfluss
+prüft die Führung auf Englisch und Deutsch. Ein Offline-Wheel wurde gebaut und in
+einer sauberen temporären Umgebung installiert. Es wurden keine echten Postfächer,
+Anbieter, Passwörter oder Bitwarden-Tresore verwendet.
+
+Der folgende Bericht dokumentiert Version 1.9.0.
+
+---
+
 # Prüfbericht – Version 1.9.0
 
 Die Mehrkonto-Version besteht **155 Python-Tests** und **23 Chromium-

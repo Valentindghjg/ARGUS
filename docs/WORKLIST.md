@@ -6,15 +6,18 @@ The worklist guides you through discovered accounts and persists locally across
 browser and application restarts. It does not scan on a schedule or change any
 provider password automatically.
 
-1. Open **Security worklist**. Select discovered accounts and choose **Add selected
-   accounts**. Candidates appear by security priority; the queue preserves the
-   order in which you add them. An account can only appear once.
+1. Open **Security worklist**. Choose **Secure next account** to start one local
+   highest-priority incomplete account, or select discovered accounts and choose
+   **Add selected accounts**. A guided start resumes an existing ready item first;
+   it never changes a checklist, vault item or provider account by itself.
 2. Choose **Continue with next account**. The detail dialog explains the next
    missing step: review, Bitwarden assignment, password change, sign-in test or
    explicit completion. You can also add a discovered account from its dialog.
-3. Use **Prepare Bitwarden** inside the dialog to select that account alone for a
-   metadata export or the optional CLI handoff. Assign an existing vault item
-   instead when you already have one.
+3. Use **Open Bitwarden preparation** for the current guided account only, or
+   **Prepare Bitwarden** for a manual selection. The guided CLI handoff requires
+   an additional browser confirmation, an already unlocked official Bitwarden CLI
+   and creates one password-free item. Assign an existing vault item instead when
+   you already have one.
 4. Open the documented password-settings link where available. Otherwise open
    the official homepage and navigate to its security settings yourself. Only
    Google, Apple and GitHub currently have separately documented direct links.
@@ -39,17 +42,20 @@ Die Arbeitsliste führt dich durch gefundene Accounts und bleibt lokal über
 Browser- und Programmneustarts hinweg erhalten. Sie startet keine zeitgesteuerten
 Scans und ändert keine Anbieterpasswörter automatisch.
 
-1. Öffne **Sicherheits-Arbeitsliste**, wähle gefundene Accounts und klicke auf
-   **Ausgewählte Accounts hinzufügen**. Vorschläge sind nach Sicherheitspriorität
-   sortiert; die Liste behält die Reihenfolge beim Hinzufügen. Jeder Account
-   erscheint höchstens einmal.
+1. Öffne **Sicherheits-Arbeitsliste**. Mit **Nächsten Account absichern** startest
+   du einen einzelnen unvollständigen lokalen Account mit höchster Priorität. Oder
+   wähle gefundene Accounts und klicke auf **Ausgewählte Accounts hinzufügen**.
+   Ein geführter Start setzt zuerst einen vorhandenen bereiten Eintrag fort; er
+   ändert niemals selbst Checklisten, Tresoreinträge oder Anbieter-Accounts.
 2. Wähle **Mit dem nächsten Account fortfahren**. Im Detaildialog steht der nächste
    offene Schritt: Prüfung, Bitwarden-Zuordnung, Passwortwechsel, Anmeldetest oder
    ausdrücklicher Abschluss. Du kannst einen gefundenen Account auch direkt im
    Dialog zur Liste hinzufügen.
-3. **Bitwarden vorbereiten** im Dialog wählt genau diesen Account für den
-   Metadatenexport oder die optionale CLI-Übergabe aus. Nutze stattdessen einen
-   vorhandenen Tresoreintrag, wenn du schon einen hast.
+3. **Bitwarden-Vorbereitung öffnen** gilt nur für den aktuell geführten Account;
+   **Bitwarden vorbereiten** bleibt für eine manuelle Auswahl. Die geführte
+   CLI-Übergabe verlangt eine weitere Browserbestätigung, eine bereits entsperrte
+   offizielle Bitwarden-CLI und erstellt einen passwortfreien Eintrag. Nutze
+   stattdessen einen vorhandenen Tresoreintrag, wenn du schon einen hast.
 4. Öffne den dokumentierten Passwortlink, falls vorhanden. Sonst öffne die
    offizielle Startseite und gehe selbst zu den Sicherheitseinstellungen. Aktuell
    sind nur für Google, Apple und GitHub direkte Links separat dokumentiert.

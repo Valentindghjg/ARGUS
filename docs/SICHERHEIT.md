@@ -54,6 +54,12 @@ ausdrücklich ausgewählte, passwortfreie Einträge; bestehende Tresoreinträge 
 weder gelesen noch geändert. Die Bitwarden-Konto-Adresse ist unabhängig von den
 Anmeldeadressen der einzelnen Dienste.
 
+Die geführte Ansicht **Nächsten Account absichern** bewertet nur lokal gespeicherte
+Accountdaten. Ein Start ergänzt oder setzt genau einen lokalen Arbeitslisten-Eintrag
+fort. Die Bitwarden-Aktion akzeptiert nur die Kennung des aktuellen Accounts und
+fordert eine zweite ausdrückliche Browserbestätigung; das Öffnen eines geprüften
+Anbieterlinks schließt niemals einen Checklistenpunkt ab.
+
 Python kann unveränderliche Strings im Arbeitsspeicher nicht zuverlässig löschen.
 Zugangsdaten sind daher während der autorisierten Sitzung im Prozessspeicher;
 die Anwendung verspricht kein garantiertes Memory-Zeroing. Ein Prozess mit

@@ -1,5 +1,15 @@
 # Change log
 
+## 1.10.0 — Guided security sessions
+
+- Added **Secure next account**, a local deterministic recommendation that resumes
+  ready work or adds one highest-priority incomplete account without changing any
+  provider, checklist or vault item.
+- Added a step-specific guided card, verified password-settings action and a
+  current-account-only Bitwarden CLI handoff with a second explicit confirmation.
+- Kept browser companion account isolation intact: a website visit still cannot
+  select, confirm or change an ARGUS account.
+
 ## 1.9.0 — Separate accounts at one service
 
 - Added stable local account identities with independent checklists, sign-in

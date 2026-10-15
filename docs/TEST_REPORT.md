@@ -1,3 +1,21 @@
+# Test report — Version 1.10.0
+
+The guided-security release passed **158 Python tests** and **23 Chromium browser
+check groups** (18 dashboard groups plus five account-identity groups), with zero
+page errors and zero external browser requests. The companion static validation
+still bundles 527 records while keeping only its `activeTab` permission.
+
+New cases cover deterministic local priority selection, resuming an existing
+ready worklist item, no checklist mutation when a guided session starts, and the
+strict loopback Bitwarden route: it accepts only the current account and a second
+explicit confirmation. The browser flow verifies guided worklist state in English
+and German. An offline wheel was built and installed in a clean temporary virtual
+environment. No real mailbox, provider, password or Bitwarden vault was used.
+
+The following report records version 1.9.0.
+
+---
+
 # Test report — Version 1.9.0
 
 The separate-account release passed **155 Python tests** and **23 Chromium

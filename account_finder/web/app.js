@@ -41,6 +41,7 @@ const exportChoices=new Map();
 const worklistChoices=new Map();
 let workflowBusy=false, bitwardenBusy=false;
 const workflowSteps={identify:"Identify this account before preparing Bitwarden.",review:"Review this account and confirm it exists.",bitwarden:"Assign an existing Bitwarden item or prepare a missing one.",change_password:"Use Bitwarden to set a unique password at the provider.",test_signin:"Test the sign-in before completing this account.",finish:"Required steps are checked. You can mark this account done.",done:"This account is complete."};
+function accountStep(account){return account.identity_review_required?"identify":account.status==="done"?"done":!account.checklist.reviewed?"review":!account.checklist.saved_in_bitwarden?"bitwarden":account.login_method==="password"&&!account.checklist.password_changed?"change_password":!account.checklist.login_tested?"test_signin":"finish";}
 const labels = {confirmed:"Confirmed",probable:"Probable",unknown:"Unknown",pending:"Pending",in_progress:"In progress",done:"Done",skipped:"Deferred",critical:"Do first",high:"High",normal:"Normal"};
 const titles = {
   dashboard:["Your accounts, in one place.","Find local evidence and secure your accounts with Bitwarden.","Overview"],
@@ -100,7 +101,7 @@ function renderState() {
   $("add-alias-button").disabled=state.demo||addingAlias||Boolean(activeBatch||state.active_import);
   $("alias-email").disabled=state.demo;$("alias-owned").disabled=state.demo;
   if(state.demo)setMessage("alias-message","Add real own addresses in a personal profile on your computer. The demo profile stays separate.");
-  renderRows();renderCandidates();renderExport();renderPlans();renderWorklist();renderHandoffs();
+  renderRows();renderCandidates();renderExport();renderPlans();renderWorklist();renderGuided();renderHandoffs();
 }
 function renderPlans(){
   const product=state.product;
@@ -191,8 +192,17 @@ function renderDetail(){
   const queued=state.workflow.items.find(item=>item.id===a.id);
   $("detail-worklist").disabled=busy||workflowBusy||Boolean(queued)||a.classification==="unknown";
   $("detail-worklist").textContent=t(queued?"In your worklist":"Add to worklist");
-  const step=a.identity_review_required?"identify":a.status==="done"?"done":!a.checklist.reviewed?"review":!a.checklist.saved_in_bitwarden?"bitwarden":a.login_method==="password"&&!a.checklist.password_changed?"change_password":!a.checklist.login_tested?"test_signin":"finish";
+  const step=accountStep(a);
   $("detail-next-step").textContent=t(workflowSteps[step]);
+  $("guided-detail-copy").textContent=guidedStepCopy(a,step);
+  const guidedCurrent=state.workflow.current===a.id&&!state.workflow.paused;
+  const providerButton=$("guided-open-provider");
+  providerButton.classList.toggle("hidden",step!=="change_password"||!a.password_url);
+  providerButton.textContent=t("Open verified provider page ↗");
+  providerButton.href=a.password_url||"#";
+  const guidedBitwarden=$("guided-prepare-bitwarden");
+  guidedBitwarden.classList.toggle("hidden",step!=="bitwarden"||!guidedCurrent);
+  guidedBitwarden.disabled=busy||bitwardenBusy||state.demo;
   $("detail-bitwarden").disabled=busy||bitwardenBusy||a.identity_review_required||a.classification==="unknown"||a.checklist.saved_in_bitwarden;
   $("identity-review-note").classList.toggle("hidden",!a.identity_review_required);
   $("identity-bound-note").classList.toggle("hidden",!a.identity_email);
@@ -301,15 +311,55 @@ function renderWorklist(){
   }));
   $("worklist-add").disabled=workflowBusy||!available.length;
 }
+function guidedStepCopy(account,step){
+  if(step==="identify")return t("This account needs an assigned sign-in address first.");
+  if(step==="review")return t("Confirm the account after your own review, then complete this checklist step.");
+  if(step==="bitwarden")return t("Prepare an empty Bitwarden item for this exact account. ARGUS never generates or handles its password.");
+  if(step==="change_password")return account.password_url?t("Open the verified provider page, change the password in your browser, then return here and complete the checklist step."):t("No verified password-settings link is available. Open the provider website and navigate manually.");
+  if(step==="test_signin")return t("Test the sign-in yourself, then complete this checklist step.");
+  if(step==="finish")return t("Required steps are checked. You can mark this account done.");
+  return t("This account is complete.");
+}
+function renderGuided(){
+  const workflow=state.workflow;
+  const current=state.accounts.find(account=>account.id===workflow.current);
+  const suggested=state.accounts.find(account=>account.id===workflow.suggested);
+  const account=current||suggested;
+  if(!account){
+    $("guided-dashboard-title").textContent=t("Your current security work is complete.");
+    $("guided-dashboard-copy").textContent=t("No incomplete discovered account is ready for a guided session.");
+    $("guided-dashboard-start").disabled=true;
+    $("guided-current-card").classList.add("guided-current-blocked");
+    $("guided-status").textContent=t("Ready");
+    $("guided-current-copy").textContent=t("No incomplete discovered account is ready for a guided session.");
+    $("guided-current-open").disabled=true;$("guided-current-defer").disabled=true;
+    return;
+  }
+  const step=accountStep(account), actionLabel=current?t("Continue to next account"):t("Secure next account");
+  $("guided-dashboard-title").textContent=t("Secure {p0} next",{p0:accountTitle(account)});
+  $("guided-dashboard-copy").textContent=guidedStepCopy(account,step);
+  $("guided-dashboard-start").textContent=actionLabel+" →";
+  $("guided-dashboard-start").disabled=workflowBusy;
+  $("guided-current-card").classList.toggle("guided-current-blocked",!current||workflow.paused||account.identity_review_required);
+  $("guided-status").textContent=t(account.identity_review_required?"Blocked: identify the sign-in address":workflow.paused?"Paused":current?"Action required":"Ready");
+  $("guided-current-copy").textContent=`${accountTitle(account)} · ${guidedStepCopy(account,step)}`;
+  $("guided-current-open").textContent=actionLabel;
+  $("guided-current-open").disabled=workflowBusy;
+  $("guided-current-defer").disabled=workflowBusy||!current;
+}
 async function changeWorklist(data){
   if(workflowBusy)return false;workflowBusy=true;renderWorklist();
-  try{await api("/api/workflow",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});await refresh();if($("account-dialog").open)renderDetail();return true;}
+  try{const result=await api("/api/workflow",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});await refresh();if($("account-dialog").open)renderDetail();return result;}
   catch(e){error(e.message);return false;}
-  finally{workflowBusy=false;renderWorklist();if($("account-dialog").open)renderDetail();}
+  finally{workflowBusy=false;renderWorklist();renderGuided();if($("account-dialog").open)renderDetail();}
 }
 async function continueWorklist(id=state.workflow.current){
   if(!id||state.workflow.paused)return;
   if(await changeWorklist({action:"focus",id}))openDetail(id);
+}
+async function startGuided(){
+  const result=await changeWorklist({action:"start"});
+  if(result&&result.current)openDetail(result.current);
 }
 function renderHandoffs(){
   const pending=state.bitwarden_handoffs.filter(item=>["running","uncertain"].includes(item.state));
@@ -353,6 +403,19 @@ async function addToUnlockedBitwarden(){
     const result=await api("/api/bitwarden/cli",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids,language})});
     await refresh();if(result.status==="needs_review")error(t("The transfer result is unclear. Check Bitwarden below before trying again."));else toast(t("Added {count} password-free item(s) to Bitwarden. Generate the new password in Bitwarden, use the verified provider link to change it, then test the sign-in.",{count:result.items}));
   }catch(e){error(canonicalMessage(e.message));try{await refresh();}catch(_){} }finally{bitwardenBusy=false;renderExport();renderHandoffs();}
+}
+async function prepareGuidedBitwarden(){
+  const account=state.accounts.find(item=>item.id===selected);
+  if(!account||account.id!==state.workflow.current||accountStep(account)!=="bitwarden"||bitwardenBusy||state.demo)return;
+  if(!window.confirm(t("ARGUS will create one password-free item for this exact account in your already-unlocked Bitwarden vault. Existing items are never changed. Continue?")))return;
+  bitwardenBusy=true;renderDetail();renderExport();
+  try{
+    const result=await api("/api/secure-next/bitwarden",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({account_id:account.id,language,confirmed:true})});
+    await refresh();
+    if(result.status==="needs_review")error(t("The transfer result is unclear. Check Bitwarden below before trying again."));
+    else toast(t("Bitwarden preparation saved locally. Generate the password in Bitwarden, then continue with the verified provider page."));
+  }catch(e){error(canonicalMessage(e.message));try{await refresh();}catch(_){} }
+  finally{bitwardenBusy=false;renderExport();renderHandoffs();if($("account-dialog").open)renderDetail();}
 }
 async function activateLicense(){
   const file=$("license-file").files[0];
@@ -417,8 +480,12 @@ $("bitwarden-cli-button").onclick=addToUnlockedBitwarden;
 $("worklist-add").onclick=()=>{const ids=Array.from($("worklist-selection").querySelectorAll("input:checked")).map(input=>input.value);if(!ids.length){error(t("Select accounts for your worklist first."));return;}changeWorklist({action:"add",ids});};
 $("worklist-continue").onclick=()=>continueWorklist();
 $("worklist-pause").onclick=()=>changeWorklist({action:state.workflow.paused?"resume":"pause"});
+$("guided-dashboard-start").onclick=startGuided;
+$("guided-current-open").onclick=startGuided;
+$("guided-current-defer").onclick=()=>{const id=state.workflow.current;if(id)changeWorklist({action:"defer",id});};
 $("detail-worklist").onclick=()=>changeWorklist({action:"add",ids:[selected]});
 $("detail-bitwarden").onclick=()=>{const account=state.accounts.find(a=>a.id===selected);if(!account||account.identity_review_required)return;exportChoices.clear();exportChoices.set(selected,true);for(const a of state.accounts)if(a.id!==selected)exportChoices.set(a.id,false);$("account-dialog").close();navigate("bitwarden");renderExport();};
+$("guided-prepare-bitwarden").onclick=prepareGuidedBitwarden;
 $("activate-license").onclick=activateLicense;
 $("import-button").onclick=()=>{navigate("setup");$("email-files").click();};
 $("email-files").onchange=importFiles;

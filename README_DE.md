@@ -1,4 +1,4 @@
-# Account Compass 1.9.0 – lokaler Account-Finder
+# Account Compass 1.10.0 – lokaler Account-Finder
 
 Deutsch · [English](README.md)
 
@@ -342,9 +342,12 @@ in einem Chromium-Browser. Details stehen in der
 
 ## Sicherheits-Arbeitsliste fortsetzen
 
-Öffne **Sicherheits-Arbeitsliste**, wähle gefundene Accounts und fahre mit dem
-nächsten Account fort. Liste, Pausenstatus und Checklisten bleiben nach Neustarts
-lokal erhalten. Jeder Dialog zeigt den nächsten offenen Schritt. SSO und Passkeys
+Öffne **Sicherheits-Arbeitsliste** und wähle **Nächsten Account absichern**. ARGUS
+nimmt dann einen einzelnen unvollständigen lokalen Account mit höchster Priorität
+in die Arbeitsliste auf. Liste, Pausenstatus und Checklisten bleiben nach
+Neustarts lokal erhalten. Jeder Dialog zeigt den nächsten offenen Schritt. Die
+geführte Bitwarden-Schaltfläche verlangt eine zweite Bestätigung und erstellt nur
+einen passwortfreien Eintrag für den aktuellen Account. SSO und Passkeys
 überspringen einen separaten Passwortwechsel. Es wird nichts automatisch beim
 Anbieter abgeschickt. Siehe die [Arbeitslisten-Anleitung](docs/WORKLIST.md) und
 [Hinweise zu unterbrochenen Übertragungen](docs/BITWARDEN_CLI.md).

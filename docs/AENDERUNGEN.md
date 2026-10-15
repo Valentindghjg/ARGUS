@@ -1,3 +1,17 @@
+# Änderungen – Version 1.10.0
+
+- **Nächsten Account absichern** ergänzt: Eine lokale, deterministische Empfehlung
+  setzt bereite Arbeit fort oder nimmt genau einen unvollständigen Account mit
+  höchster Priorität auf. Dabei werden weder Anbieter, Checklisten noch
+  Tresoreinträge automatisch geändert.
+- Eine schrittspezifische Führung zeigt nur geprüfte Passwortseiten. Die geführte
+  Bitwarden-CLI-Übergabe gilt nur für den aktuellen Account und verlangt eine
+  zweite ausdrückliche Browserbestätigung.
+- Der Browser-Begleiter bleibt bewusst von Accounts getrennt: Ein Webseitenbesuch
+  kann weiterhin keinen ARGUS-Account auswählen, bestätigen oder ändern.
+
+---
+
 # Änderungen – Version 1.9.0
 
 - Getrennte stabile Account-Zuordnungen je Dienst mit eigenen Checklisten,

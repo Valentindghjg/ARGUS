@@ -92,11 +92,34 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
         self.store.update_account('github', {'login_method':'password'})
         self.assertEqual(next_step(self.account()), 'change_password')
 
+    def test_guided_start_selects_priority_without_changing_checklists(self):
+        self.store.update_account('github', {'priority': 'normal'})
+        self.store.update_account('discord', {'priority': 'critical'})
+        before = {account['id']: dict(account['checklist']) for account in self.store.snapshot()['accounts']
+                  if account['id'] in {'github', 'discord'}}
+        result = change_worklist(self.store, {'action': 'start'})
+        self.assertEqual(result, {'ok': True, 'current': 'discord', 'created': True})
+        snapshot = self.store.snapshot()
+        self.assertEqual(snapshot['workflow']['current'], 'discord')
+        self.assertFalse(snapshot['workflow']['paused'])
+        self.assertEqual(before, {account['id']: account['checklist'] for account in snapshot['accounts']
+                                  if account['id'] in before})
+
+    def test_guided_start_keeps_existing_ready_item_and_suggests_another(self):
+        self.store.update_account('discord', {'priority': 'critical'})
+        change_worklist(self.store, {'action': 'add', 'ids': ['github']})
+        result = change_worklist(self.store, {'action': 'start'})
+        self.assertEqual(result, {'ok': True, 'current': 'github', 'created': False})
+        workflow = self.queue()
+        self.assertEqual(workflow['current'], 'github')
+        self.assertEqual(workflow['suggested'], 'discord')
+
     def test_invalid_actions_leave_queue_unchanged(self):
         for data in ({'action':'add','ids':['netflix']}, {'action':'add','ids':['github','unknown']},
                      {'action':'add','ids':'github'}, {'action':'add','ids':[]},
                      {'action':'pause','password':'secret'}, {'action':[]},
-                     {'action':'focus','id':'github'}, {'action':'add','ids':[None]}):
+                     {'action':'focus','id':'github'}, {'action':'add','ids':[None]},
+                     {'action':'start','password':'rejected'}):
             with self.assertRaises(ValueError):
                 change_worklist(self.store, data)
             self.assertEqual(self.queue()['total'], 0)

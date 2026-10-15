@@ -277,6 +277,17 @@ class Handler(BaseHTTPRequestHandler):
                     raise ValueError("Specify the selected accounts and language")
                 result = add_to_unlocked_cli(self.server.store, data["ids"], data["language"])
                 self._send(200, result)
+            elif path == "/api/secure-next/bitwarden":
+                from .bitwarden import add_to_unlocked_cli
+                data = self._json()
+                if set(data) != {"account_id", "language", "confirmed"} or data["confirmed"] is not True:
+                    raise ValueError("Confirm the guided Bitwarden preparation")
+                snapshot = self.server.store.snapshot(data["language"])
+                current = snapshot["workflow"]["current"]
+                if not isinstance(data["account_id"], str) or data["account_id"] != current:
+                    raise ValueError("Choose the current guided account")
+                result = add_to_unlocked_cli(self.server.store, [current], data["language"])
+                self._send(200, result)
             elif path == "/api/bitwarden/resolve":
                 from .handoffs import resolve
                 self._send(200, resolve(self.server.store, self._json()))
