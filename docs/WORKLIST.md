@@ -9,9 +9,10 @@ provider password automatically.
 1. Open **Security worklist**. Choose **Secure next account** to start one local
    highest-priority incomplete account, **Build priority worklist** to add up to
    ten more open accounts in deterministic priority order, or select discovered
-   accounts and choose **Add selected accounts**. The priority builder asks for
-   confirmation and preserves existing queue positions. These actions never
-   change a checklist, vault item or provider account by themselves.
+   accounts and choose **Add selected accounts**. The exact candidates and their
+   next local steps are shown before the builder button can be used. The priority
+   builder asks for confirmation and preserves existing queue positions. These
+   actions never change a checklist, vault item or provider account by themselves.
 2. Choose **Continue with next account**. The detail dialog explains the next
    missing step: review, Bitwarden assignment, password change, sign-in test or
    explicit completion. You can also add a discovered account from its dialog.
@@ -49,7 +50,8 @@ Scans und ändert keine Anbieterpasswörter automatisch.
 1. Öffne **Sicherheits-Arbeitsliste**. Mit **Nächsten Account absichern** startest
    du einen einzelnen unvollständigen lokalen Account mit höchster Priorität.
    **Prioritäts-Arbeitsliste erstellen** fügt nach Bestätigung bis zu zehn weitere
-   offene Accounts in deterministischer Prioritätsreihenfolge hinzu. Oder wähle
+   offene Accounts in deterministischer Prioritätsreihenfolge hinzu. Vorher zeigt
+   ARGUS die genauen Kandidaten und ihren nächsten lokalen Schritt. Oder wähle
    gefundene Accounts und klicke auf **Ausgewählte Accounts hinzufügen**. Die
    bestehende Reihenfolge bleibt erhalten; keine dieser Aktionen ändert selbst
    Checklisten, Tresoreinträge oder Anbieter-Accounts.

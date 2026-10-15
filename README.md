@@ -1,4 +1,4 @@
-# Account Compass 1.12.0
+# Account Compass 1.13.0
 
 [Deutsch](README_DE.md) · English
 
@@ -323,7 +323,9 @@ automatically.
 Choose **Build priority worklist** to explicitly add up to ten more highest-
 priority incomplete accounts in deterministic local order. Existing worklist
 items keep their place; the action changes no checklist, password, provider or
-Bitwarden item.
+Bitwarden item. Before the button can be used, the worklist shows the exact local
+priority preview, including each account's current next step. Review it before
+confirming the append action.
 For review, password-change and sign-in steps, **I completed this step** records
 your explicit local confirmation and immediately advances the guide.
 See the [worklist guide](docs/WORKLIST.md) and

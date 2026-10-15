@@ -330,7 +330,14 @@ function renderGuided(){
   const workflow=state.workflow;
   const current=state.accounts.find(account=>account.id===workflow.current);
   const suggested=state.accounts.find(account=>account.id===workflow.suggested);
+  const priorityPreview=(workflow.priority_preview||[]).map(id=>state.accounts.find(account=>account.id===id)).filter(Boolean);
   const account=current||suggested;
+  $("guided-priority-preview").classList.toggle("hidden",!priorityPreview.length);
+  $("guided-priority-items").replaceChildren(...priorityPreview.map((candidate,index)=>{
+    const item=node("article",undefined,"worklist-item"),step=accountStep(candidate);
+    item.append(node("strong",`${index+1}. ${accountTitle(candidate)}`),node("p",`${t(labels[candidate.priority])} · ${t(labels[candidate.classification])} · ${t(workflowSteps[step])}`));
+    return item;
+  }));
   if(!account){
     $("guided-dashboard-title").textContent=t("Your current security work is complete.");
     $("guided-dashboard-copy").textContent=t("No incomplete discovered account is ready for a guided session.");
@@ -351,7 +358,7 @@ function renderGuided(){
   $("guided-current-copy").textContent=`${accountTitle(account)} · ${guidedStepCopy(account,step)}`;
   $("guided-current-open").textContent=actionLabel;
   $("guided-current-open").disabled=workflowBusy;
-  $("guided-build-worklist").disabled=workflowBusy||!suggested;
+  $("guided-build-worklist").disabled=workflowBusy||!priorityPreview.length;
   $("guided-current-defer").disabled=workflowBusy||!current;
 }
 async function changeWorklist(data){
@@ -369,7 +376,8 @@ async function startGuided(){
   if(result&&result.current)openDetail(result.current);
 }
 async function buildPriorityWorklist(){
-  if(!state.workflow.suggested||workflowBusy)return;
+  const count=(state.workflow.priority_preview||[]).length;
+  if(!count||workflowBusy)return;
   if(!window.confirm(t("ARGUS will add up to 10 highest-priority incomplete accounts to the local worklist. No provider, password or Bitwarden item is changed. Continue?")))return;
   const result=await changeWorklist({action:"prioritize"});
   if(result)toast(t(result.added.length?t("Added {count} priority account(s) to your worklist.",{count:result.added.length}):t("No additional priority accounts are ready.")));

@@ -1,3 +1,20 @@
+# Prüfbericht – Version 1.13.0
+
+Die Version mit prüfbarer Prioritätsplanung besteht **160 Python-Tests** und
+**23 Chromium-Prüfgruppen** ohne Seitenfehler und ohne externe Browseranfragen.
+Der Browser-Test prüft die Vorschau mit zehn Einträgen auf Englisch und ihre
+deutsche Übersetzung, bevor eine Arbeitslisten-Aktion möglich ist. Workflow-Tests
+belegen dieselben deterministischen Kandidaten wie bei der Sammelaktion ohne
+Änderung des Account-Fortschritts. Die Mehrkonto-Browserprüfung und die statische
+Begleiter-Prüfung mit 527 Diensten bestehen ebenfalls. Das Offline-Wheel wurde
+als Version 1.13.0 gebaut und in einer sauberen temporären Umgebung installiert.
+Es wurden keine echten Postfächer, Anbieter, Passwörter oder Bitwarden-Tresore
+verwendet.
+
+Der folgende Bericht dokumentiert Version 1.12.0.
+
+---
+
 # Prüfbericht – Version 1.12.0
 
 Die Version mit Prioritäts-Arbeitsliste besteht **160 Python-Tests** und **23

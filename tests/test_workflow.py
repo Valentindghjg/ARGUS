@@ -130,6 +130,7 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
         before = {account['id']: (dict(account['checklist']), account['status'])
                   for account in self.store.snapshot()['accounts']}
         change_worklist(self.store, {'action': 'add', 'ids': ['github']})
+        self.assertEqual(self.queue()['priority_preview'], ['discord'])
         result = change_worklist(self.store, {'action': 'prioritize'})
         self.assertEqual(result, {'ok': True, 'added': ['discord']})
         self.assertEqual([item['id'] for item in self.queue()['items']], ['github', 'discord'])

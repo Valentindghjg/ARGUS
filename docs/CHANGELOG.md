@@ -1,5 +1,14 @@
 # Change log
 
+## 1.13.0 — Reviewable priority planning
+
+- Added an English/German local preview of the exact accounts that **Build
+  priority worklist** would append, including each candidate's next security step.
+- The preview uses the same deterministic ranking and ten-account limit as the
+  atomic builder, writes no state and never contacts a provider or Bitwarden.
+- Added workflow and browser regression coverage for preview contents and the
+  translated, no-external-request dashboard flow.
+
 ## 1.12.0 — Priority worklist builder
 
 - Added **Build priority worklist**, an explicitly confirmed local action that

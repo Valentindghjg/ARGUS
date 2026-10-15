@@ -549,6 +549,8 @@
     "Confirm the guided Bitwarden preparation": "Bestätige die geführte Bitwarden-Vorbereitung",
     "Choose the current guided account": "Wähle den aktuell geführten Account",
     "I completed this step": "Ich habe diesen Schritt erledigt",
+    "Proposed priority worklist": "Vorgeschlagene Prioritäts-Arbeitsliste",
+    "These accounts would be appended only after confirmation. Existing worklist items stay in place.": "Diese Accounts werden erst nach deiner Bestätigung angehängt. Bestehende Arbeitslisten-Einträge bleiben an ihrer Stelle.",
     "Build priority worklist": "Prioritäts-Arbeitsliste erstellen",
     "ARGUS will add up to 10 highest-priority incomplete accounts to the local worklist. No provider, password or Bitwarden item is changed. Continue?": "ARGUS fügt bis zu zehn unvollständige Accounts mit höchster Priorität zur lokalen Arbeitsliste hinzu. Dabei werden weder Anbieter, Passwörter noch Bitwarden-Einträge geändert. Fortfahren?",
     "Added {count} priority account(s) to your worklist.": "{count} priorisierte Accounts wurden zur Arbeitsliste hinzugefügt.",

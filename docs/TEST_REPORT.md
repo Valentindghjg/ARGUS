@@ -1,3 +1,19 @@
+# Test report — Version 1.13.0
+
+The reviewable-planning release passed **160 Python tests** and **23 Chromium
+browser check groups** with zero page errors and zero external browser requests.
+The browser test verifies the ten-entry priority preview in English and its
+German translation before any worklist action. Workflow tests verify that the
+preview uses the same deterministic candidates as the builder without altering
+account progress. Separate-account browser checks and the companion static
+validation still pass with 527 provider records. The offline wheel was built and
+installed in a clean temporary environment as version 1.13.0. No real mailbox,
+provider, password or Bitwarden vault was used.
+
+The following report records version 1.12.0.
+
+---
+
 # Test report — Version 1.12.0
 
 The priority-worklist release passed **160 Python tests** and **23 Chromium

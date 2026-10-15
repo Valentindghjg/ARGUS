@@ -56,9 +56,12 @@ def worklist_snapshot(store, accounts):
     focus = json.loads(focus[0]) if focus else None
     current = focus if focus in ready else next(iter(ready), None)
     queued = {item["id"] for item in items}
-    suggested = recommended_account(accounts.values(), excluded=queued)
+    priority_preview = recommended_accounts(accounts.values(), excluded=queued,
+                                            limit=MAX_PRIORITY_WORKLIST)
+    suggested = priority_preview[0] if priority_preview else None
     return {"items": items, "paused": bool(json.loads(paused[0])) if paused else False,
             "current": current, "suggested": suggested["id"] if suggested else None,
+            "priority_preview": [account["id"] for account in priority_preview],
             "total": len(items), "done": sum(item["step"] == "done" for item in items),
             "deferred": sum(item["deferred"] and item["step"] != "done" for item in items)}
 

@@ -21,7 +21,7 @@
       <button data-view="setup" class="nav-item"><span>⚙</span><span data-i18n="Mailbox &amp; Import" class="translation-text"> Mailbox &amp; Import</span></button>
       <button data-view="plans" class="nav-item"><span>◇</span><span data-i18n="Plans" class="translation-text"> Plans</span></button>
     </nav>
-    <div class="sidebar-bottom"><span class="green-dot"></span><strong data-i18n="Local. Under your control.">Local. Under your control.</strong><p data-i18n="Email content is processed here. No external AI services.">Email content is processed here. No external AI services.</p><span class="version">Account Compass / 1.12.0</span></div>
+    <div class="sidebar-bottom"><span class="green-dot"></span><strong data-i18n="Local. Under your control.">Local. Under your control.</strong><p data-i18n="Email content is processed here. No external AI services.">Email content is processed here. No external AI services.</p><span class="version">Account Compass / 1.13.0</span></div>
   </aside>
   <div class="workspace">
     <header class="topbar"><span><span data-i18n="Account Finder" class="translation-text">Account Finder </span><span class="slash">/</span> <span id="breadcrumb" data-i18n="Overview">Overview</span></span><div class="topbar-controls"><label class="language-picker" for="language"><span data-i18n="Language">Language</span><select id="language" aria-label="Language" data-i18n-aria-label="Language" class="language-control"><option value="en">English</option><option value="de">Deutsch</option></select></label><span class="local-pill"><span class="green-dot"></span><span data-i18n="Local mode" class="translation-text"> Local mode</span></span></div></header>
@@ -62,6 +62,7 @@
         <section id="guided-current-card" class="panel guide worklist-panel">
           <div class="panel-head"><h2 data-i18n="Secure next account">Secure next account</h2><span id="guided-status" class="chip soft"></span></div>
           <p id="guided-current-copy" role="status" aria-live="polite"></p>
+          <section id="guided-priority-preview" class="priority-preview hidden"><h3 data-i18n="Proposed priority worklist">Proposed priority worklist</h3><p data-i18n="These accounts would be appended only after confirmation. Existing worklist items stay in place.">These accounts would be appended only after confirmation. Existing worklist items stay in place.</p><div id="guided-priority-items" class="worklist-items"></div></section>
           <div class="bitwarden-actions"><button id="guided-current-open" class="button primary" data-i18n="Secure next account">Secure next account</button><button id="guided-build-worklist" class="button secondary" data-i18n="Build priority worklist">Build priority worklist</button><button id="guided-current-defer" class="button secondary" data-i18n="Defer">Defer</button></div>
         </section>
         <section class="panel guide worklist-panel">

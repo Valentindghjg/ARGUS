@@ -1,3 +1,15 @@
+# Änderungen – Version 1.13.0
+
+- Vor **Prioritäts-Arbeitsliste erstellen** zeigt ARGUS nun auf Deutsch und
+  Englisch die genauen lokalen Kandidaten sowie ihren nächsten Sicherheitsschritt.
+- Die Vorschau verwendet dieselbe deterministische Reihenfolge und
+  Zehn-Account-Grenze wie die atomare Aktion, schreibt aber keinerlei Zustand und
+  kontaktiert weder Anbieter noch Bitwarden.
+- Workflow- und Browser-Regressionstests für Inhalt, Übersetzung und den Ablauf
+  ohne externe Anfragen ergänzt.
+
+---
+
 # Änderungen – Version 1.12.0
 
 - **Prioritäts-Arbeitsliste erstellen** ergänzt: Nach einer ausdrücklichen
