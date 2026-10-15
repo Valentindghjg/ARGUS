@@ -1,10 +1,44 @@
 """Persistent, secret-free worklist. Account checklists remain the source of truth."""
+from datetime import datetime, timedelta, timezone
 import json
 
 
 PRIORITY_RANK = {"critical": 0, "high": 1, "normal": 2}
 CLASSIFICATION_RANK = {"confirmed": 0, "probable": 1}
 MAX_PRIORITY_WORKLIST = 10
+
+
+def utcnow():
+    return datetime.now(timezone.utc)
+
+
+def active_snooze(row, current):
+    """Return an unexpired local resume timestamp, never raising on old data."""
+    value = row["resume_after"]
+    if not value or not row["deferred"]:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value)
+    except (TypeError, ValueError):
+        return None
+    if parsed.tzinfo is None or parsed <= current:
+        return None
+    return value
+
+
+def expired_snooze(row, current):
+    value = row["resume_after"]
+    if not value or not row["deferred"]:
+        return False
+    try:
+        parsed = datetime.fromisoformat(value)
+    except (TypeError, ValueError):
+        return False
+    return parsed.tzinfo is not None and parsed <= current
+
+
+def effectively_deferred(row, current):
+    return bool(row["deferred"]) and not expired_snooze(row, current)
 
 
 def next_step(account):
@@ -45,11 +79,13 @@ def recommended_account(accounts, *, excluded=()):
 
 def worklist_snapshot(store, accounts):
     accounts = {account["id"]: account for account in accounts}
+    current_time = utcnow()
     with store.connect() as db:
         rows = db.execute("SELECT * FROM instance_work_queue ORDER BY position, account_id").fetchall()
         paused = db.execute("SELECT value FROM meta WHERE key='worklist_paused'").fetchone()
         focus = db.execute("SELECT value FROM meta WHERE key='worklist_focus'").fetchone()
-    items = [{"id": row["account_id"], "deferred": bool(row["deferred"]),
+    items = [{"id": row["account_id"], "deferred": effectively_deferred(row, current_time),
+              "snoozed_until": active_snooze(row, current_time),
               "step": next_step(accounts[row["account_id"]])}
              for row in rows if row["account_id"] in accounts]
     ready = [item["id"] for item in items if not item["deferred"] and item["step"] != "done"]
@@ -71,7 +107,8 @@ def change_worklist(store, data):
     shapes = {"add": {"action", "ids"}, "remove": {"action", "id"},
               "defer": {"action", "id"}, "restore": {"action", "id"},
               "focus": {"action", "id"}, "pause": {"action"}, "resume": {"action"},
-              "start": {"action"}, "prioritize": {"action"}}
+              "start": {"action"}, "prioritize": {"action"},
+              "snooze": {"action", "id", "days"}}
     if not isinstance(action, str) or action not in shapes or set(data) != shapes[action]:
         raise ValueError("Invalid worklist action")
     if action == "add":
@@ -110,11 +147,12 @@ def change_worklist(store, data):
         return {"ok": True, "added": added}
     elif action == "start":
         accounts = {account["id"]: account for account in store.snapshot()["accounts"]}
+        current_time = utcnow()
         with store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
-            rows = db.execute("SELECT account_id,deferred FROM instance_work_queue ORDER BY position,account_id").fetchall()
+            rows = db.execute("SELECT account_id,deferred,resume_after FROM instance_work_queue ORDER BY position,account_id").fetchall()
             ready = [row["account_id"] for row in rows
-                     if not row["deferred"] and row["account_id"] in accounts
+                     if not effectively_deferred(row, current_time) and row["account_id"] in accounts
                      and next_step(accounts[row["account_id"]]) != "done"]
             current = next(iter(ready), None)
             created = False
@@ -135,6 +173,8 @@ def change_worklist(store, data):
         account_id = data["id"]
         if not isinstance(account_id, str):
             raise ValueError("Invalid worklist account")
+        if action == "snooze" and (type(data["days"]) is not int or not 1 <= data["days"] <= 365):
+            raise ValueError("Choose a valid local snooze period")
         with store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             if not db.execute("SELECT 1 FROM instance_work_queue WHERE account_id=?", (account_id,)).fetchone():
@@ -142,7 +182,12 @@ def change_worklist(store, data):
             if action == "remove":
                 db.execute("DELETE FROM instance_work_queue WHERE account_id=?", (account_id,))
             elif action in {"defer", "restore"}:
-                db.execute("UPDATE instance_work_queue SET deferred=? WHERE account_id=?", (int(action == "defer"), account_id))
+                db.execute("UPDATE instance_work_queue SET deferred=?,resume_after=NULL WHERE account_id=?",
+                           (int(action == "defer"), account_id))
+            elif action == "snooze":
+                resume_after = (utcnow() + timedelta(days=data["days"])).isoformat()
+                db.execute("UPDATE instance_work_queue SET deferred=1,resume_after=? WHERE account_id=?",
+                           (resume_after, account_id))
             else:
                 db.execute("INSERT INTO meta VALUES ('worklist_focus',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
                            (json.dumps(account_id),))

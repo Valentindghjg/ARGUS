@@ -1,3 +1,20 @@
+# Prüfbericht – Version 1.14.0
+
+Die Version mit lokaler Wiedervorlage besteht **162 Python-Tests** und **23
+Chromium-Prüfgruppen** ohne Seitenfehler und ohne externe Browseranfragen. Neue
+Workflow-Tests prüfen einen zukünftigen lokalen Termin, die Bereitstellung nach
+Fälligkeit ohne Account-Änderung, begrenzte Eingaben und die additive Übernahme
+einer älteren Arbeitslisten-Tabelle. Der Browser-Test erstellt einen künstlichen
+Aufschub um einen Tag und prüft seine deutsche Anzeige. Die Mehrkonto-
+Browserprüfung und die statische Begleiter-Prüfung mit 527 Diensten bestehen
+weiterhin. Das Offline-Wheel wurde als Version 1.14.0 gebaut und in einer
+sauberen temporären Umgebung installiert. Es wurden keine echten Postfächer,
+Anbieter, Passwörter oder Bitwarden-Tresore verwendet.
+
+Der folgende Bericht dokumentiert Version 1.13.0.
+
+---
+
 # Prüfbericht – Version 1.13.0
 
 Die Version mit prüfbarer Prioritätsplanung besteht **160 Python-Tests** und

@@ -29,7 +29,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS instances_canonical_email
 CREATE TABLE IF NOT EXISTS instance_work_queue (
   account_id TEXT PRIMARY KEY,
   position INTEGER NOT NULL,
-  deferred INTEGER NOT NULL DEFAULT 0
+  deferred INTEGER NOT NULL DEFAULT 0,
+  resume_after TEXT
 );
 CREATE TABLE IF NOT EXISTS instance_bitwarden_handoffs (
   id TEXT PRIMARY KEY,
@@ -164,7 +165,8 @@ def migrate_instances(db, registry):
             continue
         if not db.execute("SELECT 1 FROM account_instances WHERE id=?", (row["provider_id"],)).fetchone():
             insert_instance(db, row["provider_id"], ident=row["provider_id"])
-        db.execute("INSERT OR IGNORE INTO instance_work_queue VALUES (?,?,?)", (row["provider_id"], row["position"], row["deferred"]))
+        db.execute("INSERT OR IGNORE INTO instance_work_queue(account_id,position,deferred) VALUES (?,?,?)",
+                   (row["provider_id"], row["position"], row["deferred"]))
     for row in db.execute("SELECT * FROM bitwarden_handoffs").fetchall():
         provider_id, email = row["provider_id"], row["email"]
         if provider_id not in registry.providers:

@@ -1,4 +1,4 @@
-# Account Compass 1.13.0
+# Account Compass 1.14.0
 
 [Deutsch](README_DE.md) · English
 
@@ -326,6 +326,10 @@ items keep their place; the action changes no checklist, password, provider or
 Bitwarden item. Before the button can be used, the worklist shows the exact local
 priority preview, including each account's current next step. Review it before
 confirming the append action.
+For an account that cannot be handled immediately, choose **Tomorrow** or **In
+one week**. ARGUS stores the date only in the local worklist and makes the item
+ready again when that date is reached while the dashboard is open. It sends no
+notification and contacts no service.
 For review, password-change and sign-in steps, **I completed this step** records
 your explicit local confirmation and immediately advances the guide.
 See the [worklist guide](docs/WORKLIST.md) and

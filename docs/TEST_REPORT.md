@@ -1,3 +1,19 @@
+# Test report — Version 1.14.0
+
+The local-snooze release passed **162 Python tests** and **23 Chromium browser
+check groups** with zero page errors and zero external browser requests. New
+workflow tests verify a future local resume date, due-item readiness without
+account mutation, strict bounded input and the additive upgrade of an older
+worklist table. The browser test creates a synthetic one-day snooze and verifies
+its German display. Separate-account browser checks and the static companion
+validation still pass with 527 provider records. The offline wheel was built and
+installed in a clean temporary environment as version 1.14.0. No real mailbox,
+provider, password or Bitwarden vault was used.
+
+The following report records version 1.13.0.
+
+---
+
 # Test report — Version 1.13.0
 
 The reviewable-planning release passed **160 Python tests** and **23 Chromium

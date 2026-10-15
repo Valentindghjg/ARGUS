@@ -1,5 +1,15 @@
 # Change log
 
+## 1.14.0 — Local worklist snoozes
+
+- Added **Tomorrow** and **In one week** to defer a local worklist item until a
+  stored resume date. Due items become ready again while ARGUS is open; no
+  notification, provider, mailbox or Bitwarden connection is made.
+- Added additive SQLite migration for existing worklists and strict local API
+  validation for the bounded 1–365 day snooze period.
+- Added workflow, migration, loopback API and bilingual browser coverage for
+  snoozes and due-item resumption.
+
 ## 1.13.0 — Reviewable priority planning
 
 - Added an English/German local preview of the exact accounts that **Build

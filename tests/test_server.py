@@ -159,6 +159,8 @@ class ServerTests(unittest.TestCase):
         headers = {"Content-Type":"application/json"}
         status, _, _ = self.request("/api/workflow", "POST", json.dumps({"action":"add", "ids":["discord"]}), headers=headers)
         self.assertEqual(status, 200)
+        status, _, _ = self.request("/api/workflow", "POST", json.dumps({"action":"snooze", "id":"discord", "days":1}), headers=headers)
+        self.assertEqual(status, 200)
         status, _, body = self.request("/api/workflow", "POST", json.dumps({"action":"prioritize"}), headers=headers)
         self.assertEqual(status, 200)
         priority_result = json.loads(body)
@@ -170,4 +172,5 @@ class ServerTests(unittest.TestCase):
             self.assertEqual(self.request(route, "POST", "{}", authorized=False, headers=headers)[0], 401)
             self.assertEqual(self.request(route, "POST", "{}", headers={**headers, "Origin":"https://attacker.example"})[0], 403)
         self.assertEqual(self.request("/api/workflow", "POST", json.dumps({"action":"pause", "password":"rejected"}), headers=headers)[0], 400)
+        self.assertEqual(self.request("/api/workflow", "POST", json.dumps({"action":"snooze", "id":"discord", "days":1, "password":"rejected"}), headers=headers)[0], 400)
         self.assertEqual(self.request("/api/bitwarden/resolve", "POST", json.dumps({"id":"missing", "created":True, "confirmed":False}), headers=headers)[0], 400)

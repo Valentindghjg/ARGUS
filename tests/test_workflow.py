@@ -1,5 +1,6 @@
 """Persistent progress, manual completion and ambiguous external writes."""
 import base64
+from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
 import subprocess
@@ -37,6 +38,19 @@ class ProfileFixture:
 
 
 class WorkflowTests(ProfileFixture, unittest.TestCase):
+    def test_existing_worklist_schema_gains_snooze_column_without_losing_rows(self):
+        with self.store.connect() as db:
+            db.execute('ALTER TABLE instance_work_queue RENAME TO prior_instance_work_queue')
+            db.execute('CREATE TABLE instance_work_queue (account_id TEXT PRIMARY KEY, position INTEGER NOT NULL, deferred INTEGER NOT NULL DEFAULT 0)')
+            db.execute("INSERT INTO instance_work_queue VALUES ('github',3,1)")
+            db.execute('DROP TABLE prior_instance_work_queue')
+        self.store = Store(self.root, Registry())
+        with self.store.connect() as db:
+            columns = {row['name'] for row in db.execute('PRAGMA table_info(instance_work_queue)')}
+            row = db.execute("SELECT account_id,position,deferred,resume_after FROM instance_work_queue").fetchone()
+        self.assertIn('resume_after', columns)
+        self.assertEqual(tuple(row), ('github', 3, 1, None))
+
     def test_priority_ranking_is_deterministic_and_limited(self):
         accounts = [{"id": f"service-{index}", "name": f"Service {index}",
                      "classification": "confirmed", "status": "pending",
@@ -81,6 +95,25 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
         change_worklist(self.store, {'action':'remove', 'id':'github'})
         self.assertEqual(self.account(), before)
         self.assertEqual(self.queue()['current'], 'discord')
+
+    def test_snooze_becomes_ready_locally_after_its_due_time(self):
+        change_worklist(self.store, {'action':'add', 'ids':['github', 'discord']})
+        before = self.account('github')
+        fixed = datetime(2030, 1, 1, tzinfo=timezone.utc)
+        with patch('account_finder.workflow.utcnow', return_value=fixed):
+            change_worklist(self.store, {'action':'snooze', 'id':'github', 'days':7})
+            snapshot = self.queue()
+            github = next(item for item in snapshot['items'] if item['id'] == 'github')
+            self.assertTrue(github['deferred'])
+            self.assertEqual(github['snoozed_until'], (fixed + timedelta(days=7)).isoformat())
+            self.assertEqual(snapshot['current'], 'discord')
+        with patch('account_finder.workflow.utcnow', return_value=fixed + timedelta(days=8)):
+            snapshot = self.queue()
+            github = next(item for item in snapshot['items'] if item['id'] == 'github')
+            self.assertFalse(github['deferred'])
+            self.assertIsNone(github['snoozed_until'])
+            self.assertEqual(snapshot['current'], 'github')
+        self.assertEqual(self.account('github'), before)
 
     def test_completion_advances_and_reopening_restores_pending_work(self):
         change_worklist(self.store, {'action':'add', 'ids':['github', 'discord']})
@@ -143,7 +176,8 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
                      {'action':'add','ids':'github'}, {'action':'add','ids':[]},
                      {'action':'pause','password':'secret'}, {'action':[]},
                      {'action':'focus','id':'github'}, {'action':'add','ids':[None]},
-                     {'action':'start','password':'rejected'}, {'action':'prioritize','password':'rejected'}):
+                     {'action':'start','password':'rejected'}, {'action':'prioritize','password':'rejected'},
+                     {'action':'snooze','id':'github','days':0}, {'action':'snooze','id':'github','days':'7'}):
             with self.assertRaises(ValueError):
                 change_worklist(self.store, data)
             self.assertEqual(self.queue()['total'], 0)

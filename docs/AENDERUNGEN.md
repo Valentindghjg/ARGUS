@@ -1,3 +1,17 @@
+# Änderungen – Version 1.14.0
+
+- **Morgen** und **In einer Woche** stellen einen Arbeitslisten-Eintrag bis zu
+  einem lokalen Wiedervorlagetermin zurück. Ist der Termin bei geöffnetem ARGUS
+  erreicht, wird der Eintrag wieder bereit. Es werden keine Benachrichtigungen
+  gesendet und keine Anbieter, Postfächer oder Bitwarden kontaktiert.
+- Die SQLite-Übernahme ergänzt die neue Spalte auch für bestehende lokale
+  Arbeitslisten. Die lokale API akzeptiert nur einen begrenzten Zeitraum von
+  1–365 Tagen.
+- Workflow-, Migrations-, Loopback-API- und zweisprachige Browser-Tests für
+  Aufschub und Wiedervorlage ergänzt.
+
+---
+
 # Änderungen – Version 1.13.0
 
 - Vor **Prioritäts-Arbeitsliste erstellen** zeigt ARGUS nun auf Deutsch und

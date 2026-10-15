@@ -193,7 +193,9 @@ class InstanceTests(unittest.TestCase):
             self.assertEqual(identities[email]["status"], "pending")
             self.assertFalse(any(identities[email]["checklist"].values()))
         with self.store.connect() as db:
-            self.assertEqual(tuple(db.execute("SELECT * FROM instance_work_queue").fetchone()), ("github", 4, 1))
+            row = db.execute("SELECT * FROM instance_work_queue").fetchone()
+            self.assertEqual((row["account_id"], row["position"], row["deferred"], row["resume_after"]),
+                             ("github", 4, 1, None))
         before = {row["id"] for row in self.rows()}
         self.store = Store(self.directory, self.registry)
         self.assertEqual({row["id"] for row in self.rows()}, before)

@@ -287,6 +287,10 @@ function renderExport(){
 function actionButton(text,action,disabled=false){
   const button=node("button",t(text),"button secondary");button.onclick=action;button.disabled=disabled;return button;
 }
+function localDate(value){
+  const date=new Date(value);
+  return Number.isNaN(date.getTime())?value:date.toLocaleDateString(language==="de"?"de-DE":"en-GB",{day:"numeric",month:"short",year:"numeric"});
+}
 function renderWorklist(){
   const workflow=state.workflow,accounts=new Map(state.accounts.map(a=>[a.id,a]));
   $("worklist-badge").textContent=t(workflow.paused?"Paused":"Ready");
@@ -297,11 +301,15 @@ function renderWorklist(){
   $("worklist-pause").textContent=t(workflow.paused?"Resume worklist":"Pause worklist");
   $("worklist-items").replaceChildren(...workflow.items.map(item=>{
     const account=accounts.get(item.id),card=node("article",undefined,"worklist-item");
-    card.append(node("strong",accountTitle(account)),node("p",t(item.deferred&&item.step!=="done"?"Deferred. Restore this account when you are ready.":workflowSteps[item.step])));
+    const status=item.snoozed_until?t("Snoozed until {date}. It will become ready locally on that date.",{date:localDate(item.snoozed_until)}):item.deferred&&item.step!=="done"?t("Deferred. Restore this account when you are ready."):t(workflowSteps[item.step]);
+    card.append(node("strong",accountTitle(account)),node("p",status));
     const actions=node("div",undefined,"bitwarden-actions");
     actions.append(actionButton("Review →",()=>continueWorklist(item.id),workflowBusy||workflow.paused),
       actionButton(item.deferred?"Restore":"Defer",()=>changeWorklist({action:item.deferred?"restore":"defer",id:item.id}),workflowBusy||item.step==="done"),
       actionButton("Remove from worklist",()=>changeWorklist({action:"remove",id:item.id}),workflowBusy));
+    if(!item.deferred&&item.step!=="done")actions.append(
+      actionButton("Tomorrow",()=>changeWorklist({action:"snooze",id:item.id,days:1}),workflowBusy),
+      actionButton("In one week",()=>changeWorklist({action:"snooze",id:item.id,days:7}),workflowBusy));
     card.append(actions);return card;
   }));
   if(!workflow.items.length)$("worklist-items").append(node("p",t("Your worklist is empty. Choose accounts below.")));

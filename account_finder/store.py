@@ -105,6 +105,9 @@ class Store:
                 db.execute("DELETE FROM evidence WHERE id NOT IN (SELECT MIN(id) FROM evidence GROUP BY fingerprint)")
                 db.execute("CREATE UNIQUE INDEX evidence_fingerprint ON evidence(fingerprint)")
             db.executescript(INSTANCE_SCHEMA)
+            queue_columns = {row["name"] for row in db.execute("PRAGMA table_info(instance_work_queue)")}
+            if "resume_after" not in queue_columns:
+                db.execute("ALTER TABLE instance_work_queue ADD COLUMN resume_after TEXT")
             db.execute("BEGIN IMMEDIATE")
             migrate_instances(db, registry)
         if os.name == "posix":
