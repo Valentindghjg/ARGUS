@@ -1,3 +1,15 @@
+# Änderungen – Version 1.11.0
+
+- Für Prüfung, Passwortwechsel und Anmeldetest gibt es nun **Ich habe diesen
+  Schritt erledigt**. Die Schaltfläche verlangt eine weitere lokale Bestätigung,
+  speichert nur den passenden Haken beim aktuellen Account und aktualisiert den
+  nächsten angezeigten Schritt.
+- Browser-Regressionstest für Bestätigung und Übergang ergänzt; dabei werden
+  weder Anbieter-Webseite, Passwort, Account-Geschwister noch Tresoreinträge
+  verändert.
+
+---
+
 # Änderungen – Version 1.10.0
 
 - **Nächsten Account absichern** ergänzt: Eine lokale, deterministische Empfehlung

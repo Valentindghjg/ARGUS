@@ -1,4 +1,4 @@
-# Account Compass 1.10.0 – lokaler Account-Finder
+# Account Compass 1.11.0 – lokaler Account-Finder
 
 Deutsch · [English](README.md)
 
@@ -351,6 +351,10 @@ einen passwortfreien Eintrag für den aktuellen Account. SSO und Passkeys
 überspringen einen separaten Passwortwechsel. Es wird nichts automatisch beim
 Anbieter abgeschickt. Siehe die [Arbeitslisten-Anleitung](docs/WORKLIST.md) und
 [Hinweise zu unterbrochenen Übertragungen](docs/BITWARDEN_CLI.md).
+
+Bei Prüfung, Passwortwechsel und Anmeldetest speichert **Ich habe diesen Schritt
+erledigt** deine ausdrückliche lokale Bestätigung und führt danach direkt mit dem
+nächsten Schritt weiter.
 
 ## Accounts prüfen und mit Bitwarden absichern
 

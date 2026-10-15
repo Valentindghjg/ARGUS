@@ -91,6 +91,11 @@ def main():
                 expect(page.locator('#detail-worklist')).to_be_disabled()
                 page.locator('#detail-language').select_option('en')
                 expect(page.locator('#detail-next-step')).to_have_text('Review this account and confirm it exists.')
+                page.once('dialog', lambda dialog: dialog.accept())
+                page.locator('#guided-complete-step').click()
+                expect(page.locator('#checklist input').first).to_be_checked()
+                expect(page.locator('#detail-next-step')).to_have_text('Assign an existing Bitwarden item or prepare a missing one.')
+                expect(page.locator('#guided-prepare-bitwarden')).to_be_visible()
                 page.locator('#close-dialog').click()
                 if args.screenshots_dir:
                     page.screenshot(path=str(args.screenshots_dir / 'worklist.png'), full_page=True)

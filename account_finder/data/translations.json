@@ -547,6 +547,9 @@
     "ARGUS will create one password-free item for this exact account in your already-unlocked Bitwarden vault. Existing items are never changed. Continue?": "ARGUS erstellt einen passwortfreien Eintrag für genau diesen Account in deinem bereits entsperrten Bitwarden-Tresor. Bestehende Einträge werden nie geändert. Fortfahren?",
     "Bitwarden preparation saved locally. Generate the password in Bitwarden, then continue with the verified provider page.": "Bitwarden-Vorbereitung lokal gespeichert. Erzeuge das Passwort in Bitwarden und fahre dann mit der geprüften Anbieterseite fort.",
     "Confirm the guided Bitwarden preparation": "Bestätige die geführte Bitwarden-Vorbereitung",
-    "Choose the current guided account": "Wähle den aktuell geführten Account"
+    "Choose the current guided account": "Wähle den aktuell geführten Account",
+    "I completed this step": "Ich habe diesen Schritt erledigt",
+    "Confirm that you completed every required step for this account.": "Bestätige, dass du jeden erforderlichen Schritt für diesen Account erledigt hast.",
+    "Confirm that you completed this step yourself. ARGUS will only record your confirmation locally.": "Bestätige, dass du diesen Schritt selbst erledigt hast. ARGUS speichert nur deine Bestätigung lokal."
   }
 }

@@ -1,5 +1,13 @@
 # Change log
 
+## 1.11.0 — Explicit guided step completion
+
+- Added a guided **I completed this step** action for reviewed accounts,
+  password changes and sign-in tests. It records only the user's local
+  confirmation for the current account and then advances the displayed step.
+- Added browser regression coverage for the confirmation and resulting guided
+  transition; no provider page, password, account sibling or vault item changes.
+
 ## 1.10.0 — Guided security sessions
 
 - Added **Secure next account**, a local deterministic recommendation that resumes

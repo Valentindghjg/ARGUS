@@ -1,3 +1,15 @@
+# Prüfbericht – Version 1.11.0
+
+Die Version mit ausdrücklichem Abschließen besteht **158 Python-Tests** und **23
+Chromium-Prüfgruppen**. Der geführte Browserfall bestätigt einen nativen Dialog,
+setzt nur den Prüf-Haken des aktuellen Accounts und prüft den folgenden
+Bitwarden-Schritt ohne externe Browseranfragen. Es wurden keine echten Postfächer,
+Anbieter, Passwörter oder Tresore verwendet.
+
+Der folgende Bericht dokumentiert Version 1.10.0.
+
+---
+
 # Prüfbericht – Version 1.10.0
 
 Die geführte Sicherheitsversion besteht **158 Python-Tests** und **23 Chromium-

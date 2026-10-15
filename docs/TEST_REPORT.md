@@ -1,3 +1,15 @@
+# Test report — Version 1.11.0
+
+The explicit-step release passed **158 Python tests** and **23 Chromium browser
+check groups**. The guided browser scenario accepts a native confirmation, marks
+only the current account's reviewed step and verifies the following Bitwarden
+step without external browser requests. No real mailbox, provider, password or
+vault was used.
+
+The following report records version 1.10.0.
+
+---
+
 # Test report — Version 1.10.0
 
 The guided-security release passed **158 Python tests** and **23 Chromium browser

@@ -203,6 +203,12 @@ function renderDetail(){
   const guidedBitwarden=$("guided-prepare-bitwarden");
   guidedBitwarden.classList.toggle("hidden",step!=="bitwarden"||!guidedCurrent);
   guidedBitwarden.disabled=busy||bitwardenBusy||state.demo;
+  const completion={review:"reviewed",change_password:"password_changed",test_signin:"login_tested",finish:"done"}[step];
+  const completeButton=$("guided-complete-step");
+  completeButton.classList.toggle("hidden",!guidedCurrent||!completion);
+  completeButton.dataset.completion=completion||"";
+  completeButton.textContent=t(completion==="done"?"Mark account done":"I completed this step");
+  completeButton.disabled=busy||!completion;
   $("detail-bitwarden").disabled=busy||bitwardenBusy||a.identity_review_required||a.classification==="unknown"||a.checklist.saved_in_bitwarden;
   $("identity-review-note").classList.toggle("hidden",!a.identity_review_required);
   $("identity-bound-note").classList.toggle("hidden",!a.identity_email);
@@ -417,6 +423,15 @@ async function prepareGuidedBitwarden(){
   }catch(e){error(canonicalMessage(e.message));try{await refresh();}catch(_){} }
   finally{bitwardenBusy=false;renderExport();renderHandoffs();if($("account-dialog").open)renderDetail();}
 }
+async function completeGuidedStep(){
+  const account=state.accounts.find(item=>item.id===selected);
+  const completion=$("guided-complete-step").dataset.completion;
+  if(!account||account.id!==state.workflow.current||!completion||saving)return;
+  const change=completion==="done"?{status:"done"}:{checklist:{[completion]:true}};
+  const message=completion==="done"?"Confirm that you completed every required step for this account.":"Confirm that you completed this step yourself. ARGUS will only record your confirmation locally.";
+  if(!window.confirm(t(message)))return;
+  await update(change);
+}
 async function activateLicense(){
   const file=$("license-file").files[0];
   if(!file){error(t("Choose a license file first."));return;}
@@ -486,6 +501,7 @@ $("guided-current-defer").onclick=()=>{const id=state.workflow.current;if(id)cha
 $("detail-worklist").onclick=()=>changeWorklist({action:"add",ids:[selected]});
 $("detail-bitwarden").onclick=()=>{const account=state.accounts.find(a=>a.id===selected);if(!account||account.identity_review_required)return;exportChoices.clear();exportChoices.set(selected,true);for(const a of state.accounts)if(a.id!==selected)exportChoices.set(a.id,false);$("account-dialog").close();navigate("bitwarden");renderExport();};
 $("guided-prepare-bitwarden").onclick=prepareGuidedBitwarden;
+$("guided-complete-step").onclick=completeGuidedStep;
 $("activate-license").onclick=activateLicense;
 $("import-button").onclick=()=>{navigate("setup");$("email-files").click();};
 $("email-files").onchange=importFiles;

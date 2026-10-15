@@ -24,6 +24,8 @@ provider password automatically.
 5. Generate and save the new password in Bitwarden, confirm the change at the
    provider, then test sign-in. Mark only the steps you actually completed.
    SSO and passkey accounts do not require a separate password change.
+   For the current guided account, **I completed this step** asks for a second
+   local confirmation and then records only that matching checklist step.
 6. Choose **Mark as done**. While viewing the worklist, the dialog advances to the
    next available account. Required checkboxes alone do not mark an account done.
 7. **Pause worklist** preserves your place. **Defer** skips one queued account
@@ -62,6 +64,9 @@ Scans und ändert keine Anbieterpasswörter automatisch.
 5. Erzeuge und speichere das neue Passwort in Bitwarden, bestätige den Wechsel
    beim Anbieter und teste die Anmeldung. Hake nur tatsächlich erledigte Schritte
    ab. SSO- und Passkey-Accounts brauchen keinen separaten Passwortwechsel.
+   Beim aktuell geführten Account verlangt **Ich habe diesen Schritt erledigt**
+   eine weitere lokale Bestätigung und speichert danach nur den passenden
+   Checklistenpunkt.
 6. Wähle **Als erledigt markieren**. In der Arbeitslistenansicht wechselt der
    Dialog zum nächsten verfügbaren Account. Abgehakte Pflichtschritte allein
    schließen keinen Account automatisch ab.
