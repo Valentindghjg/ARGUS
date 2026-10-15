@@ -1,5 +1,15 @@
 # Change log
 
+## 1.12.0 — Priority worklist builder
+
+- Added **Build priority worklist**, an explicitly confirmed local action that
+  appends up to ten incomplete discovered accounts in deterministic security
+  order while preserving existing queue positions.
+- The new action has a narrow exact request shape and an atomic SQLite update.
+  It never changes account checklists, passwords, providers or Bitwarden items.
+- Added English/German UI copy plus workflow and loopback API regression tests
+  for ranking, the ten-account limit and progress isolation.
+
 ## 1.11.0 — Explicit guided step completion
 
 - Added a guided **I completed this step** action for reviewed accounts,

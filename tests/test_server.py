@@ -159,6 +159,11 @@ class ServerTests(unittest.TestCase):
         headers = {"Content-Type":"application/json"}
         status, _, _ = self.request("/api/workflow", "POST", json.dumps({"action":"add", "ids":["discord"]}), headers=headers)
         self.assertEqual(status, 200)
+        status, _, body = self.request("/api/workflow", "POST", json.dumps({"action":"prioritize"}), headers=headers)
+        self.assertEqual(status, 200)
+        priority_result = json.loads(body)
+        self.assertTrue(priority_result["ok"])
+        self.assertNotIn("discord", priority_result["added"])
         snapshot = json.loads(self.request("/api/accounts")[2])
         self.assertIn("discord", [item["id"] for item in snapshot["workflow"]["items"]])
         for route in ("/api/workflow", "/api/bitwarden/resolve", "/api/bitwarden/cli", "/api/secure-next/bitwarden"):

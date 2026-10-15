@@ -4,6 +4,7 @@ import json
 
 PRIORITY_RANK = {"critical": 0, "high": 1, "normal": 2}
 CLASSIFICATION_RANK = {"confirmed": 0, "probable": 1}
+MAX_PRIORITY_WORKLIST = 10
 
 
 def next_step(account):
@@ -20,21 +21,26 @@ def next_step(account):
     return "finish"
 
 
-def recommended_account(accounts, *, excluded=()):
-    """Choose one local account deterministically without changing any state."""
+def recommended_accounts(accounts, *, excluded=(), limit=None):
+    """Rank local accounts deterministically without changing any state."""
     excluded = set(excluded)
     candidates = [account for account in accounts
                   if account["id"] not in excluded
                   and account["classification"] in CLASSIFICATION_RANK
                   and account["status"] != "done"]
-    if not candidates:
-        return None
-    return min(candidates, key=lambda account: (
+    ranked = sorted(candidates, key=lambda account: (
         PRIORITY_RANK[account["priority"]],
         CLASSIFICATION_RANK[account["classification"]],
         not account.get("identity_review_required", False),
         -account.get("score", 0), account["name"].casefold(), account["id"],
     ))
+    return ranked if limit is None else ranked[:limit]
+
+
+def recommended_account(accounts, *, excluded=()):
+    """Choose one local account deterministically without changing any state."""
+    ranked = recommended_accounts(accounts, excluded=excluded, limit=1)
+    return ranked[0] if ranked else None
 
 
 def worklist_snapshot(store, accounts):
@@ -62,7 +68,7 @@ def change_worklist(store, data):
     shapes = {"add": {"action", "ids"}, "remove": {"action", "id"},
               "defer": {"action", "id"}, "restore": {"action", "id"},
               "focus": {"action", "id"}, "pause": {"action"}, "resume": {"action"},
-              "start": {"action"}}
+              "start": {"action"}, "prioritize": {"action"}}
     if not isinstance(action, str) or action not in shapes or set(data) != shapes[action]:
         raise ValueError("Invalid worklist action")
     if action == "add":
@@ -81,6 +87,24 @@ def change_worklist(store, data):
                 db.execute("INSERT OR IGNORE INTO instance_work_queue(account_id,position) VALUES (?,?)", (account_id, position))
     elif action in {"pause", "resume"}:
         store.set_meta("worklist_paused", action == "pause")
+    elif action == "prioritize":
+        # The user explicitly starts this action in the dashboard. It adds only
+        # local queue rows; no checklist, vault or provider state is touched.
+        accounts = {account["id"]: account for account in store.snapshot()["accounts"]}
+        with store.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            rows = db.execute("SELECT account_id FROM instance_work_queue ORDER BY position,account_id").fetchall()
+            ranked = recommended_accounts(accounts.values(),
+                                          excluded=[row["account_id"] for row in rows],
+                                          limit=MAX_PRIORITY_WORKLIST)
+            position = db.execute("SELECT COALESCE(MAX(position),0) FROM instance_work_queue").fetchone()[0]
+            added = []
+            for account in ranked:
+                position += 1
+                db.execute("INSERT INTO instance_work_queue(account_id,position) VALUES (?,?)",
+                           (account["id"], position))
+                added.append(account["id"])
+        return {"ok": True, "added": added}
     elif action == "start":
         accounts = {account["id"]: account for account in store.snapshot()["accounts"]}
         with store.connect() as db:

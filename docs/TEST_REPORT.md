@@ -1,3 +1,19 @@
+# Test report — Version 1.12.0
+
+The priority-worklist release passed **160 Python tests** and **23 Chromium
+browser check groups** with zero page errors and zero external browser requests.
+The new local API test accepts only the exact `{"action":"prioritize"}` shape.
+Workflow tests verify deterministic ranking, the ten-account limit, existing
+queue preservation and that adding priorities does not alter account progress.
+The browser companion static validation still bundles 527 records with only its
+`activeTab` permission. The offline wheel was built and installed in a clean
+temporary environment as version 1.12.0. No real mailbox, provider, password or
+Bitwarden vault was used.
+
+The following report records version 1.11.0.
+
+---
+
 # Test report — Version 1.11.0
 
 The explicit-step release passed **158 Python tests** and **23 Chromium browser

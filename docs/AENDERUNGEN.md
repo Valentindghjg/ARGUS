@@ -1,3 +1,16 @@
+# Änderungen – Version 1.12.0
+
+- **Prioritäts-Arbeitsliste erstellen** ergänzt: Nach einer ausdrücklichen
+  Bestätigung werden bis zu zehn unvollständige gefundene Accounts in
+  deterministischer Sicherheitsreihenfolge an die lokale Arbeitsliste angehängt.
+  Bestehende Einträge behalten ihre Reihenfolge.
+- Die Aktion hat ein enges Datenformat und ein atomares SQLite-Update. Sie ändert
+  weder Checklisten noch Passwörter, Anbieter-Accounts oder Bitwarden-Einträge.
+- Englische/deutsche Oberfläche sowie Regressionstests für Reihenfolge,
+  Zehn-Account-Grenze, Fortschrittsisolation und die lokale API ergänzt.
+
+---
+
 # Änderungen – Version 1.11.0
 
 - Für Prüfung, Passwortwechsel und Anmeldetest gibt es nun **Ich habe diesen

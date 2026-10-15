@@ -15,7 +15,7 @@ from account_finder.handoffs import HandoffError, handoff_snapshot, reserve, res
 from account_finder.registry import Registry
 from account_finder.scan import scan_messages, synthetic_mail
 from account_finder.store import CHECKLIST, Store
-from account_finder.workflow import change_worklist, next_step
+from account_finder.workflow import MAX_PRIORITY_WORKLIST, change_worklist, next_step, recommended_accounts
 
 
 class ProfileFixture:
@@ -37,6 +37,16 @@ class ProfileFixture:
 
 
 class WorkflowTests(ProfileFixture, unittest.TestCase):
+    def test_priority_ranking_is_deterministic_and_limited(self):
+        accounts = [{"id": f"service-{index}", "name": f"Service {index}",
+                     "classification": "confirmed", "status": "pending",
+                     "priority": "critical" if index == 10 else "normal", "score": index}
+                    for index in range(12)]
+        ranked = recommended_accounts(accounts, limit=MAX_PRIORITY_WORKLIST)
+        self.assertEqual(len(ranked), MAX_PRIORITY_WORKLIST)
+        self.assertEqual(ranked[0]["id"], "service-10")
+        self.assertNotIn("service-0", [account["id"] for account in ranked])
+
     def test_additive_migration_preserves_earlier_checklists(self):
         self.store.update_account('github', {'checklist':{'reviewed':True}})
         with self.store.connect() as db:
@@ -114,12 +124,25 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
         self.assertEqual(workflow['current'], 'github')
         self.assertEqual(workflow['suggested'], 'discord')
 
+    def test_priority_builder_adds_available_accounts_without_changing_progress(self):
+        self.store.update_account('github', {'priority': 'normal'})
+        self.store.update_account('discord', {'priority': 'critical'})
+        before = {account['id']: (dict(account['checklist']), account['status'])
+                  for account in self.store.snapshot()['accounts']}
+        change_worklist(self.store, {'action': 'add', 'ids': ['github']})
+        result = change_worklist(self.store, {'action': 'prioritize'})
+        self.assertEqual(result, {'ok': True, 'added': ['discord']})
+        self.assertEqual([item['id'] for item in self.queue()['items']], ['github', 'discord'])
+        self.assertEqual(before, {account['id']: (account['checklist'], account['status'])
+                                  for account in self.store.snapshot()['accounts']})
+        self.assertEqual(change_worklist(self.store, {'action': 'prioritize'}), {'ok': True, 'added': []})
+
     def test_invalid_actions_leave_queue_unchanged(self):
         for data in ({'action':'add','ids':['netflix']}, {'action':'add','ids':['github','unknown']},
                      {'action':'add','ids':'github'}, {'action':'add','ids':[]},
                      {'action':'pause','password':'secret'}, {'action':[]},
                      {'action':'focus','id':'github'}, {'action':'add','ids':[None]},
-                     {'action':'start','password':'rejected'}):
+                     {'action':'start','password':'rejected'}, {'action':'prioritize','password':'rejected'}):
             with self.assertRaises(ValueError):
                 change_worklist(self.store, data)
             self.assertEqual(self.queue()['total'], 0)

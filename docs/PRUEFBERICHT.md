@@ -1,3 +1,19 @@
+# Prüfbericht – Version 1.12.0
+
+Die Version mit Prioritäts-Arbeitsliste besteht **160 Python-Tests** und **23
+Chromium-Prüfgruppen** ohne Seitenfehler und ohne externe Browseranfragen. Der
+neue lokale API-Test akzeptiert nur exakt `{"action":"prioritize"}`. Workflow-
+Tests prüfen die deterministische Reihenfolge, die Zehn-Account-Grenze, den
+Erhalt bestehender Arbeitslisten-Einträge und unveränderten Account-Fortschritt.
+Die statische Begleiter-Prüfung bündelt weiterhin 527 Einträge mit ausschließlich
+der Berechtigung `activeTab`. Das Offline-Wheel wurde als Version 1.12.0 gebaut
+und in einer sauberen temporären Umgebung installiert. Es wurden keine echten
+Postfächer, Anbieter, Passwörter oder Bitwarden-Tresore verwendet.
+
+Der folgende Bericht dokumentiert Version 1.11.0.
+
+---
+
 # Prüfbericht – Version 1.11.0
 
 Die Version mit ausdrücklichem Abschließen besteht **158 Python-Tests** und **23

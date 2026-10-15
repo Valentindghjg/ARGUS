@@ -338,7 +338,7 @@ function renderGuided(){
     $("guided-current-card").classList.add("guided-current-blocked");
     $("guided-status").textContent=t("Ready");
     $("guided-current-copy").textContent=t("No incomplete discovered account is ready for a guided session.");
-    $("guided-current-open").disabled=true;$("guided-current-defer").disabled=true;
+    $("guided-current-open").disabled=true;$("guided-build-worklist").disabled=true;$("guided-current-defer").disabled=true;
     return;
   }
   const step=accountStep(account), actionLabel=current?t("Continue to next account"):t("Secure next account");
@@ -351,6 +351,7 @@ function renderGuided(){
   $("guided-current-copy").textContent=`${accountTitle(account)} · ${guidedStepCopy(account,step)}`;
   $("guided-current-open").textContent=actionLabel;
   $("guided-current-open").disabled=workflowBusy;
+  $("guided-build-worklist").disabled=workflowBusy||!suggested;
   $("guided-current-defer").disabled=workflowBusy||!current;
 }
 async function changeWorklist(data){
@@ -366,6 +367,12 @@ async function continueWorklist(id=state.workflow.current){
 async function startGuided(){
   const result=await changeWorklist({action:"start"});
   if(result&&result.current)openDetail(result.current);
+}
+async function buildPriorityWorklist(){
+  if(!state.workflow.suggested||workflowBusy)return;
+  if(!window.confirm(t("ARGUS will add up to 10 highest-priority incomplete accounts to the local worklist. No provider, password or Bitwarden item is changed. Continue?")))return;
+  const result=await changeWorklist({action:"prioritize"});
+  if(result)toast(t(result.added.length?t("Added {count} priority account(s) to your worklist.",{count:result.added.length}):t("No additional priority accounts are ready.")));
 }
 function renderHandoffs(){
   const pending=state.bitwarden_handoffs.filter(item=>["running","uncertain"].includes(item.state));
@@ -497,6 +504,7 @@ $("worklist-continue").onclick=()=>continueWorklist();
 $("worklist-pause").onclick=()=>changeWorklist({action:state.workflow.paused?"resume":"pause"});
 $("guided-dashboard-start").onclick=startGuided;
 $("guided-current-open").onclick=startGuided;
+$("guided-build-worklist").onclick=buildPriorityWorklist;
 $("guided-current-defer").onclick=()=>{const id=state.workflow.current;if(id)changeWorklist({action:"defer",id});};
 $("detail-worklist").onclick=()=>changeWorklist({action:"add",ids:[selected]});
 $("detail-bitwarden").onclick=()=>{const account=state.accounts.find(a=>a.id===selected);if(!account||account.identity_review_required)return;exportChoices.clear();exportChoices.set(selected,true);for(const a of state.accounts)if(a.id!==selected)exportChoices.set(a.id,false);$("account-dialog").close();navigate("bitwarden");renderExport();};

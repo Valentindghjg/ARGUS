@@ -7,9 +7,11 @@ browser and application restarts. It does not scan on a schedule or change any
 provider password automatically.
 
 1. Open **Security worklist**. Choose **Secure next account** to start one local
-   highest-priority incomplete account, or select discovered accounts and choose
-   **Add selected accounts**. A guided start resumes an existing ready item first;
-   it never changes a checklist, vault item or provider account by itself.
+   highest-priority incomplete account, **Build priority worklist** to add up to
+   ten more open accounts in deterministic priority order, or select discovered
+   accounts and choose **Add selected accounts**. The priority builder asks for
+   confirmation and preserves existing queue positions. These actions never
+   change a checklist, vault item or provider account by themselves.
 2. Choose **Continue with next account**. The detail dialog explains the next
    missing step: review, Bitwarden assignment, password change, sign-in test or
    explicit completion. You can also add a discovered account from its dialog.
@@ -45,10 +47,12 @@ Browser- und Programmneustarts hinweg erhalten. Sie startet keine zeitgesteuerte
 Scans und ändert keine Anbieterpasswörter automatisch.
 
 1. Öffne **Sicherheits-Arbeitsliste**. Mit **Nächsten Account absichern** startest
-   du einen einzelnen unvollständigen lokalen Account mit höchster Priorität. Oder
-   wähle gefundene Accounts und klicke auf **Ausgewählte Accounts hinzufügen**.
-   Ein geführter Start setzt zuerst einen vorhandenen bereiten Eintrag fort; er
-   ändert niemals selbst Checklisten, Tresoreinträge oder Anbieter-Accounts.
+   du einen einzelnen unvollständigen lokalen Account mit höchster Priorität.
+   **Prioritäts-Arbeitsliste erstellen** fügt nach Bestätigung bis zu zehn weitere
+   offene Accounts in deterministischer Prioritätsreihenfolge hinzu. Oder wähle
+   gefundene Accounts und klicke auf **Ausgewählte Accounts hinzufügen**. Die
+   bestehende Reihenfolge bleibt erhalten; keine dieser Aktionen ändert selbst
+   Checklisten, Tresoreinträge oder Anbieter-Accounts.
 2. Wähle **Mit dem nächsten Account fortfahren**. Im Detaildialog steht der nächste
    offene Schritt: Prüfung, Bitwarden-Zuordnung, Passwortwechsel, Anmeldetest oder
    ausdrücklicher Abschluss. Du kannst einen gefundenen Account auch direkt im

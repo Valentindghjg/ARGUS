@@ -1,4 +1,4 @@
-# Account Compass 1.11.0
+# Account Compass 1.12.0
 
 [Deutsch](README_DE.md) · English
 
@@ -320,6 +320,10 @@ missing step. The guided Bitwarden button has a second confirmation and creates
 one password-free item only for the current account. Accounts using SSO or
 passkeys skip a separate password change. Nothing is submitted to a provider
 automatically.
+Choose **Build priority worklist** to explicitly add up to ten more highest-
+priority incomplete accounts in deterministic local order. Existing worklist
+items keep their place; the action changes no checklist, password, provider or
+Bitwarden item.
 For review, password-change and sign-in steps, **I completed this step** records
 your explicit local confirmation and immediately advances the guide.
 See the [worklist guide](docs/WORKLIST.md) and
