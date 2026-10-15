@@ -39,6 +39,8 @@ def parser(language="en"):
     imp.add_argument('path', type=Path)
     imp.add_argument('--format', choices=['eml', 'mbox', 'maildir'], default='eml')
     sub.add_parser('report', help=t('Show local statistics only'))
+    accounts = sub.add_parser('list-accounts', help=t('Show local account IDs for individual selections'))
+    accounts.add_argument('--all', action='store_true', help=t('Include entries without reliable account evidence'))
     dis = sub.add_parser('discover', help=t('Mail provider hints; offline by default'))
     dis.add_argument('--domain', help=t('Mail domain only, not a full email address'))
     dis.add_argument('--allow-dns', action='store_true', help=t('Explicitly allow a public MX query to the DNS resolver'))
@@ -62,7 +64,7 @@ def parser(language="en"):
                             help=t('Maximum messages in each scheduled scan (1 to 10000)'))
     export = sub.add_parser('bitwarden-export', help=t('Selected metadata as Bitwarden JSON, no passwords'))
     export.add_argument('path', type=Path)
-    export.add_argument('--id', action='append', required=True, help=t('Provider ID; may be repeated'))
+    export.add_argument('--id', action='append', required=True, help=t('Account ID from list-accounts; may be repeated'))
     sub.add_parser('license-status', help=t('Show the local Free or Pro license status'))
     activation = sub.add_parser('activate-license', help=t('Verify and store a signed Pro license locally'))
     activation.add_argument('path', type=Path, help=t('Signed Pro license JSON file'))
@@ -94,6 +96,12 @@ def main(argv=None):
             print(json.dumps(result, ensure_ascii=False))
         elif args.command == 'report':
             print(json.dumps(store.snapshot()['summary'], ensure_ascii=False, indent=2))
+        elif args.command == 'list-accounts':
+            fields = ('id', 'provider_id', 'name', 'identity_email', 'label',
+                      'classification', 'status', 'identity_review_required')
+            rows = [{key: account[key] for key in fields} for account in store.snapshot()['accounts']
+                    if args.all or account['classification'] != 'unknown']
+            print(json.dumps(rows, ensure_ascii=False, indent=2))
         elif args.command == 'discover':
             domain = args.domain
             if not domain:

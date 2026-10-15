@@ -183,21 +183,26 @@ class HandoffTests(ProfileFixture, unittest.TestCase):
     def test_partial_alias_transfer_never_recreates_successful_alias(self):
         self.store.add_emails(['other@example.invalid'])
         scan_messages(self.store, [synthetic_mail('notify@github.com', 'Your account has been created', '', recipient='other@example.invalid')])
+        accounts = [a for a in self.store.snapshot()['accounts'] if a['provider_id'] == 'github']
+        first = next(a for a in accounts if a['identity_email'] == 'demo@example.invalid')
+        second = next(a for a in accounts if a['identity_email'] == 'other@example.invalid')
         payloads = []
         def fail_second(arguments, **kwargs):
             if arguments[1] == 'status': return self.success(arguments, **kwargs)
             payloads.append(json.loads(base64.b64decode(arguments[-1])))
             if len(payloads) == 2: raise subprocess.TimeoutExpired(arguments,20)
             return self.success(arguments, **kwargs)
-        self.assertEqual(self.transfer(runner=fail_second)['items'], 1)
-        self.assertFalse(self.account()['checklist']['saved_in_bitwarden'])
+        self.assertEqual(self.transfer(ids=[first['id'], second['id']], runner=fail_second)['items'], 1)
+        self.assertTrue(self.account(first['id'])['checklist']['saved_in_bitwarden'])
+        self.assertFalse(self.account(second['id'])['checklist']['saved_in_bitwarden'])
         self.review(False)
-        exported = make_export(self.store, ['github'])
+        exported = make_export(self.store, [second['id']])
         self.assertEqual(len(exported['items']), 1)
         created_email = payloads[0]['login']['username']
         self.assertNotEqual(exported['items'][0]['login']['username'], created_email)
-        self.assertEqual(self.transfer()['items'], 1)
+        self.assertEqual(self.transfer(ids=[second['id']])['items'], 1)
         self.assertTrue(self.account()['checklist']['saved_in_bitwarden'])
+        self.assertTrue(self.account(second['id'])['checklist']['saved_in_bitwarden'])
         self.assertTrue(all(item['state'] == 'created' for item in handoff_snapshot(self.store)))
 
     def test_invalid_selection_locked_vault_and_demo_never_create(self):

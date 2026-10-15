@@ -93,8 +93,9 @@ class PersistenceImprovements(StoreFixture):
         account = next(a for a in snapshot["accounts"] if a["id"]=="github")
         self.assertEqual(account["classification"], "confirmed")
         self.assertEqual(account["reason"], "You confirmed that this account exists")
-        self.assertIn("Forwarding / recipient association uncertain", account["evidence"][0]["caveat"])
-        self.assertIn("Only headers analyzed", account["evidence"][0]["caveat"])
+        self.assertIn("Forwarding / recipient association uncertain", account["unassigned_evidence"][0]["caveat"])
+        self.assertIn("Only headers analyzed", account["unassigned_evidence"][0]["caveat"])
+        self.assertEqual(account["evidence"], [])
         self.assertEqual(snapshot["stale_evidence"], 0)
         with self.store.connect() as db:
             self.assertEqual(db.execute("SELECT caveat FROM evidence").fetchone()[0], legacy.caveat)

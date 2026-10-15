@@ -1,3 +1,32 @@
+# Änderungen – Version 1.9.0
+
+- Getrennte stabile Account-Zuordnungen je Dienst mit eigenen Checklisten,
+  Anmeldemethoden, Prioritäten, Arbeitslisten und Bitwarden-Vorgängen ergänzt.
+- Starke direkte Belege werden nach Dienst und konfigurierter eigener Adresse
+  gruppiert. Weitergeleitete, mehrdeutige, veraltete und schwache Hinweise bleiben
+  separate Diensthinweise. Aliase und Adressänderungen erfordern deine Prüfung.
+- Ausdrücklich bestätigte lokale Einträge mit Bezeichnungen ermöglichen separate
+  Profile mit derselben Adresse. Fest zugeordnete Adressen können nicht samt
+  Fortschritt auf eine andere Anmeldung verschoben werden. Jede Account-Auswahl
+  bereitet genau einen passwortfreien Bitwarden-Eintrag vor.
+- Bestehende Profile werden in einer Transaktion übernommen. Alte Fortschritte
+  folgen einer eindeutigen oder ausdrücklich zugewiesenen Adresse oder bleiben
+  zur Prüfung erhalten; weitere Accounts erben keine Häkchen. Arbeitslisten und
+  unklare Übertragungen behalten ihre Zuordnung.
+- Dashboard, Suche, Arbeitslisten, Export und Mobilansicht unterscheiden die
+  Einträge auf Deutsch und Englisch. `list-accounts` zeigt die Kennungen für
+  einzelne Auswahlen über die Kommandozeile.
+
+## Update auf 1.9.0
+
+Beende ARGUS, sichere dein geschütztes Profil und installiere die neue Version.
+Die Übernahme läuft beim nächsten Start. Für diese Änderung ist kein neuer
+Mailimport nötig. Verwende migrierte Profile mit Version 1.9 oder neuer;
+ältere Versionen zeigen nur ihren bisherigen Anbieterstand. Siehe die
+[Mehrkonto-Anleitung](ACCOUNTS.md).
+
+---
+
 # Änderungen – Version 1.8.1
 
 - Atomare SQLite-Lease für geplante IMAP-Läufe ergänzt. Ein zweites Dashboard

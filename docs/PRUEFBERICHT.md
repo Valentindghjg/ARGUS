@@ -1,3 +1,32 @@
+# Prüfbericht – Version 1.9.0
+
+Die Mehrkonto-Version besteht **155 Python-Tests** und **23 Chromium-
+Prüfgruppen** (18 bisherige und fünf neue Gruppen für Account-Zuordnungen).
+Beide Browser-Suiten melden keine Seitenfehler und keine externen Anfragen.
+Die deutschen Account-Details wurden bei 390 Pixel Ansichtsbreite geprüft.
+
+Neue Fälle prüfen eigene Checklisten, Arbeitslisten und Bitwarden-Einträge für
+zwei Adressen beim selben Dienst, ausdrücklich bezeichnete Accounts mit
+derselben Adresse, feste Zuordnungen, Unicode-Bezeichnungen, mehrdeutige und
+veraltete Belege, Adressauswahl, isolierte Übertragungsfehler und genaue CLI-
+Kennungen. Die Migration wird für eindeutige und mehrdeutige Altfortschritte,
+erfolgreiche und unklare Übertragungen, Arbeitslisten, wiederholte Starts und
+Transaktions-Rollback nach einem künstlichen Abbruch geprüft.
+
+Das Wheel wurde offline gebaut und in einer getrennten temporären Umgebung
+installiert; die vorhandene Kryptografie-Abhängigkeit wurde wiederverwendet.
+Version, Modulimport, Demo, Account-Liste und Bericht wurden außerhalb des
+Quellverzeichnisses geprüft. JavaScript-Syntax, Begleiter-Prüfung, Python-
+Kompilierung und Diff-Prüfung bestehen ebenfalls. Alle Nachrichten und
+Tresorantworten sind künstlich; echte Postfächer, Anbieterpasswörter und
+Bitwarden-Tresore wurden nicht verwendet. Aliase und geänderte Adressen können
+denselben historischen Account betreffen und erfordern weiterhin deine Prüfung.
+Automatisches Zusammenführen von Accounts ist nicht implementiert.
+
+Die folgenden Berichte dokumentieren frühere Versionen.
+
+---
+
 # Prüfbericht – Version 1.8.1
 
 Die Sicherheitskorrektur für parallele Scans besteht **132 Python-Tests**, die

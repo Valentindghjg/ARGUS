@@ -217,7 +217,10 @@ class Handler(BaseHTTPRequestHandler):
             return
         path = urlsplit(self.path).path
         try:
-            if path == "/api/import":
+            if path == "/api/accounts":
+                account_id = self.server.store.create_account(self._json())
+                self._send(201, {"id": account_id})
+            elif path == "/api/import":
                 if self.headers.get_content_type() not in {"message/rfc822", "application/octet-stream"}:
                     raise ValueError("EML is required")
                 raw = self._read(MAX_MESSAGE_BYTES)

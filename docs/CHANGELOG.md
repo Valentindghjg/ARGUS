@@ -1,5 +1,26 @@
 # Change log
 
+## 1.9.0 — Separate accounts at one service
+
+- Added stable local account identities with independent checklists, sign-in
+  methods, priorities, worklist entries and Bitwarden transfer journals.
+- Strong direct evidence is grouped by provider and configured own address;
+  forwarded, ambiguous, outdated and weak clues remain unassigned service clues.
+  Address changes and aliases still require the user's review.
+- Added explicitly confirmed local entries with labels for separate profiles
+  that share an address. Bound addresses cannot be reassigned along with their
+  completed work. Each selected account prepares one password-free vault item.
+- Added transactional profile migration. Legacy progress follows one unambiguous
+  or explicitly assigned identity, or remains preserved for review; sibling
+  accounts never inherit it. Existing queue positions and interrupted transfers
+  retain their account and transfer IDs.
+- Dashboard, search, worklist, export and mobile details distinguish identities
+  in English and German. `list-accounts` exposes IDs for precise CLI selections.
+- Added migration rollback/restart, identity isolation, labeled duplicate and
+  per-account CLI handoff regression coverage, plus five new browser check groups.
+  Existing profile backups should be kept before upgrading; use version 1.9 or
+  newer to work with migrated per-account state.
+
 ## 1.8.1 — Concurrent-scan safety fix
 
 - Added an atomic SQLite lease around scheduled IMAP runs. A second dashboard

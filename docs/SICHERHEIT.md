@@ -149,9 +149,17 @@ Gastbestellungen, Newsletter und Reset-Anforderungen bleiben unbekannt. Konten
 ohne Mails, gelöschte Nachrichten, Telefonnummer-Registrierungen, andere Aliase,
 andere Postfächer und SSO können fehlen. Gemeinsame Produktfamilien können Mails
 über die Domain des zentralen Identitätsanbieters versenden; ein Xbox-Konto kann
-beispielsweise ausschließlich Microsoft-Hinweise hinterlassen. Mehrere Accounts
-bei demselben Anbieter sind in einer Anbieterzeile mit bekannten Adressen
-zusammengefasst; die Checkliste gilt für die gesamte Anbieterzeile.
+beispielsweise ausschließlich Microsoft-Hinweise hinterlassen. Accounts beim
+selben Anbieter erhalten getrennte stabile Kennungen, Checklisten und
+Übertragungsprotokolle. Nur aktuelle starke Belege an genau eine konfigurierte
+eigene Adresse werden einer entsprechenden Zuordnung zugeteilt. Mehrdeutige,
+weitergeleitete und schwache Hinweise bleiben beim Dienst. Unterschiedliche
+Adressen können Aliase oder geänderte Adressen betreffen; separate Accounts
+erfordern weiterhin deine Prüfung. Manuell bezeichnete Accounts mit derselben
+Adresse erben keine automatischen Empfängerbelege. Alte Fortschritte werden
+vorsichtig zugeordnet und nie auf alle neuen Zuordnungen kopiert. Ungeklärte
+Alteinträge benötigen vor Export und Abschluss eine Prüfung. Siehe die
+[Account-Anleitung](ACCOUNTS.md).
 
 Der automatische Katalogabgleich arbeitet mit kuratierten Domains und einem
 begrenzten Satz deutscher/englischer Regeln. Weitere Versanddomains und eigene

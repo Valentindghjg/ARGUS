@@ -1,4 +1,4 @@
-# Account Compass 1.8.1 – lokaler Account-Finder
+# Account Compass 1.9.0 – lokaler Account-Finder
 
 Deutsch · [English](README.md)
 
@@ -351,6 +351,15 @@ Anbieter abgeschickt. Siehe die [Arbeitslisten-Anleitung](docs/WORKLIST.md) und
 
 ## Accounts prüfen und mit Bitwarden absichern
 
+Jede Anmeldezuordnung erhält einen eigenen Eintrag, eine eigene Checkliste,
+Arbeitsliste und Bitwarden-Übertragung. Starke direkte Belege an unterschiedliche
+eigene Adressen ergeben separate wahrscheinliche Einträge. Prüfe diese, da
+Aliase oder Adressänderungen weiterhin denselben Account betreffen können. Über
+**Weiteren Account bei diesem Dienst hinzufügen** in den Account-Details kannst
+du bekannte lokale Einträge ergänzen, auch bezeichnete Accounts mit derselben
+E-Mail-Adresse. Beim Anbieter wird nichts erstellt. Details und Hinweise für
+ältere Profile stehen in der [Mehrkonto-Anleitung](docs/ACCOUNTS.md).
+
 Für jeden Katalogdienst gibt es Kategorie, offizielle Website, bekannte eigene
 Anmeldeadressen, Hinweisart, Stärke des Belegs, Status und Priorität. Verifizierte
 Passwortverwaltungslinks mit Quellenbeleg sind für Google, Apple und GitHub
@@ -428,6 +437,14 @@ ausführen und den Server mit dem gleichen Katalog neu starten.
 
 ## Bestehende Profile aktualisieren
 
+Version 1.9 übernimmt den bisherigen Anbieterstand in getrennte
+Account-Zuordnungen. Beende die App und sichere dein geschütztes Profil vor dem
+Update. Fortschritte folgen einer eindeutigen oder ausdrücklich zugewiesenen
+Adresse. Nicht eindeutig zuordenbare bisherige Fortschritte bleiben zur Prüfung
+sichtbar und werden niemals auf alle anderen Accounts kopiert. Verwende das
+migrierte Profil mit Version 1.9 oder neuer. Siehe die
+[Migrationshinweise](docs/ACCOUNTS.md).
+
 Version 1.7 ergänzt eine dauerhafte Sicherheits-Arbeitsliste und ein lokales
 Bitwarden-Vorgangsprotokoll. Unklare Übertragungen werden vor einem erneuten
 Versuch geprüft. Zwei lokale Tabellen werden automatisch ergänzt; Belege und
@@ -470,6 +487,7 @@ Laufzeitabhängigkeiten:
 
 ```bash
 python scripts/browser_smoke.py --browser /usr/bin/chromium
+python scripts/browser_multi_account.py --browser /usr/bin/chromium
 ```
 
 Der Test erzeugt ein temporäres Demo-Profil, sperrt ausgehende Browseranfragen
@@ -482,6 +500,7 @@ Spracherkennung und mobile Ansichten.
 | `account_finder/data/providers.json` | Erweiterbarer Katalog |
 | `account_finder/i18n.py`, `data/translations.json` | Lokale Deutsch/Englisch-Texte |
 | `account_finder/store.py` | SQLite und Statuspersistenz |
+| `account_finder/instances.py` | Stabile Account-Zuordnungen und vorsichtige Profilübernahme |
 | `account_finder/imap_client.py` | TLS-IMAP, PEEK, Wiederaufnahme |
 | `account_finder/background.py` | Ausdrücklich aktivierter Keyring-gestützter inkrementeller IMAP-Zeitplan |
 | `account_finder/discovery.py` | Ausdrücklich aktivierte MX-Hinweise |

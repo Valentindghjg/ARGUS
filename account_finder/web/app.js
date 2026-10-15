@@ -35,12 +35,12 @@ function applyLanguage(next,remember=false){
 const token = document.querySelector('meta[name="af-token"]').content;
 document.querySelector('meta[name="af-token"]').remove();
 let state, view = "dashboard", selected = null, saving = false;
-let activeBatch=null, importCancelled=false, addingAlias=false;
+let activeBatch=null, importCancelled=false, addingAlias=false, addingAccount=false;
 let displayedScan=null;
 const exportChoices=new Map();
 const worklistChoices=new Map();
 let workflowBusy=false, bitwardenBusy=false;
-const workflowSteps={review:"Review this account and confirm it exists.",bitwarden:"Assign an existing Bitwarden item or prepare a missing one.",change_password:"Use Bitwarden to set a unique password at the provider.",test_signin:"Test the sign-in before completing this account.",finish:"Required steps are checked. You can mark this account done.",done:"This account is complete."};
+const workflowSteps={identify:"Identify this account before preparing Bitwarden.",review:"Review this account and confirm it exists.",bitwarden:"Assign an existing Bitwarden item or prepare a missing one.",change_password:"Use Bitwarden to set a unique password at the provider.",test_signin:"Test the sign-in before completing this account.",finish:"Required steps are checked. You can mark this account done.",done:"This account is complete."};
 const labels = {confirmed:"Confirmed",probable:"Probable",unknown:"Unknown",pending:"Pending",in_progress:"In progress",done:"Done",skipped:"Deferred",critical:"Do first",high:"High",normal:"Normal"};
 const titles = {
   dashboard:["Your accounts, in one place.","Find local evidence and secure your accounts with Bitwarden.","Overview"],
@@ -52,6 +52,15 @@ const titles = {
   plans:["Choose your local edition.","Account Compass Free is available now; Pro is a transparent preview.","Plans"]
 };
 function node(tag, text, className) { const e=document.createElement(tag); if(text!==undefined)e.textContent=text; if(className)e.className=className; return e; }
+function accountEmail(account){return account.identity_email||account.manual_email||account.registered_emails[0]||"";}
+function accountTitle(account){
+  const identity=[account.label,accountEmail(account)].filter(Boolean);
+  if(!identity.length&&state.accounts.filter(a=>(a.provider_id||a.id)===(account.provider_id||account.id)).length>1)identity.push(t("Address not assigned"));
+  return [account.name,...identity].join(" · ");
+}
+function reviewTitle(account){
+  return state.accounts.some(a=>a.id!==account.id&&(a.provider_id||a.id)===(account.provider_id||account.id))?accountTitle(account):account.name;
+}
 function error(message) { setMessage("error",canonicalMessage(message)); $("error").classList.remove("hidden"); }
 function toast(message) { setMessage("toast",canonicalMessage(message)); $("toast").classList.remove("hidden"); setTimeout(()=>$("toast").classList.add("hidden"),3000); }
 async function api(path, options={}) {
@@ -68,6 +77,7 @@ function renderState() {
   const s=state.summary;
   for(const [id,value] of Object.entries({"found-count":s.found,"confirmed-count":s.confirmed,"probable-count":s.probable,"priority-count":s.high_priority,"done-count":s.done,"provider-count":s.providers,"nav-count":s.found,"progress-label":`${s.progress}%`,"progress-caption":t("{p0} of {p1} accounts done",{p0:(s.done),p1:(s.found)})}))$(id).textContent=value;
   $("progress-fill").style.width=`${s.progress}%`;
+  $("services-found-caption").textContent=t("{count} services found",{count:s.services_found??new Set(state.accounts.filter(a=>a.classification!=="unknown").map(a=>a.provider_id||a.id)).size});
   $("progress-bar").setAttribute("aria-valuenow",s.progress);
   $("demo-banner").classList.toggle("hidden",!state.demo);
   $("rescan-banner").classList.toggle("hidden",!state.stale_evidence);
@@ -144,7 +154,7 @@ function filtered(){
     if(classification==="found"&&a.classification==="unknown")return false;
     if(!["found","all"].includes(classification)&&a.classification!==classification)return false;
     if(status&&a.status!==status)return false;
-    return `${a.name} ${a.category} ${t(a.category)} ${a.registered_emails.join(" ")}`.toLocaleLowerCase(language).includes(query);
+    return `${accountTitle(a)} ${a.category} ${t(a.category)} ${a.registered_emails.join(" ")}`.toLocaleLowerCase(language).includes(query);
   });
 }
 function renderRows(){
@@ -152,11 +162,11 @@ function renderRows(){
   const fragment=document.createDocumentFragment();
   for(const a of rows){
     const tr=node("tr");const provider=node("td");const flex=node("div",undefined,"provider-cell");flex.append(node("span",a.name[0],"avatar"));
-    const info=node("div");info.append(node("strong",a.name),node("small",a.registered_emails.join(", ")||t(a.category)));flex.append(info);provider.append(flex);
+    const info=node("div");info.append(node("strong",accountTitle(a)),node("small",a.identity_review_required?t("Identify this account before preparing Bitwarden."):t(a.category)));flex.append(info);provider.append(flex);
     const detected=node("td");detected.append(node("span",t(labels[a.classification]),`chip ${a.classification}`));detected.append(node("small",a.classification==="confirmed"?t("Reviewed by you"):a.score?t("Clue strength {p0}/100",{p0:(a.score)}):t("No reliable clue"),"evidence-hint"));
     const priority=node("td");priority.append(node("span",t(labels[a.priority]),`priority ${a.priority}`));
     const status=node("td");status.append(node("span",t(labels[a.status]),`status ${a.status}`));
-    const action=node("td");const button=node("button",t("Review →"),"row-open");button.setAttribute("aria-label",t("Review {p0}",{p0:(a.name)}));button.onclick=()=>openDetail(a.id);action.append(button);
+    const action=node("td");const button=node("button",t("Review →"),"row-open");button.setAttribute("aria-label",t("Review {p0}",{p0:reviewTitle(a)}));button.onclick=()=>openDetail(a.id);action.append(button);
     tr.append(provider,detected,priority,status,action);fragment.append(tr);
   }
   $("account-rows").replaceChildren(fragment);$("empty").classList.toggle("hidden",rows.length>0);
@@ -169,14 +179,24 @@ function link(text,url){
   const a=node("a",text);a.href=url;a.target="_blank";a.rel="noopener noreferrer";return a;
 }
 function openDetail(id){selected=id;renderDetail();$("account-dialog").showModal();}
+function evidenceCard(e){
+  const card=node("div",t(e.reason),"evidence-card");let date=t("Date unknown");
+  if(e.date){const parsed=new Date(e.date);if(!Number.isNaN(parsed.getTime()))date=parsed.toLocaleDateString(language==="de"?"de-DE":"en-GB",{day:"numeric",month:"short",year:"numeric"});}
+  card.append(node("small",`${e.sender_domain} · ${date} · ${e.source} · ${t("Strength {score}/100",{score:e.score})}${e.caveat?" · "+translateCaveat(e.caveat):""}`));return card;
+}
 function renderDetail(){
   const a=state.accounts.find(x=>x.id===selected);if(!a)return;
-  $("detail-name").textContent=a.name;
+  const busy=saving||addingAccount;
+  $("detail-name").textContent=accountTitle(a);
   const queued=state.workflow.items.find(item=>item.id===a.id);
-  $("detail-worklist").disabled=saving||workflowBusy||Boolean(queued)||a.classification==="unknown";
+  $("detail-worklist").disabled=busy||workflowBusy||Boolean(queued)||a.classification==="unknown";
   $("detail-worklist").textContent=t(queued?"In your worklist":"Add to worklist");
-  const step=a.status==="done"?"done":!a.checklist.reviewed?"review":!a.checklist.saved_in_bitwarden?"bitwarden":a.login_method==="password"&&!a.checklist.password_changed?"change_password":!a.checklist.login_tested?"test_signin":"finish";
+  const step=a.identity_review_required?"identify":a.status==="done"?"done":!a.checklist.reviewed?"review":!a.checklist.saved_in_bitwarden?"bitwarden":a.login_method==="password"&&!a.checklist.password_changed?"change_password":!a.checklist.login_tested?"test_signin":"finish";
   $("detail-next-step").textContent=t(workflowSteps[step]);
+  $("detail-bitwarden").disabled=busy||bitwardenBusy||a.identity_review_required||a.classification==="unknown"||a.checklist.saved_in_bitwarden;
+  $("identity-review-note").classList.toggle("hidden",!a.identity_review_required);
+  $("identity-bound-note").classList.toggle("hidden",!a.identity_email);
+  $("identity-caution-note").classList.toggle("hidden",!state.accounts.some(other=>other.id!==a.id&&(other.provider_id||other.id)===(a.provider_id||a.id)));
   $("detail-meta").replaceChildren(node("span",t(labels[a.classification]),`chip ${a.classification}`),node("p",`${t(a.category)} · ${a.registered_emails.join(", ")||t("Sign-in address not known from evidence")}`),node("p",t(a.reason)));
   const links=[link(t("Official website ↗"),a.website)];
   if(a.password_url){links.push(link(t("Documented password settings ↗"),a.password_url),link(t("Source · checked {p0} ↗",{p0:(a.password_verified)}),a.password_source));}
@@ -185,7 +205,13 @@ function renderDetail(){
   $("detail-links").replaceChildren(...links);
   $("login-method").value=a.login_method;$("detail-priority").value=a.priority;
   $("registered-email").replaceChildren(new Option(t("Email evidence only / unknown"),""),...state.emails.map(e=>new Option(e,e)));
-  $("registered-email").value=a.manual_email||"";
+  $("registered-email").value=a.identity_email||a.manual_email||"";
+  const addForm=$("add-account-form");
+  if(addForm.dataset.account!==a.id){addForm.reset();$("add-account-panel").open=false;addForm.dataset.account=a.id;$("new-account-error").classList.add("hidden");}
+  const newAccountEmail=$("new-account-email"),previousEmail=newAccountEmail.value;
+  newAccountEmail.replaceChildren(new Option(t("Sign-in address not known from evidence"),""),...state.emails.map(e=>new Option(e,e)));
+  newAccountEmail.value=state.emails.includes(previousEmail)?previousEmail:"";
+  for(const id of ["new-account-email","new-account-label","new-account-owned","add-account-button"])$(id).disabled=busy;
   $("sso-note").classList.toggle("hidden",a.login_method==="password");
   const steps=[
     ["reviewed",t("I verified that this account exists"),t("Confirm only after your own review. An email clue alone is not enough.")],
@@ -197,34 +223,50 @@ function renderDetail(){
   const items=[];
   for(const [key,title,description] of steps){
     if(key==="password_changed"&&a.login_method!=="password")continue;
-    const label=node("label",undefined,"check-item");const checkbox=node("input");checkbox.type="checkbox";checkbox.checked=a.checklist[key];checkbox.disabled=saving;
+    const label=node("label",undefined,"check-item");const checkbox=node("input");checkbox.type="checkbox";checkbox.checked=a.checklist[key];checkbox.disabled=busy;
     checkbox.onchange=()=>update({checklist:{[key]:checkbox.checked}});
     const text=node("span",title);text.append(node("small",description));label.append(checkbox,text);items.push(label);
   }
   $("checklist").replaceChildren(...items);
-  $("detail-evidence").replaceChildren(...(a.evidence.length?a.evidence.map(e=>{const card=node("div",t(e.reason),"evidence-card");let date=t("Date unknown");if(e.date){const parsed=new Date(e.date);if(!Number.isNaN(parsed.getTime()))date=parsed.toLocaleDateString(language==="de"?"de-DE":"en-GB",{day:"numeric",month:"short",year:"numeric"});}card.append(node("small",`${e.sender_domain} · ${date} · ${e.source} · ${t("Strength {score}/100",{score:e.score})}${e.caveat?" · "+translateCaveat(e.caveat):""}`));return card;}):[node("p",t("No local evidence. This does not prove that an account does not exist."),"small-muted")]));
+  $("detail-evidence").replaceChildren(...(a.evidence.length?a.evidence.map(evidenceCard):[node("p",t("No local evidence. This does not prove that an account does not exist."),"small-muted")]));
+  const sharedClues=a.unassigned_evidence||[];
+  $("shared-evidence-panel").classList.toggle("hidden",!sharedClues.length);
+  $("shared-evidence").replaceChildren(...sharedClues.map(evidenceCard));
   const required=["reviewed","saved_in_bitwarden","login_tested",...(a.login_method==="password"?["password_changed"]:[])];
-  $("finish-account").disabled=saving||!required.every(k=>a.checklist[k]);
+  $("finish-account").disabled=busy||a.identity_review_required||!required.every(k=>a.checklist[k]);
   $("finish-account").textContent=a.status==="done"?t("Already done"):t("Mark as done");
-  $("login-method").disabled=saving;$("registered-email").disabled=saving;$("detail-priority").disabled=saving;$("defer-account").disabled=saving;
+  $("login-method").disabled=busy;$("registered-email").disabled=busy||Boolean(a.identity_email);$("detail-priority").disabled=busy;$("defer-account").disabled=busy;
 }
 async function update(change){
-  if(saving)return;saving=true;renderDetail();$("detail-error").classList.add("hidden");
+  if(saving||addingAccount)return;saving=true;renderDetail();$("detail-error").classList.add("hidden");
   try{await api(`/api/accounts/${encodeURIComponent(selected)}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(change)});await refresh();toast(t("Change saved locally."));if(change.status==="done"&&view==="workflow"&&!state.workflow.paused&&state.workflow.current)selected=state.workflow.current;}
   catch(e){setMessage("detail-error",canonicalMessage(e.message));$("detail-error").classList.remove("hidden");}
   finally{saving=false;renderDetail();}
 }
+async function addLocalAccount(event){
+  event.preventDefault();if(addingAccount||saving||!$("new-account-owned").checked)return;
+  const account=state.accounts.find(a=>a.id===selected);if(!account)return;
+  const data={provider_id:account.provider_id||account.id,email:$("new-account-email").value,label:$("new-account-label").value.trim(),confirmed:true};
+  addingAccount=true;renderDetail();$("new-account-error").classList.add("hidden");
+  try{
+    const result=await api("/api/accounts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});
+    await refresh();selected=result.id;toast(t("Separate account added to your local inventory."));
+  }catch(e){setMessage("new-account-error",canonicalMessage(e.message));$("new-account-error").classList.remove("hidden");}
+  finally{addingAccount=false;renderDetail();}
+}
 function renderExport(){
   const items=state.accounts.filter(a=>a.classification!=="unknown"&&!a.checklist.saved_in_bitwarden);
-  const eligible=new Set(items.map(a=>a.id));
+  const eligible=new Set(items.filter(a=>!a.identity_review_required).map(a=>a.id));
   for(const id of exportChoices.keys())if(!eligible.has(id))exportChoices.delete(id);
   $("export-selection").replaceChildren(...items.map(a=>{
-    const label=node("label");const checkbox=node("input");checkbox.type="checkbox";checkbox.value=a.id;checkbox.checked=exportChoices.has(a.id)?exportChoices.get(a.id):a.classification==="confirmed";
-    checkbox.onchange=()=>exportChoices.set(a.id,checkbox.checked);label.append(checkbox,node("span",`${a.name} · ${t(labels[a.classification])}`));return label;
+    const label=node("label");const checkbox=node("input");checkbox.type="checkbox";checkbox.value=a.id;checkbox.checked=!a.identity_review_required&&(exportChoices.has(a.id)?exportChoices.get(a.id):a.classification==="confirmed");checkbox.disabled=bitwardenBusy||Boolean(a.identity_review_required);
+    checkbox.onchange=()=>exportChoices.set(a.id,checkbox.checked);const text=node("span",`${accountTitle(a)} · ${t(labels[a.classification])}`);
+    if(a.identity_review_required){label.classList.add("selection-blocked");text.append(node("small",t("Identify this account before preparing Bitwarden.")));}
+    label.append(checkbox,text);return label;
   }));
   if(!items.length)$("export-selection").append(node("p",t("No missing items selected. Review your accounts and existing vault items first.")));
-  $("bitwarden-cli-button").disabled=bitwardenBusy||state.demo;
-  $("export-button").disabled=bitwardenBusy;
+  $("bitwarden-cli-button").disabled=bitwardenBusy||state.demo||!eligible.size;
+  $("export-button").disabled=bitwardenBusy||!eligible.size;
 }
 function actionButton(text,action,disabled=false){
   const button=node("button",t(text),"button secondary");button.onclick=action;button.disabled=disabled;return button;
@@ -239,7 +281,7 @@ function renderWorklist(){
   $("worklist-pause").textContent=t(workflow.paused?"Resume worklist":"Pause worklist");
   $("worklist-items").replaceChildren(...workflow.items.map(item=>{
     const account=accounts.get(item.id),card=node("article",undefined,"worklist-item");
-    card.append(node("strong",account.name),node("p",t(item.deferred&&item.step!=="done"?"Deferred. Restore this account when you are ready.":workflowSteps[item.step])));
+    card.append(node("strong",accountTitle(account)),node("p",t(item.deferred&&item.step!=="done"?"Deferred. Restore this account when you are ready.":workflowSteps[item.step])));
     const actions=node("div",undefined,"bitwarden-actions");
     actions.append(actionButton("Review →",()=>continueWorklist(item.id),workflowBusy||workflow.paused),
       actionButton(item.deferred?"Restore":"Defer",()=>changeWorklist({action:item.deferred?"restore":"defer",id:item.id}),workflowBusy||item.step==="done"),
@@ -255,7 +297,7 @@ function renderWorklist(){
     const label=node("label"),checkbox=node("input");checkbox.type="checkbox";checkbox.value=account.id;
     checkbox.checked=worklistChoices.get(account.id)||false;checkbox.disabled=workflowBusy;
     checkbox.onchange=()=>worklistChoices.set(account.id,checkbox.checked);
-    label.append(checkbox,node("span",`${account.name} · ${t(labels[account.priority])}`));return label;
+    label.append(checkbox,node("span",`${accountTitle(account)} · ${t(labels[account.priority])}`));return label;
   }));
   $("worklist-add").disabled=workflowBusy||!available.length;
 }
@@ -273,8 +315,8 @@ function renderHandoffs(){
   const pending=state.bitwarden_handoffs.filter(item=>["running","uncertain"].includes(item.state));
   $("handoff-review").classList.toggle("hidden",!pending.length);
   $("handoff-items").replaceChildren(...pending.map(item=>{
-    const account=state.accounts.find(a=>a.id===item.provider_id),card=node("article",undefined,"worklist-item");
-    card.append(node("strong",`${account?account.name:item.provider_id} · ${item.email||t("Email evidence only / unknown")}`),node("p",t(item.state==="running"?"Transfer running. Wait before checking its result.":"Outcome unclear. Check Bitwarden before another attempt.")),node("code",item.operation_id));
+    const account=state.accounts.find(a=>a.id===(item.account_id||item.provider_id)),card=node("article",undefined,"worklist-item");
+    card.append(node("strong",`${account?accountTitle(account):item.provider_id}${account&&accountEmail(account)===item.email?"":" · "+(item.email||t("Email evidence only / unknown"))}`),node("p",t(item.state==="running"?"Transfer running. Wait before checking its result.":"Outcome unclear. Check Bitwarden before another attempt.")),node("code",item.operation_id));
     const actions=node("div",undefined,"bitwarden-actions");
     actions.append(actionButton("I found this item in Bitwarden",()=>resolveHandoff(item,true),bitwardenBusy||!item.can_resolve),actionButton("I checked: this item was not created",()=>resolveHandoff(item,false),bitwardenBusy||!item.can_resolve));
     card.append(actions);return card;
@@ -289,7 +331,7 @@ async function resolveHandoff(item,created){
 }
 async function exportMetadata(){
   if(bitwardenBusy)return;
-  const ids=Array.from($("export-selection").querySelectorAll("input:checked")).map(x=>x.value);
+  const ids=selectedBitwardenIds();
   if(!ids.length){error(t("Select the accounts you want to add to Bitwarden first."));return;}
   bitwardenBusy=true;renderExport();
   try{
@@ -299,7 +341,7 @@ async function exportMetadata(){
   }catch(e){error(e.message);}finally{bitwardenBusy=false;renderExport();}
 }
 function selectedBitwardenIds(){
-  return Array.from($("export-selection").querySelectorAll("input:checked")).map(x=>x.value);
+  return Array.from($("export-selection").querySelectorAll("input:checked:not(:disabled)")).map(x=>x.value);
 }
 async function addToUnlockedBitwarden(){
   if(bitwardenBusy||state.demo)return;
@@ -366,6 +408,7 @@ for(const id of ["search","category","classification","status-filter"])$(id).add
 $("close-dialog").onclick=()=>$("account-dialog").close();
 $("login-method").onchange=()=>update({login_method:$("login-method").value});
 $("registered-email").onchange=()=>update({registered_email:$("registered-email").value||null});
+$("add-account-form").onsubmit=addLocalAccount;
 $("detail-priority").onchange=()=>update({priority:$("detail-priority").value});
 $("defer-account").onclick=()=>update({status:"skipped"});
 $("finish-account").onclick=()=>update({status:"done"});
@@ -375,7 +418,7 @@ $("worklist-add").onclick=()=>{const ids=Array.from($("worklist-selection").quer
 $("worklist-continue").onclick=()=>continueWorklist();
 $("worklist-pause").onclick=()=>changeWorklist({action:state.workflow.paused?"resume":"pause"});
 $("detail-worklist").onclick=()=>changeWorklist({action:"add",ids:[selected]});
-$("detail-bitwarden").onclick=()=>{exportChoices.clear();exportChoices.set(selected,true);for(const a of state.accounts)if(a.id!==selected)exportChoices.set(a.id,false);$("account-dialog").close();navigate("bitwarden");renderExport();};
+$("detail-bitwarden").onclick=()=>{const account=state.accounts.find(a=>a.id===selected);if(!account||account.identity_review_required)return;exportChoices.clear();exportChoices.set(selected,true);for(const a of state.accounts)if(a.id!==selected)exportChoices.set(a.id,false);$("account-dialog").close();navigate("bitwarden");renderExport();};
 $("activate-license").onclick=activateLicense;
 $("import-button").onclick=()=>{navigate("setup");$("email-files").click();};
 $("email-files").onchange=importFiles;

@@ -15,22 +15,27 @@ from . import handoffs
 
 def make_export(store: Store, ids: list[str], language="en"):
     validate_language(language)
-    if not isinstance(ids, list) or not ids or len(ids) > len(store.registry.providers) or any(not isinstance(x, str) for x in ids):
+    if not isinstance(ids, list) or not ids or len(ids) > 10_000 or any(not isinstance(x, str) for x in ids):
         raise ValueError("An explicit selection is required")
     accounts = {a["id"]: a for a in store.snapshot(language)["accounts"]}
     selected = []
     for provider_id in dict.fromkeys(ids):
         account = accounts.get(provider_id)
-        if not account or account["classification"] == "unknown" or account["checklist"]["saved_in_bitwarden"]:
+        if not account or account["classification"] == "unknown":
+            raise ValueError("Export only discovered accounts not already assigned in Bitwarden")
+        if account.get("identity_review_required"):
+            raise handoffs.HandoffError("Review this account's sign-in identity before transferring it.")
+        if account["checklist"]["saved_in_bitwarden"]:
             raise ValueError("Export only discovered accounts not already assigned in Bitwarden")
         selected.append(account)
     folder_id = str(uuid.uuid4())
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     items = []
-    previous = {(entry["provider_id"], entry["email"]): entry["state"]
+    previous = {(entry["account_id"], entry["email"]): entry["state"]
                 for entry in handoffs.handoff_snapshot(store)}
     for account in selected:
-        # Multiple explicitly configured aliases can have distinct accounts.
+        # Every selection is one durable account, with at most one sign-in
+        # identity. Sibling accounts never inherit assignment or completion.
         for email in account["registered_emails"] or [""]:
             state = previous.get((account["id"], email))
             if state in {"running", "uncertain"}:
@@ -39,10 +44,12 @@ def make_export(store: Store, ids: list[str], language="en"):
                 continue
             items.append({
                 "id": str(uuid.uuid4()), "organizationId": None, "folderId": folder_id,
-                "type": 1, "reprompt": 0, "name": account["name"], "favorite": False,
+                "type": 1, "reprompt": 0,
+                "name": account["name"] + (" · " + account["label"] if account.get("label") else ""), "favorite": False,
                 "notes": translate("Account-Finder: {classification}; review manually.\nEvidence: {reason}\nNo password exported. Generate a new password directly in Bitwarden and set it at the provider.",
                                    language, classification=translate(account["classification"], language), reason=account["reason"]),
-                "fields": [{"name": "Account-Finder-ID", "value": account["id"], "type": 0}],
+                "fields": [{"name": "Account-Finder-ID", "value": account["id"], "type": 0},
+                           {"name": "ARGUS-Provider-ID", "value": account["provider_id"], "type": 0}],
                 "login": {"uris": [{"match": None, "uri": account["website"]}],
                           "username": email, "password": "", "totp": None},
                 "collectionIds": [],

@@ -1,3 +1,31 @@
+# Test report — Version 1.9.0
+
+The separate-account release passed **155 Python tests** and **23 Chromium
+browser check groups** (18 existing groups plus five account-identity groups).
+Both browser suites reported zero page errors and zero external requests.
+German mobile details were inspected at a 390 px viewport.
+
+New cases cover independent checklists/worklists/Bitwarden items for two
+addresses at one service, explicit labeled accounts sharing an address,
+immutable identity assignments, Unicode label uniqueness, ambiguous and stale
+evidence, current address scope, failed handoff isolation, and precise CLI IDs.
+Migration cases cover unambiguous and ambiguous legacy progress, exact mapping
+of successful/uncertain transfers, queue persistence, idempotent restart, and
+transaction rollback after an injected interruption.
+
+The wheel was built offline and installed into a separate temporary environment,
+using the environment's installed cryptography dependency. Version/module imports,
+demo, account listing and report were exercised outside the checkout. JavaScript
+syntax, companion validation, Python compilation and diff checks also passed.
+All messages, keyrings and vault responses in these tests were synthetic; no real
+mailbox, provider password or Bitwarden vault was used. Separate account inference
+still requires user review because aliases and changed addresses may refer to
+one historical account. Automated account merging is not implemented.
+
+The following reports record earlier releases.
+
+---
+
 # Test report — Version 1.8.1
 
 The concurrent-scan safety fix passed **132 Python tests**, companion static

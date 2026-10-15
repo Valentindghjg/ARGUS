@@ -1,4 +1,4 @@
-# Account Compass 1.8.1
+# Account Compass 1.9.0
 
 [Deutsch](README_DE.md) · English
 
@@ -322,6 +322,14 @@ See the [worklist guide](docs/WORKLIST.md) and
 
 ## Review and secure accounts with Bitwarden
 
+Each sign-in identity has its own entry, checklist, worklist and Bitwarden
+handoff. Strong direct evidence at different own addresses produces separate
+probable entries; review them because aliases and address changes may still
+refer to one account. In account details, **Add another account at this service**
+lets you explicitly add a known local record, including labeled accounts that
+share an email address. Nothing is created at the provider. See the
+[separate-account and migration guide](docs/ACCOUNTS.md).
+
 Each provider has an official website, category, known own sign-in addresses,
 clue type and strength, status and security priority. Documented password-settings
 links are supplied for Google, Apple and GitHub with source and verification date.
@@ -399,6 +407,12 @@ These use synthetic data and do not connect to personal mailboxes or Bitwarden.
 See [contributing](CONTRIBUTING.md) for development and
 [security reporting](SECURITY.md) for confidential vulnerability reports.
 
+Version 1.9 migrates provider-wide state to separate account identities. Stop the
+app and back up your protected profile before upgrading. Progress follows one
+unambiguous or explicitly assigned address; unresolved legacy progress stays
+visible for review and is never copied to every sibling account. Use version
+1.9 or newer with the migrated profile. See [migration details](docs/ACCOUNTS.md).
+
 Version 1.7 adds a persistent security worklist and a durable Bitwarden transfer
 journal that blocks retries after ambiguous writes. Existing inventories gain two
 new local tables automatically; evidence and checklists are preserved. Back up
@@ -424,6 +438,7 @@ Chromium, neither of which is required to run the app:
 
 ```bash
 python scripts/browser_smoke.py --browser /usr/bin/chromium --screenshots-dir docs/preview
+python scripts/browser_multi_account.py --browser /usr/bin/chromium
 ```
 
 | File | Purpose |
@@ -432,6 +447,7 @@ python scripts/browser_smoke.py --browser /usr/bin/chromium --screenshots-dir do
 | `account_finder/data/providers.json` | Extensible provider catalog |
 | `account_finder/i18n.py`, `data/translations.json` | Local German/English presentation |
 | `account_finder/store.py` | SQLite evidence and checklist persistence |
+| `account_finder/instances.py` | Stable account identities and conservative profile migration |
 | `account_finder/imap_client.py` | TLS IMAP, PEEK and resuming |
 | `account_finder/background.py` | Explicit keyring-backed incremental IMAP schedule |
 | `account_finder/discovery.py` | Explicitly authorized MX hints |

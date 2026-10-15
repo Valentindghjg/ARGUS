@@ -61,6 +61,27 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(self.request("/api/accounts",headers={"Authorization":"Bearer wrong"})[0],401)
         self.assertEqual(self.request("/api/accounts",headers={"Authorization":"Bearer ä"})[0],401)
 
+    def test_manual_account_creation_is_explicit_and_local(self):
+        headers = {"Content-Type": "application/json"}
+        data = {"provider_id": "github", "email": "demo@example.invalid",
+                "label": "Separate local profile", "confirmed": True}
+        payload = json.dumps(data)
+        self.assertEqual(self.request("/api/accounts", "POST", payload, authorized=False, headers=headers)[0], 401)
+        self.assertEqual(self.request("/api/accounts", "POST", payload,
+                                     headers={**headers, "Origin": "https://attacker.example"})[0], 403)
+        for invalid in ({**data, "confirmed": False}, {**data, "password": "not-accepted"},
+                        {**data, "email": "unowned@example.invalid"}, {**data, "provider_id": "not-a-provider"}):
+            self.assertEqual(self.request("/api/accounts", "POST", json.dumps(invalid), headers=headers)[0], 400)
+        status, _, body = self.request("/api/accounts", "POST", payload, headers=headers)
+        self.assertEqual(status, 201)
+        ident = json.loads(body)["id"]
+        rows = json.loads(self.request("/api/accounts")[2])["accounts"]
+        created = next(a for a in rows if a["id"] == ident)
+        self.assertEqual(created["label"], data["label"])
+        self.assertEqual(created["provider_id"], "github")
+        self.assertTrue(created["checklist"]["reviewed"])
+        self.assertFalse(created["checklist"]["saved_in_bitwarden"])
+
     def test_origin_host_and_cors_protection(self):
         self.assertEqual(self.request("/api/accounts",headers={"Origin":"https://attacker.example"})[0],403)
         self.assertEqual(self.request("/api/accounts",headers={"Host":"attacker.example"})[0],403)

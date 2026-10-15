@@ -28,8 +28,8 @@ provider password automatically.
    not its evidence, checklist or vault entry. Pausing this list does not pause a
    separately started mail import.
 
-The list uses existing provider-level checklists. Independent tracking of several
-accounts at the same provider remains future work. Optional scheduled mailbox
+The list tracks each account identity separately, including several accounts
+at the same provider. See [separate accounts](ACCOUNTS.md). Optional scheduled mailbox
 scans and the browser companion are separate features: neither changes this
 worklist or treats a site visit as account evidence.
 
@@ -64,8 +64,8 @@ Scans und ändert keine Anbieterpasswörter automatisch.
    aus der Arbeitsliste; Belege, Checkliste und Tresoreintrag bleiben erhalten.
    Das Pausieren dieser Liste pausiert keinen separat gestarteten Mailimport.
 
-Die Arbeitsliste verwendet die bisherigen Checklisten je Anbieter. Getrennte
-Fortschritte für mehrere Accounts beim selben Anbieter bleiben eine spätere
-Ausbaustufe. Optionale geplante Mail-Scans und der Browser-Begleiter sind
+Die Arbeitsliste verwaltet jeden Account getrennt, auch mehrere Accounts beim
+selben Anbieter. Siehe die [Mehrkonto-Anleitung](ACCOUNTS.md). Optionale geplante
+Mail-Scans und der Browser-Begleiter sind
 getrennte Funktionen: Sie ändern diese Arbeitsliste nicht und werten einen
 Webseitenbesuch nicht als Account-Beleg.

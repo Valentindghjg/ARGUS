@@ -127,8 +127,15 @@ Newsletters, guest orders and reset requests do not establish an account. Accoun
 without emails, deleted messages, phone registration, other mailboxes or aliases,
 and SSO can be missed. Shared product families can send through their central
 identity-provider domain; Xbox activity may appear only as Microsoft evidence.
-Multiple accounts for one provider are grouped into one row with known addresses;
-the checklist applies to that provider row as a whole.
+Accounts at one provider have separate stable IDs, checklists and transfer
+journals. Only current strong evidence to one configured own address is grouped
+with a corresponding identity. Ambiguous, forwarded and weak clues remain
+provider-wide. Different addresses can still refer to aliases or changed
+addresses; only user review can establish that entries represent separate
+accounts. Manually labeled accounts sharing an address never automatically
+inherit the recipient's evidence. Legacy progress is assigned conservatively
+and is never copied to every new identity; unresolved legacy entries require
+review before exports or completion. See [the account guide](ACCOUNTS.md).
 
 The catalog is curated and uses a bounded set of English/German rules. Sender
 domains and services change; extend them using official sources, not an email's
