@@ -36,6 +36,9 @@ plaintext keyring backends. SQLite stores only an opaque UUID selector, interval
 and safe status metadata. `disable` stops future runs; `revoke` stops them first
 and removes the keyring entry. Each run uses the existing incremental TLS/IMAP
 path and fixed safe failure text, never a password retry list.
+An atomic SQLite lease ensures that only one scheduled runner per profile may
+open the mailbox at a time; a stale worker cannot overwrite a later result or
+reactivate a disabled schedule. Folder checkpoints merge atomically.
 
 The app never requests your Bitwarden master password, signs into Bitwarden or
 reads your vault. Its optional direct transfer requires an already-unlocked

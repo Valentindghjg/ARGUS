@@ -1,3 +1,23 @@
+# Änderungen – Version 1.8.1
+
+- Atomare SQLite-Lease für geplante IMAP-Läufe ergänzt. Ein zweites Dashboard
+  mit demselben Profil erkennt den laufenden Scan statt eine zweite
+  Postfachverbindung zu öffnen; abgelaufene Leases werden nach Abbruch sicher
+  übernommen.
+- Ein später Abschluss prüft die Lease-ID und kann daher einen deaktivierten
+  oder widerrufenen Zeitplan nicht wieder aktivieren oder ein neueres Ergebnis
+  überschreiben.
+- IMAP-UID-Checkpoints führen Ordneraktualisierungen atomar zusammen, statt die
+  gesamte Cursor-Map zu ersetzen.
+
+## Update auf 1.8.1
+
+Die Aktualisierung ist kompatibel mit vorhandenen Profilen und benötigt keine
+erneute Einrichtung. Ein laufender geplanter Scan darf beim Update abgeschlossen
+werden; danach Anwendung normal mit demselben Datenverzeichnis starten.
+
+---
+
 # Änderungen – Version 1.8.0
 
 - Opt-in-Zeitplanung für inkrementelle, schreibgeschützte IMAP-Scans ergänzt.

@@ -8,7 +8,8 @@ because this module is installed.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+import json
 import time
 from pathlib import Path
 from typing import Any, Callable, Protocol
@@ -25,6 +26,7 @@ MAX_INTERVAL_SECONDS = 7 * 24 * 60 * 60
 DEFAULT_INTERVAL_SECONDS = 24 * 60 * 60
 DEFAULT_LIMIT = 500
 MAX_LIMIT = 10_000
+RUN_LEASE_SECONDS = 5 * 60
 
 
 class MetaStore(Protocol):
@@ -127,6 +129,8 @@ class BackgroundSchedule:
     last_finished_at: float | None = None
     last_result: str | None = None
     last_error: str | None = None
+    run_id: str | None = None
+    lease_until: float | None = None
 
     @classmethod
     def from_data(cls, data: Any) -> "BackgroundSchedule":
@@ -135,19 +139,25 @@ class BackgroundSchedule:
         if not isinstance(data, dict):
             raise ValueError("Invalid background IMAP schedule")
         allowed = {"version", "enabled", "interval_seconds", "limit", "credential_id", "next_run_at",
-                   "last_started_at", "last_finished_at", "last_result", "last_error"}
+                   "last_started_at", "last_finished_at", "last_result", "last_error",
+                   "run_id", "lease_until"}
         if set(data) - allowed or data.get("version", SCHEDULE_VERSION) != SCHEDULE_VERSION:
             raise ValueError("Invalid background IMAP schedule")
         enabled = data.get("enabled", False)
         interval = data.get("interval_seconds", DEFAULT_INTERVAL_SECONDS)
         limit = data.get("limit", DEFAULT_LIMIT)
         credential_id = data.get("credential_id")
-        timestamps = {name: data.get(name) for name in ("next_run_at", "last_started_at", "last_finished_at")}
+        timestamps = {name: data.get(name) for name in ("next_run_at", "last_started_at", "last_finished_at", "lease_until")}
         if type(enabled) is not bool or type(interval) is not int or not MIN_INTERVAL_SECONDS <= interval <= MAX_INTERVAL_SECONDS:
             raise ValueError("Invalid background IMAP schedule")
         if type(limit) is not int or not 1 <= limit <= MAX_LIMIT:
             raise ValueError("Invalid background IMAP schedule")
         if credential_id is not None and not _valid_credential_id(credential_id):
+            raise ValueError("Invalid background IMAP schedule")
+        run_id = data.get("run_id")
+        if run_id is not None and not _valid_credential_id(run_id):
+            raise ValueError("Invalid background IMAP schedule")
+        if (run_id is None) != (data.get("lease_until") is None):
             raise ValueError("Invalid background IMAP schedule")
         if enabled and credential_id is None:
             raise ValueError("Background IMAP scans require OS-keyring authorization")
@@ -157,15 +167,18 @@ class BackgroundSchedule:
             value = data.get(name)
             if value is not None and (not isinstance(value, str) or len(value) > 200):
                 raise ValueError("Invalid background IMAP schedule")
-        return cls(enabled, interval, limit, credential_id, **timestamps,
-                   last_result=data.get("last_result"), last_error=data.get("last_error"))
+        return cls(enabled, interval, limit, credential_id,
+                   next_run_at=data.get("next_run_at"), last_started_at=data.get("last_started_at"),
+                   last_finished_at=data.get("last_finished_at"), last_result=data.get("last_result"),
+                   last_error=data.get("last_error"), run_id=run_id, lease_until=data.get("lease_until"))
 
     def public_data(self) -> dict[str, Any]:
         """Stable metadata safe to persist locally; it contains no secret."""
         return {"version": SCHEDULE_VERSION, "enabled": self.enabled, "interval_seconds": self.interval_seconds,
                 "limit": self.limit, "credential_id": self.credential_id, "next_run_at": self.next_run_at,
                 "last_started_at": self.last_started_at, "last_finished_at": self.last_finished_at,
-                "last_result": self.last_result, "last_error": self.last_error}
+                "last_result": self.last_result, "last_error": self.last_error,
+                "run_id": self.run_id, "lease_until": self.lease_until}
 
 
 def _default_runner(store: MetaStore, config: IMAPConfig, secret: str, *, limit: int) -> dict[str, Any]:
@@ -210,13 +223,36 @@ class BackgroundScanService:
         self.store.set_meta(SCHEDULE_META_KEY, schedule.public_data())
         return schedule
 
+    def _atomic_update(self, change):
+        """Apply a schedule transition under SQLite's cross-process write lock.
+
+        Test doubles without ``connect`` retain the deterministic single-process
+        behavior used by focused unit tests. Production ``Store`` always offers
+        this method, so mailbox work is leased before any keyring or network use.
+        """
+        connect = getattr(self.store, "connect", None)
+        if not callable(connect):
+            current = self.schedule()
+            updated, result = change(current)
+            if updated is not None:
+                self._save(updated)
+            return result
+        with connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute("SELECT value FROM meta WHERE key=?", (SCHEDULE_META_KEY,)).fetchone()
+            current = BackgroundSchedule.from_data(json.loads(row[0]) if row else None)
+            updated, result = change(current)
+            if updated is not None:
+                db.execute("INSERT INTO meta VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                           (SCHEDULE_META_KEY, json.dumps(updated.public_data(), ensure_ascii=False)))
+            return result
+
     def configure(self, *, credential_id: str, interval_seconds: int = DEFAULT_INTERVAL_SECONDS,
                   limit: int = DEFAULT_LIMIT, enabled: bool = True) -> BackgroundSchedule:
         """Persist an explicit opt-in.  Call ``credentials.save`` first."""
         now = self.clock()
         schedule = BackgroundSchedule(enabled=enabled, interval_seconds=interval_seconds, limit=limit,
-                                      credential_id=credential_id,
-                                      next_run_at=now if enabled else None)
+                                      credential_id=credential_id, next_run_at=now if enabled else None)
         # Reuse strict validation rather than silently accepting unsafe values.
         schedule = BackgroundSchedule.from_data(schedule.public_data())
         return self._save(schedule)
@@ -229,10 +265,10 @@ class BackgroundScanService:
                               limit=limit, enabled=True)
 
     def disable(self) -> BackgroundSchedule:
-        current = self.schedule()
-        return self._save(BackgroundSchedule(False, current.interval_seconds, current.limit,
-                                             current.credential_id, None, current.last_started_at,
-                                             current.last_finished_at, current.last_result, current.last_error))
+        def disable(schedule):
+            stopped = replace(schedule, enabled=False, next_run_at=None, run_id=None, lease_until=None)
+            return stopped, stopped
+        return self._atomic_update(disable)
 
     def stop(self) -> BackgroundSchedule:
         return self.disable()
@@ -248,10 +284,8 @@ class BackgroundScanService:
         current = self.disable()
         if current.credential_id:
             self.credentials.delete(current.credential_id)
-        revoked = BackgroundSchedule(False, current.interval_seconds, current.limit,
-                                     None, None, current.last_started_at,
-                                     current.last_finished_at, current.last_result,
-                                     current.last_error)
+        revoked = replace(current, enabled=False, credential_id=None, next_run_at=None,
+                          run_id=None, lease_until=None)
         return self._save(revoked)
 
     def snapshot(self) -> dict[str, Any]:
@@ -265,7 +299,41 @@ class BackgroundScanService:
                 "interval_seconds": schedule.interval_seconds, "limit": schedule.limit,
                 "next_run_at": schedule.next_run_at, "last_started_at": schedule.last_started_at,
                 "last_finished_at": schedule.last_finished_at, "last_result": schedule.last_result,
-                "last_error": schedule.last_error}
+                "last_error": schedule.last_error, "running": schedule.run_id is not None and
+                schedule.lease_until is not None and schedule.lease_until > self.clock()}
+
+    def _claim_due(self):
+        moment = self.clock()
+
+        def claim(schedule):
+            if not schedule.enabled:
+                return None, {"status": "disabled"}
+            if schedule.run_id is not None and schedule.lease_until is not None and schedule.lease_until > moment:
+                return None, {"status": "running"}
+            if schedule.next_run_at is not None and moment < schedule.next_run_at:
+                return None, {"status": "not_due", "next_run_at": schedule.next_run_at}
+            run_id = str(uuid4())
+            started = replace(schedule, run_id=run_id, lease_until=moment + RUN_LEASE_SECONDS,
+                              last_started_at=moment, last_error=None)
+            return started, {"status": "claimed", "run_id": run_id, "schedule": started}
+
+        return self._atomic_update(claim)
+
+    def _finish_claim(self, run_id, *, outcome, error=None):
+        moment = self.clock()
+
+        def finish(schedule):
+            # A later disable/revoke or replacement lease wins over an old
+            # worker. It must never reactivate scheduling on completion.
+            if schedule.run_id != run_id or not schedule.enabled:
+                return None, False
+            completed = replace(schedule, run_id=None, lease_until=None,
+                                next_run_at=moment + schedule.interval_seconds,
+                                last_finished_at=moment, last_result=outcome,
+                                last_error=error)
+            return completed, True
+
+        return self._atomic_update(finish)
 
     def run_due(self, *, allow_network: bool = False) -> dict[str, Any]:
         """Run a due scan only after the caller grants runtime network access.
@@ -273,19 +341,13 @@ class BackgroundScanService:
         Return values deliberately contain status/counts, never IMAP server
         messages, credentials, configured host names or raw email content.
         """
-        schedule = self.schedule()
-        now = self.clock()
-        if not schedule.enabled:
-            return {"status": "disabled"}
         if not allow_network:
             return {"status": "authorization_required"}
-        if schedule.next_run_at is not None and now < schedule.next_run_at:
-            return {"status": "not_due", "next_run_at": schedule.next_run_at}
-
-        started = BackgroundSchedule(True, schedule.interval_seconds, schedule.limit, schedule.credential_id,
-                                     schedule.next_run_at, now, schedule.last_finished_at,
-                                     schedule.last_result, None)
-        self._save(started)
+        claimed = self._claim_due()
+        if claimed["status"] != "claimed":
+            return claimed
+        schedule = claimed["schedule"]
+        run_id = claimed["run_id"]
         try:
             secret = self.credentials.load(schedule.credential_id or "")
             config = self.config_loader()
@@ -297,21 +359,17 @@ class BackgroundScanService:
             outcome = result.get("result", "completed")
             if not isinstance(outcome, str) or len(outcome) > 80:
                 outcome = "completed_with_gaps"
-            finished = BackgroundSchedule(True, schedule.interval_seconds, schedule.limit, schedule.credential_id,
-                                          now + schedule.interval_seconds, now, now, outcome, None)
-            self._save(finished)
+            committed = self._finish_claim(run_id, outcome=outcome)
             safe = {key: result[key] for key in ("processed", "evidence", "duplicates", "updated_evidence",
                                                   "removed_evidence", "ignored", "skipped", "errors", "headers_only")
                     if type(result.get(key)) is int and result[key] >= 0}
-            return {"status": "completed", "result": outcome, **safe}
+            return {"status": "completed" if committed else "cancelled", "result": outcome, **safe}
         except Exception:
             # Do not retain implementation/server/keyring exception text.  A
             # failure backs off for the selected interval instead of retrying.
-            failed = BackgroundSchedule(True, schedule.interval_seconds, schedule.limit, schedule.credential_id,
-                                        now + schedule.interval_seconds, now, now, "failed",
-                                        "Background IMAP scan could not complete; check local setup and authorization")
-            self._save(failed)
-            return {"status": "failed", "error": failed.last_error}
+            error = "Background IMAP scan could not complete; check local setup and authorization"
+            committed = self._finish_claim(run_id, outcome="failed", error=error)
+            return {"status": "failed" if committed else "cancelled", "error": error}
         finally:
             # Best effort only: Python cannot zero immutable string storage.
             secret = "" if "secret" in locals() else ""

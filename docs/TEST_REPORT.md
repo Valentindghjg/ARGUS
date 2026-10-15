@@ -1,3 +1,15 @@
+# Test report — Version 1.8.1
+
+The concurrent-scan safety fix passed **132 Python tests**, companion static
+validation, JavaScript syntax and a package-wheel build. New focused cases cover
+atomic cross-process leasing, safe lease expiry, stale completion rejection,
+disable while a worker is active, and atomic merging of IMAP folder cursors.
+All inputs use fake keyrings, runners and local SQLite databases.
+
+The following report records the 1.8.0 automation stage.
+
+---
+
 # Test report — Version 1.8.0
 
 The background-scan and browser-companion stage passed **128 Python tests**,

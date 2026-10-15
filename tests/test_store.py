@@ -48,6 +48,14 @@ class StoreTests(unittest.TestCase):
         self.assertNotIn(b"SECRET-CONTENT", content)
         self.assertNotIn(b"Your account has been created", content)
 
+    def test_imap_cursor_updates_merge_independent_folders(self):
+        self.store.set_imap_cursor("folder-a", {"validity": "1", "uid": 10})
+        self.store.set_imap_cursor("folder-b", {"validity": "2", "uid": 20})
+        self.assertEqual(self.store.meta("imap_cursors"), {
+            "folder-a": {"validity": "1", "uid": 10},
+            "folder-b": {"validity": "2", "uid": 20},
+        })
+
     def test_completion_requires_checklist_and_can_reopen(self):
         with self.assertRaises(ValueError):
             self.store.update_account("github", {"status": "done"})

@@ -122,6 +122,20 @@ class Store:
             db.execute("INSERT INTO meta VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
                        (key, json.dumps(value, ensure_ascii=False)))
 
+    def set_imap_cursor(self, cursor_key, cursor):
+        """Merge one IMAP checkpoint without replacing other folders' cursors."""
+        if not isinstance(cursor_key, str) or not isinstance(cursor, dict):
+            raise ValueError("Invalid IMAP cursor")
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute("SELECT value FROM meta WHERE key='imap_cursors'").fetchone()
+            cursors = json.loads(row[0]) if row else {}
+            if not isinstance(cursors, dict):
+                cursors = {}
+            cursors[cursor_key] = cursor
+            db.execute("INSERT INTO meta VALUES ('imap_cursors',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                       (json.dumps(cursors, ensure_ascii=False),))
+
     def meta(self, key, default=None):
         with self.connect() as db:
             row = db.execute("SELECT value FROM meta WHERE key=?", (key,)).fetchone()

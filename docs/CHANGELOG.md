@@ -1,5 +1,15 @@
 # Change log
 
+## 1.8.1 — Concurrent-scan safety fix
+
+- Added an atomic SQLite lease around scheduled IMAP runs. A second dashboard
+  using the same profile observes an active run instead of opening another
+  mailbox connection; expired leases recover safely after interruption.
+- Completion compares the lease ID, so an older worker cannot reactivate a
+  schedule after disable/revocation or overwrite a newer worker's result.
+- IMAP UID checkpoints now merge individual folder updates atomically instead
+  of replacing the full cursor map.
+
 ## 1.8.0 — Opt-in background scans and browser companion
 
 - Added an explicitly enabled, in-process scheduler for incremental read-only

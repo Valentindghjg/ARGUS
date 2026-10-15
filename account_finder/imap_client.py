@@ -238,7 +238,7 @@ def _imap_messages(store: Store, config: IMAPConfig, secret: str, *, allow_netwo
                 sent += 1
                 if validity:
                     cursors[cursor_key] = {"validity": validity, "uid": uid}
-                    store.set_meta("imap_cursors", cursors)
+                    store.set_imap_cursor(cursor_key, cursors[cursor_key])
                 if delay:
                     time.sleep(delay)
             info["folders_processed"] += 1

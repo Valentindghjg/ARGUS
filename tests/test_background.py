@@ -1,4 +1,5 @@
 import tempfile
+import threading
 import unittest
 from contextlib import redirect_stdout
 from io import StringIO
@@ -6,7 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from account_finder.background import (BackgroundScanService, CredentialError, KeyringCredentialStore,
-                                       SCHEDULE_META_KEY)
+                                       RUN_LEASE_SECONDS, SCHEDULE_META_KEY)
 from account_finder.cli import main
 from account_finder.imap_client import IMAPConfig, save_config
 from account_finder.registry import Registry
@@ -122,6 +123,54 @@ class BackgroundScanTests(unittest.TestCase):
         self.assertIsNone(result.credential_id)
         self.assertNotIn(("ARGUS IMAP authorization", selector), self.keyring.entries)
         self.assertFalse(service.snapshot()["authorized"])
+
+    def test_expired_lease_replaces_stale_worker_without_old_completion_winning(self):
+        selector = self.credentials.save("APP-PASSWORD")
+        service = self.service()
+        service.start(credential_id=selector)
+        first = service._claim_due()
+        self.assertEqual(first["status"], "claimed")
+        self.assertEqual(service._claim_due(), {"status": "running"})
+        self.now[0] += RUN_LEASE_SECONDS + 1
+        second = service._claim_due()
+        self.assertEqual(second["status"], "claimed")
+        self.assertFalse(service._finish_claim(first["run_id"], outcome="completed"))
+        self.assertTrue(service._finish_claim(second["run_id"], outcome="completed"))
+
+    def test_real_store_allows_only_one_concurrent_scheduled_runner(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            store = Store(Path(temporary) / "data", Registry())
+            store.configure(["person@example.invalid"])
+            selector = self.credentials.save("APP-PASSWORD")
+            began, release, calls = threading.Event(), threading.Event(), []
+            def runner(*args, **kwargs):
+                calls.append(True)
+                began.set()
+                release.wait(2)
+                return {"result": "completed"}
+            first = BackgroundScanService(store, self.credentials,
+                                          config_loader=lambda: self.config, scan_runner=runner)
+            second = BackgroundScanService(store, self.credentials,
+                                           config_loader=lambda: self.config, scan_runner=runner)
+            first.start(credential_id=selector)
+            result = []
+            worker = threading.Thread(target=lambda: result.append(first.run_due(allow_network=True)))
+            worker.start()
+            self.assertTrue(began.wait(1))
+            self.assertEqual(second.run_due(allow_network=True), {"status": "running"})
+            release.set()
+            worker.join(2)
+            self.assertEqual(result[0]["status"], "completed")
+            self.assertEqual(calls, [True])
+
+    def test_disable_while_running_prevents_late_completion_from_reenabling(self):
+        selector = self.credentials.save("APP-PASSWORD")
+        service = self.service()
+        service.start(credential_id=selector)
+        claim = service._claim_due()
+        service.stop()
+        self.assertFalse(service._finish_claim(claim["run_id"], outcome="completed"))
+        self.assertFalse(service.snapshot()["enabled"])
 
 
 class BackgroundCliTests(unittest.TestCase):

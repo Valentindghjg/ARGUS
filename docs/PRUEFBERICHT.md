@@ -1,3 +1,16 @@
+# Prüfbericht – Version 1.8.1
+
+Die Sicherheitskorrektur für parallele Scans besteht **132 Python-Tests**, die
+statische Begleiter-Prüfung, JavaScript-Syntax und den Paket-Wheel-Bau. Neue
+gezielte Fälle prüfen atomare prozessübergreifende Leases, sicheren Lease-Ablauf,
+die Ablehnung veralteter Abschlüsse, Deaktivierung während eines laufenden Workers
+und das atomare Zusammenführen von IMAP-Ordner-Checkpoints. Alle Eingaben nutzen
+künstliche Schlüsselbunde, Runner und lokale SQLite-Datenbanken.
+
+Der folgende Bericht dokumentiert die Automatisierungsstufe 1.8.0.
+
+---
+
 # Prüfbericht – Version 1.8.0
 
 Die Stufe mit Hintergrund-Scans und Browser-Begleiter besteht **128 Python-

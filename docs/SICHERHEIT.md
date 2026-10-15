@@ -42,6 +42,10 @@ Statusmetadaten. `disable` stoppt künftige Läufe; `revoke` stoppt sie zuerst u
 entfernt den Schlüsselbund-Eintrag. Jeder Lauf nutzt den vorhandenen
 inkrementellen TLS-/IMAP-Pfad und feste sichere Fehlermeldungen, niemals eine
 Passwort-Versuchsliste.
+Eine atomare SQLite-Lease stellt sicher, dass nur ein geplanter Lauf pro Profil
+gleichzeitig das Postfach öffnet. Ein veralteter Worker kann weder ein neueres
+Ergebnis überschreiben noch einen deaktivierten Zeitplan wieder aktivieren.
+Ordner-Checkpoints werden atomar zusammengeführt.
 
 Das Bitwarden-Hauptpasswort wird niemals abgefragt. Die Anwendung meldet sich
 nicht bei Bitwarden an und liest keinen Tresor. Die optionale direkte Übertragung
