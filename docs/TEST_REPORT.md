@@ -32,6 +32,12 @@ leaves the 1.x profile intact; the automatic backup restores the 1.x profile,
 which then migrates to the same result; new evidence changes only the evidence
 axis; every change is logged per action and the log keeps whole batches.
 
+Step S5 (decisions and undo): **247 Python tests**. Rejecting hides an account
+everywhere and one undo restores it with its worklist row; strong new evidence
+only raises a hint; steps and review dates are validated and dated; undo walks
+back in order, refuses to overwrite later changes and never reverses an
+external effect; API shapes and CLI commands are covered.
+
 New simulations combine a real local store with a fake IMAP server, a fake
 keyring and a simulated clock. They cover lease renewal during long scheduled
 scans, cancellation by `disable`/`revoke`, the absence of secrets in profile

@@ -632,6 +632,18 @@
     "Check the free disk space and that the backup folder is writable, then try again.": "Prüfe den freien Speicherplatz und ob der Sicherungsordner beschreibbar ist, und versuche es dann erneut.",
     "Use another backup. ARGUS keeps the latest automatic backups in the backups folder of the profile.": "Nutze eine andere Sicherung. ARGUS bewahrt die neuesten automatischen Sicherungen im Ordner backups des Profils auf.",
     "Or restore a backup from before that update with argus restore.": "Oder stelle mit argus restore eine Sicherung von vor diesem Update wieder her.",
-    "ARGUS saves a backup automatically before it updates the profile database. Make your own with argus backup and restore one with argus restore.": "ARGUS legt automatisch eine Sicherung an, bevor es die Profildatenbank aktualisiert. Eigene Sicherungen erstellst du mit argus backup, wiederherstellen kannst du mit argus restore."
+    "ARGUS saves a backup automatically before it updates the profile database. Make your own with argus backup and restore one with argus restore.": "ARGUS legt automatisch eine Sicherung an, bevor es die Profildatenbank aktualisiert. Eigene Sicherungen erstellst du mit argus backup, wiederherstellen kannst du mit argus restore.",
+    "There is no local change to undo": "Es gibt keine lokale Änderung zum Rückgängigmachen",
+    "This change was changed again later; undo the later change first": "Diese Angabe wurde später erneut geändert; mache zuerst die spätere Änderung rückgängig",
+    "Choose confirmed, rejected or undecided": "Wähle bestätigt, verworfen oder offen",
+    "Choose why this is not your account": "Wähle, warum das nicht dein Account ist",
+    "Choose a valid security step": "Wähle einen gültigen Sicherheitsschritt",
+    "This step cannot take that state": "Dieser Schritt kann diesen Zustand nicht annehmen",
+    "The password step follows the sign-in method": "Der Passwortschritt richtet sich nach der Anmeldeart",
+    "Choose a review date within the next five years": "Wähle ein Wiedervorlagedatum innerhalb der nächsten fünf Jahre",
+    "Show your recent local changes to decisions, steps and the worklist": "Deine letzten lokalen Änderungen an Entscheidungen, Schritten und Arbeitsliste anzeigen",
+    "Undo your latest local change; external actions are never undone": "Deine letzte lokale Änderung rückgängig machen; externe Vorgänge werden nie zurückgenommen",
+    "Undo this change instead of the latest one": "Diese Änderung statt der letzten rückgängig machen",
+    "Undid one local change affecting {p0} account(s). Run undo again to go further back.": "Eine lokale Änderung an {p0} Account(s) rückgängig gemacht. Führe undo erneut aus, um weiter zurückzugehen."
   }
 }

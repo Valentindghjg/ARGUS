@@ -40,7 +40,7 @@ Hauptnutzen kommt ohne sie aus.
 
 ## Umsetzungsstand der 15 Prioritäten
 
-Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S5 (Schema und Migration).
+Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S5.
 
 | Nr. | Priorität | Stand | Im Code |
 | --- | --- | --- | --- |
@@ -51,7 +51,7 @@ Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S5 (Schema und Migrat
 | 05 | Änderungen automatisch zusammenstellen | offen | – |
 | 06 | Unverändertes nicht erneut vorlegen | teilweise | Fingerabdruck-Deduplizierung und IMAP-Checkpoints; Oberfläche blendet noch nichts aus |
 | 07 | Jobs, Pause, Wiederaufnahme vereinheitlichen | teilweise | Importsitzungen, Leases, Abbruch zwischen Nachrichten; gemeinsames Jobmodell in ADR-0001 |
-| 08 | Korrekturen erhalten und rückgängig machen | teilweise | Entscheidungen überstehen Neuauswertung; Rückgängig in ADR-0001 |
+| 08 | Korrekturen erhalten und rückgängig machen | im Store umgesetzt | Entscheidungen überstehen Neuauswertung; Protokoll und Rückgängig für Entscheidung, Schritte und Planung (CLI/API; Dashboard in S6) |
 | 09 | Nächste Aufgabe begründet vorbereiten | weitgehend | geführter Ablauf, Arbeitsliste, Prioritätsvorschau |
 | 10 | Freigaben vor externen Jobs prüfen | **umgesetzt** für geplante Scans | Zielbindung aus Host, Port, Benutzer, Anmeldeart und Ordnern; allgemeines Muster in ADR-0001 |
 | 11 | Bitwarden-Vorschau und Übergabestatus | weitgehend | Übergabejournal und Status; genaue Vorschau vor jedem Schreiben (B2) |
@@ -77,7 +77,7 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 | S2 | CI auf Linux, Windows und macOS | Installation und Plattformen | ✅ |
 | S3 | Fehler mit nächstem Schritt, Exportvorschau, präzises Produktversprechen | F4, F6, B2, G1 | ✅ |
 | S4 | Profil-Sicherung und Wiederherstellung | Installation, Migration und Sicherung | ✅ |
-| S5 | Zustandsmodell im Store mit Migration und Rückgängig | 01, 08, F5, B4, B5, E4 (Teil) | Schema, Migration, Protokoll ✅ · Verwerfen, Rückgängig offen |
+| S5 | Zustandsmodell im Store mit Migration und Rückgängig | 01, 08, F5, B4, B5, E4 (Teil) | ✅ |
 | S6 | Zustandsmodell im Dashboard | D2, A10 | offen |
 | S7 | Drei Einstiegswege, ehrliche Ergebniszusammenfassung, klare nächste Aufgabe → **2.0.0** | F2, F3, D1, 02, 09 | offen |
 | S8 | Erkennungsbegründungen, Hinweisarten und Alter | E1, E2, 03 | offen |

@@ -170,6 +170,7 @@ Weitere Entscheidungen zum Gesamtplan stehen in
    Altstände, Abbruch während der Migration, Wiederherstellung. **Umgesetzt (S5a),
    siehe Abschnitt 8.**
 2. Store/API: getrennte Felder, Änderungsprotokoll und Rückgängig für B, C und D.
+   **Umgesetzt (S5b), siehe Abschnitt 8.**
 3. Dashboard: drei Marken, Verwerfen und Rückgängig, Bedeutungstabelle in der Hilfe.
 4. Jobmodell mit globaler Pause; Freigabe-Datensatz für alle externen Lesezugriffe.
 5. Fachliche Testfälle aus dem Plan: Newsletter, SSO, mehrere Identitäten,
@@ -210,4 +211,23 @@ Weitere Entscheidungen zum Gesamtplan stehen in
   Oberfläche „Als erledigt markieren“ ohne MFA-Häkchen sendet.
 - **Kein eigener Abschlussschritt:** Der Fortschritt ist abgeleitet. Der frühere
   Schritt „finish“ der geführten Arbeitsliste entfällt.
+
+### Schritt 2 (S5b)
+
+- `Store.decide` setzt B: bestätigt, offen oder verworfen mit Grund
+  (`not_mine`, `not_an_account`, `closed`). Verwerfen nimmt den Account im selben
+  Vorgang aus der Arbeitsliste; ein Rückgängig bringt beides zurück. Neue starke
+  Belege nach dem Verwerfen setzen nur `reconsider` (Regel 2).
+- `Store.set_step` setzt einen Schritt (`open`, `done`, `not_applicable` wo
+  erlaubt) oder ein lokales Wiedervorlagedatum (`review_after`, A10). `prepared`
+  setzt nur eine bestätigte Bitwarden-Anlage. Fällige Wiedervorlagen stehen im
+  Snapshot unter `reviews_due`.
+- Alle Arbeitslisten-Aktionen werden als Planungsänderung protokolliert.
+- `Store.undo` macht den jüngsten noch nicht zurückgenommenen Vorgang rückgängig,
+  wiederholt aufgerufen auch ältere. Ein Rückgängig ist selbst ein Vorgang und
+  lässt sich gezielt zurücknehmen. Wurde ein Feld später erneut geändert, wird
+  abgelehnt statt überschrieben. Externe Vorgänge (Journal, Tresor) bleiben
+  unberührt.
+- API: `POST /api/accounts/{id}/decision`, `POST /api/accounts/{id}/steps`,
+  `POST /api/undo`, `GET /api/changes`. CLI: `argus changes`, `argus undo`.
 

@@ -96,6 +96,20 @@ See [the security review](SECURITY_REVIEW_2026-10.md) and
   backup. The 1.x fields `classification`, `status` and `checklist` remain in
   the API, derived from the new fields, until the next major version.
 
+### Reject, dated reviews and undo (ADR-0001, F5, A9, A10 groundwork)
+
+- An account can be rejected with a reason (not mine, not an account, closed).
+  A rejected account leaves lists, the worklist and suggestions; new strong
+  evidence only shows a hint and never reverses your decision.
+- Each security step can carry a local review date; due reviews are listed per
+  account.
+- Undo reverts your latest local change, and repeating it goes further back.
+  A value you changed again later is never overwritten, and external actions
+  (Bitwarden items, scans) are never undone. Worklist actions are part of the
+  history.
+- New API routes for decisions, steps, undo and history; new CLI commands
+  `argus changes` and `argus undo`. The dashboard follows in the next step.
+
 ### Security and robustness
 
 - **Approvals are bound to their target (master plan priority 10).** Scheduled

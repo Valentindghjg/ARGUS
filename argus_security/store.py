@@ -14,8 +14,9 @@ from .instances import (SCHEMA as INSTANCE_SCHEMA, defer_in_queue, direct_identi
                         owned_emails, read_steps, rebuild_from_v1, synchronize_instances, write_step)
 from .registry import Registry
 from .changes import ChangeBatch, planning
-from .states import (LEGACY_CHECKLIST, LEGACY_STEPS, default_steps, evidence_level,
-                     legacy_checklist, legacy_classification, legacy_status, progress)
+from .states import (DECISIONS, LEGACY_CHECKLIST, LEGACY_STEPS, REJECT_REASONS, STEPS, default_steps,
+                     evidence_level, legacy_checklist, legacy_classification, legacy_status, progress,
+                     review_date, valid_step_state)
 
 # The 1.x checklist keys; the API and snapshot keep them for one major version.
 CHECKLIST = LEGACY_CHECKLIST
@@ -299,6 +300,7 @@ class Store:
             own = owned_emails(db)
         from .workflow import effectively_deferred, utcnow
         moment = utcnow()
+        today = moment.date().isoformat()
         grouped = {}
         unassigned = {}
         candidates = {}
@@ -363,6 +365,8 @@ class Store:
                     "reconsider": decision == "rejected" and any(
                         e["id"] > (state["decided_evidence_id"] or 0) and e["score"] >= 60 and not e["outdated"] for e in found),
                     "steps": steps, "progress": progress_value, "completed_at": completed_at,
+                    "reviews_due": sorted(step for step, value in steps.items()
+                                          if value["review_after"] and value["review_after"] <= today),
                     "in_worklist": bool(planned), "deferred": deferred,
                     "registered_emails": [email] if email else [], "manual_email": state["manual_email"],
                     "evidence": found[:30], "evidence_count": len(found),
@@ -530,6 +534,91 @@ class Store:
                        (priority, method, manual_email, identity_email, review, label, new_decision["decision"],
                         new_decision["reason"], new_decision["decided_at"], decided_evidence, moment, account_id))
             batch.close()
+
+    def _account_row(self, db, account_id):
+        if not isinstance(account_id, str):
+            raise UserFacingError("Invalid account update")
+        row = db.execute("SELECT * FROM account_instances WHERE id=?", (account_id,)).fetchone()
+        if row is None:
+            if account_id not in self.registry.providers:
+                raise UserFacingError("Invalid account update")
+            insert_instance(db, account_id, ident=account_id)
+            row = db.execute("SELECT * FROM account_instances WHERE id=?", (account_id,)).fetchone()
+        return dict(row)
+
+    def decide(self, account_id, decision, reason=None):
+        """Axis B: the person confirms, rejects (with a reason) or reopens an account.
+
+        Rejecting takes the account out of the worklist in the same logged batch,
+        so one undo brings both back. Evidence is never changed.
+        """
+        if decision not in DECISIONS:
+            raise UserFacingError("Choose confirmed, rejected or undecided")
+        if (decision == "rejected") != (reason is not None) or (reason is not None and reason not in REJECT_REASONS):
+            raise UserFacingError("Choose why this is not your account")
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            state = self._account_row(db, account_id)
+            old = {"decision": state["decision"], "reason": state["decision_reason"], "decided_at": state["decided_at"]}
+            if old["decision"] == decision and old["reason"] == reason:
+                return {"ok": True, "batch": None}
+            new = {"decision": decision, "reason": reason, "decided_at": None if decision == "undecided" else now()}
+            batch = ChangeBatch(db)
+            batch.record(account_id, "decision", old, new)
+            mark = db.execute("SELECT COALESCE(MAX(id),0) FROM evidence").fetchone()[0]
+            db.execute("""UPDATE account_instances SET decision=?,decision_reason=?,decided_at=?,decided_evidence_id=?,
+                          updated=? WHERE id=?""", (decision, reason, new["decided_at"], mark, now(), account_id))
+            if decision == "rejected":
+                before = planning(db, account_id)
+                db.execute("DELETE FROM instance_work_queue WHERE account_id=?", (account_id,))
+                batch.record(account_id, "planning", before, planning(db, account_id))
+            return {"ok": True, "batch": batch.close()}
+
+    def set_step(self, account_id, step, *, state=UNCHANGED, review_after=UNCHANGED):
+        """Axis C: the person sets one step, or a local review date for it (A10).
+
+        "prepared" is only ever set by a confirmed Bitwarden creation, and an
+        account under identity review cannot have its identity step done.
+        """
+        if step not in STEPS:
+            raise UserFacingError("Choose a valid security step")
+        if state is not UNCHANGED and (state == "prepared" or not valid_step_state(step, state)):
+            raise UserFacingError("This step cannot take that state")
+        if review_after is not UNCHANGED and review_after is not None:
+            review_after = review_date(review_after)
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            account = self._account_row(db, account_id)
+            if step == "identity" and state == "done" and account["identity_review_required"]:
+                raise UserFacingError("Identify this account before marking it done")
+            if step == "password" and state is not UNCHANGED and (state == "not_applicable") != (account["login_method"] != "password"):
+                raise UserFacingError("The password step follows the sign-in method")
+            current = read_steps(db, account_id, account["login_method"])[step]
+            new = dict(current)
+            if state is not UNCHANGED and state != current["state"]:
+                new.update(state=state, done_at=None if state == "open" else now())
+            if review_after is not UNCHANGED:
+                new["review_after"] = review_after
+            batch = ChangeBatch(db)
+            if new != current:
+                write_step(db, account_id, step, new)
+                batch.record(account_id, "step:" + step, current, new)
+                db.execute("UPDATE account_instances SET updated=? WHERE id=?", (now(), account_id))
+            return {"ok": True, "batch": batch.close()}
+
+    def undo(self, batch=None):
+        """Revert one logged local change (ADR-0001, rule 3); external effects stay."""
+        from .changes import undo
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            return undo(db, batch)
+
+    def recent_changes(self, limit=20):
+        from .changes import recent
+        if type(limit) is not int or not 1 <= limit <= 200:
+            raise UserFacingError("Invalid account update")
+        with self.connect() as db:
+            return recent(db, limit)
 
     @staticmethod
     def _account_label(value):
