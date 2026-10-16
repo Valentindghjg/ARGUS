@@ -44,9 +44,25 @@ const exportChoices=new Map();
 const worklistChoices=new Map();
 let bitwardenAudit=null;
 let workflowBusy=false, bitwardenBusy=false;
-const workflowSteps={identify:"Identify this account before preparing Bitwarden.",review:"Review this account and confirm it exists.",bitwarden:"Assign an existing Bitwarden item or prepare a missing one.",change_password:"Use Bitwarden to set a unique password at the provider.",test_signin:"Test the sign-in before completing this account.",mfa:"Review multi-factor authentication and recovery, then complete this step.",finish:"Required steps are checked. You can mark this account done.",done:"This account is complete."};
-function accountStep(account){return account.identity_review_required?"identify":account.status==="done"?"done":!account.checklist.reviewed?"review":!account.checklist.saved_in_bitwarden?"bitwarden":account.login_method==="password"&&!account.checklist.password_changed?"change_password":!account.checklist.login_tested?"test_signin":!account.checklist.mfa_checked?"mfa":"finish";}
-const labels = {confirmed:"Confirmed",probable:"Probable",unknown:"Unknown",pending:"Pending",in_progress:"In progress",done:"Done",skipped:"Deferred",critical:"Do first",high:"High",normal:"Normal"};
+const workflowSteps={identify:"Identify this account before preparing Bitwarden.",review:"Review this account and confirm it exists.",identity:"Check how you sign in to this account.",bitwarden:"Assign an existing Bitwarden item or prepare a missing one.",change_password:"Use Bitwarden to set a unique password at the provider.",test_signin:"Test the sign-in before completing this account.",mfa:"Review multi-factor authentication and recovery, then complete this step.",done:"This account is complete."};
+// The server derives the next step from the account's own steps (ADR-0001).
+function accountStep(account){return account.next_step;}
+const labels = {confirmed:"Confirmed",probable:"Probable",unknown:"Unknown",critical:"Do first",high:"High",normal:"Normal"};
+// Three separate marks (plan D2): evidence (automatic), decision (yours), progress (your steps).
+const evidenceLabels={none:"No evidence",weak:"Weak evidence",probable:"Probable",stale:"Older evidence"};
+const decisionLabels={undecided:"Open",confirmed:"Confirmed by you",rejected:"Rejected"};
+const reasonLabels={not_mine:"Not mine",not_an_account:"Not an account",closed:"Closed"};
+const progressLabels={not_started:"Not started",in_progress:"In progress",complete:"Complete"};
+const STEP_ORDER=["identity","vault","password","signin_test","mfa_recovery"];
+const stepTitles={
+  identity:["I checked how I sign in to this account","The sign-in address or username is right and belongs to me."],
+  vault:["Stored in Bitwarden","Use an existing item or save a new one directly in Bitwarden, with the password."],
+  password:["Unique password set at the provider","Generate it in Bitwarden and change it yourself at the provider. Never enter it here."],
+  signin_test:["Sign-in tested","Sign in successfully using the new password, passkey or central identity provider."],
+  mfa_recovery:["MFA and recovery reviewed","Enable multi-factor authentication if available and store recovery codes securely."]
+};
+const stepNames={identity:"Sign-in checked",vault:"Stored in Bitwarden",password:"Unique password",signin_test:"Sign-in tested",mfa_recovery:"MFA and recovery"};
+const stateLabels={open:"open",done:"done",not_applicable:"not applicable",prepared:"prepared"};
 const titles = {
   dashboard:["Your accounts, in one place.","Find local evidence and secure your accounts with Bitwarden.","Overview"],
   accounts:["Your digital inventory.","Review your clues and keep unknown services in view.","All accounts"],
@@ -74,7 +90,20 @@ function problem(id,message,hint){
 }
 function error(message,hint){problem("error",message,hint);}
 function failure(e){error(e.message,e.hint);}
-function toast(message) { setMessage("toast",canonicalMessage(message)); $("toast").classList.remove("hidden"); setTimeout(()=>$("toast").classList.add("hidden"),3000); }
+let toastTimer=null,toastBatch=null;
+// A toast after a local change offers to undo exactly that change (ADR-0001, rule 3).
+function toast(message,batch=null){
+  // A modal dialog makes the page behind it inert, so the toast moves into it.
+  const host=[$("export-preview"),$("account-dialog")].find(dialog=>dialog.open)||document.body;
+  if($("toast").parentElement!==host)host.append($("toast"));
+  setMessage("toast-text",canonicalMessage(message));toastBatch=batch;
+  $("toast-undo").classList.toggle("hidden",!batch);$("toast").classList.remove("hidden");
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>{$("toast").classList.add("hidden");toastBatch=null;},batch?8000:3000);
+}
+async function undoChange(batch){
+  try{await api("/api/undo",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({batch})});await refresh();if($("account-dialog").open)renderDetail();toast(t("Change undone locally."));}
+  catch(e){failure(e);}
+}
 function localFailure(){
   const failed=new Error("Local request failed.");
   failed.hint="Check that the ARGUS terminal is still running, then reload this page.";
@@ -93,8 +122,10 @@ async function api(path, options={}) {
   }
   return response.json();
 }
+let history=[];
 async function refresh() {
-  state=await api("/api/accounts");
+  const [snapshot,changes]=await Promise.all([api("/api/accounts"),api("/api/changes")]);
+  state=snapshot;history=changes.changes;
   renderState();
 }
 function renderState() {
@@ -126,7 +157,26 @@ function renderState() {
   $("add-alias-button").disabled=state.demo||addingAlias||Boolean(activeBatch||state.active_import);
   $("alias-email").disabled=state.demo;$("alias-owned").disabled=state.demo;
   if(state.demo)setMessage("alias-message","Add real own addresses in a personal profile on your computer. The demo profile stays separate.");
-  renderRows();renderCandidates();renderExport();renderBitwardenAudit();renderWorklist();renderGuided();renderHandoffs();
+  renderRows();renderCandidates();renderExport();renderBitwardenAudit();renderWorklist();renderGuided();renderHandoffs();renderHistory();
+}
+function describeChange(change){
+  const account=state.accounts.find(a=>a.id===change.account_id),name=account?accountTitle(account):t("Account no longer available");
+  if(change.field==="decision")return `${name} · ${t(decisionLabels[change.new.decision])}${change.new.reason?" ("+t(reasonLabels[change.new.reason])+")":""}`;
+  if(change.field==="planning")return `${name} · ${t(!change.new.queued?"Removed from the worklist":change.new.deferred?"Deferred in the worklist":"Planned in the worklist")}`;
+  const step=change.field.slice(5);
+  if(change.old.state===change.new.state&&change.old.review_after!==change.new.review_after)return `${name} · ${t(stepNames[step])}: ${change.new.review_after?t("review on {date}",{date:localDate(change.new.review_after)}):t("no review date")}`;
+  return `${name} · ${t(stepNames[step])}: ${t(stateLabels[change.new.state])}`;
+}
+function renderHistory(){
+  const shown=history.slice(0,10);
+  $("history-items").replaceChildren(...shown.map(entry=>{
+    const card=node("article",undefined,"worklist-item");
+    card.append(node("strong",entry.changes.map(describeChange).join(" · ")));
+    card.append(node("p",`${localDate(entry.at)}${entry.undo_of?" · "+t("Undo of an earlier change"):""}${entry.undone?" · "+t("Undone"):""}`));
+    const actions=node("div",undefined,"bitwarden-actions");
+    actions.append(actionButton("Undo",()=>undoChange(entry.batch),entry.undone));card.append(actions);return card;
+  }));
+  if(!shown.length)$("history-items").append(node("p",t("No local changes yet.")));
 }
 function scanDescription(scan){
   if(!scan)return t("No scan started yet.");
@@ -166,15 +216,27 @@ function navigate(next,clearError=true){
 }
 function filtered(){
   const query=$("search").value.toLocaleLowerCase(language);
-  const category=$("category").value,classification=$("classification").value,status=$("status-filter").value;
+  const category=$("category").value,choice=$("classification").value,progressFilter=$("status-filter").value;
   return state.accounts.filter(a=>{
-    if(view==="security" && (a.priority==="normal" || a.classification==="unknown" || a.status==="done"))return false;
+    if(view==="security" && (a.priority==="normal" || a.classification==="unknown" || a.progress==="complete"))return false;
     if(category&&a.category!==category)return false;
-    if(classification==="found"&&a.classification==="unknown")return false;
-    if(!["found","all"].includes(classification)&&a.classification!==classification)return false;
-    if(status&&a.status!==status)return false;
+    if(choice==="found"&&a.classification==="unknown")return false;
+    if(choice==="confirmed"&&a.decision!=="confirmed")return false;
+    if(choice==="evidence"&&!(a.decision==="undecided"&&a.evidence_level==="probable"))return false;
+    if(choice==="unknown"&&!(a.decision==="undecided"&&a.evidence_level!=="probable"))return false;
+    if(choice==="rejected"&&a.decision!=="rejected")return false;
+    if(progressFilter==="deferred"&&!a.deferred)return false;
+    if(progressFilter&&progressFilter!=="deferred"&&a.progress!==progressFilter)return false;
     return `${accountTitle(a)} ${a.category} ${t(a.category)} ${a.registered_emails.join(" ")}`.toLocaleLowerCase(language).includes(query);
   });
+}
+function evidenceMark(a){return node("span",t(evidenceLabels[a.evidence_level]),`chip mark ${a.evidence_level==="probable"?"probable":"unknown"}`);}
+function decisionMark(a){return node("span",t(decisionLabels[a.decision]),`chip mark decision-${a.decision} ${a.decision==="confirmed"?"confirmed":"unknown"}`);}
+function progressText(a){
+  if(a.progress==="complete")return a.completed_at?t("Complete on {date}",{date:localDate(a.completed_at)}):t("Complete");
+  const applicable=STEP_ORDER.filter(step=>a.steps[step].state!=="not_applicable");
+  const done=applicable.filter(step=>a.steps[step].state==="done").length;
+  return t("{done} of {total} steps",{done,total:applicable.length})+(a.deferred?" · "+t("Deferred"):"");
 }
 function renderRows(){
   const rows=filtered();$("visible-count").textContent=t("{p0} items",{p0:(rows.length)});
@@ -182,11 +244,13 @@ function renderRows(){
   for(const a of rows){
     const tr=node("tr");const provider=node("td");const flex=node("div",undefined,"provider-cell");flex.append(node("span",a.name[0],"avatar"));
     const info=node("div");info.append(node("strong",accountTitle(a)),node("small",a.identity_review_required?t("Identify this account before preparing Bitwarden."):t(a.category)));flex.append(info);provider.append(flex);
-    const detected=node("td");detected.append(node("span",t(labels[a.classification]),`chip ${a.classification}`));detected.append(node("small",a.classification==="confirmed"?t("Reviewed by you"):a.score?t("Clue strength {p0}/100",{p0:(a.score)}):t("No reliable clue"),"evidence-hint"));
+    const evidence=node("td");evidence.append(evidenceMark(a),node("small",a.score?t("Clue strength {p0}/100",{p0:(a.score)}):t("No reliable clue"),"evidence-hint"));
+    const decision=node("td");decision.append(decisionMark(a));
+    if(a.reconsider)decision.append(node("small",t("New evidence since your decision"),"evidence-hint"));
+    const progressCell=node("td");progressCell.append(node("span",progressText(a),`status ${a.progress}`));
     const priority=node("td");priority.append(node("span",t(labels[a.priority]),`priority ${a.priority}`));
-    const status=node("td");status.append(node("span",t(labels[a.status]),`status ${a.status}`));
     const action=node("td");const button=node("button",t("Review →"),"row-open");button.setAttribute("aria-label",t("Review {p0}",{p0:reviewTitle(a)}));button.onclick=()=>openDetail(a.id);action.append(button);
-    tr.append(provider,detected,priority,status,action);fragment.append(tr);
+    tr.append(provider,evidence,decision,progressCell,priority,action);fragment.append(tr);
   }
   $("account-rows").replaceChildren(fragment);$("empty").classList.toggle("hidden",rows.length>0);
 }
@@ -202,6 +266,38 @@ function evidenceCard(e){
   const card=node("div",t(e.reason),"evidence-card");let date=t("Date unknown");
   if(e.date){const parsed=new Date(e.date);if(!Number.isNaN(parsed.getTime()))date=parsed.toLocaleDateString(language==="de"?"de-DE":"en-GB",{day:"numeric",month:"short",year:"numeric"});}
   card.append(node("small",`${e.sender_domain} · ${date} · ${e.source} · ${t("Strength {score}/100",{score:e.score})}${e.caveat?" · "+translateCaveat(e.caveat):""}`));return card;
+}
+function stepMeta(a,step){
+  const value=a.steps[step];
+  if(value.state==="prepared")return t("Prepared by ARGUS on {date}: a password-free item exists. Tick this step once the password is stored in Bitwarden.",{date:localDate(value.done_at)});
+  if(value.state==="not_applicable"&&step==="password")return t("Not needed: you sign in with single sign-on or a passkey.");
+  if(value.state==="not_applicable")return value.done_at?t("Marked not applicable on {date}.",{date:localDate(value.done_at)}):t("Marked not applicable.");
+  if(value.state==="done")return value.done_at?t("Done on {date}.",{date:localDate(value.done_at)}):t("Done.");
+  return "";
+}
+function stepRow(a,step,busy){
+  const value=a.steps[step],[title,description]=stepTitles[step];
+  const label=node("label",undefined,"check-item"),checkbox=node("input",undefined,"step-check");checkbox.type="checkbox";checkbox.dataset.step=step;checkbox.checked=value.state==="done";
+  checkbox.disabled=busy||(step==="identity"&&a.identity_review_required)||value.state==="not_applicable";
+  checkbox.onchange=()=>setStep(step,{state:checkbox.checked?"done":"open"});
+  const text=node("span",t(title));text.append(node("small",t(description)));
+  const meta=stepMeta(a,step);if(meta)text.append(node("small",meta,"step-meta"));
+  if(a.reviews_due.includes(step))text.append(node("small",t("Review due: check this step again."),"step-meta review-due"));
+  const extra=node("span",undefined,"step-extra");
+  if(step==="mfa_recovery"){
+    const optional=node("input");optional.type="checkbox";optional.checked=value.state==="not_applicable";optional.disabled=busy||value.state==="done";
+    optional.setAttribute("aria-label",t("MFA is not offered or not used"));optional.onchange=()=>setStep(step,{state:optional.checked?"not_applicable":"open"});
+    const optionalLabel=node("label");optionalLabel.append(optional,node("span",t("Not offered or not used")));extra.append(optionalLabel);
+  }
+  if(value.state==="done"||value.state==="not_applicable"){
+    const picker=node("input");picker.type="date";picker.min=localDateInput(1);picker.max=localDateInput(5*365);picker.value=value.review_after||"";picker.disabled=busy;
+    picker.setAttribute("aria-label",t("Review again on"));
+    picker.onchange=()=>{if(picker.value)setStep(step,{review_after:picker.value});};
+    const pickerLabel=node("label");pickerLabel.append(node("span",t("Review again on")),picker);extra.append(pickerLabel);
+    if(value.review_after){const clear=node("button",t("No review date"),"text-button");clear.type="button";clear.disabled=busy;clear.onclick=event=>{event.preventDefault();setStep(step,{review_after:null});};extra.append(clear);}
+  }
+  if(extra.childNodes.length)text.append(extra);
+  label.append(checkbox,text);return label;
 }
 function renderDetail(){
   const a=state.accounts.find(x=>x.id===selected);if(!a)return;
@@ -219,19 +315,27 @@ function renderDetail(){
   providerButton.textContent=t("Open verified provider page ↗");
   providerButton.href=a.password_url||"#";
   const guidedBitwarden=$("guided-prepare-bitwarden");
-  guidedBitwarden.classList.toggle("hidden",step!=="bitwarden"||!guidedCurrent);
+  guidedBitwarden.classList.toggle("hidden",step!=="bitwarden"||!guidedCurrent||a.steps.vault.state==="prepared");
   guidedBitwarden.disabled=busy||bitwardenBusy||state.demo;
-  const completion={review:"reviewed",change_password:"password_changed",test_signin:"login_tested",mfa:"mfa_checked",finish:"done"}[step];
+  const completion=guidedCompletion[step];
   const completeButton=$("guided-complete-step");
   completeButton.classList.toggle("hidden",!guidedCurrent||!completion);
   completeButton.dataset.completion=completion||"";
-  completeButton.textContent=t(completion==="done"?"Mark account done":"I completed this step");
+  completeButton.textContent=t("I completed this step");
   completeButton.disabled=busy||!completion;
-  $("detail-bitwarden").disabled=busy||bitwardenBusy||a.identity_review_required||a.classification==="unknown"||a.checklist.saved_in_bitwarden;
+  $("detail-bitwarden").disabled=busy||bitwardenBusy||a.identity_review_required||a.classification==="unknown"||a.steps.vault.state!=="open";
   $("identity-review-note").classList.toggle("hidden",!a.identity_review_required);
   $("identity-bound-note").classList.toggle("hidden",!a.identity_email);
   $("identity-caution-note").classList.toggle("hidden",!state.accounts.some(other=>other.id!==a.id&&(other.provider_id||other.id)===(a.provider_id||a.id)));
-  $("detail-meta").replaceChildren(node("span",t(labels[a.classification]),`chip ${a.classification}`),node("p",`${t(a.category)} · ${a.registered_emails.join(", ")||t("Sign-in address not known from evidence")}`),node("p",t(a.reason)));
+  $("detail-marks").replaceChildren(evidenceMark(a),decisionMark(a),node("span",progressText(a),`chip mark soft`));
+  $("detail-meta").replaceChildren(node("p",`${t(a.category)} · ${a.registered_emails.join(", ")||t("Sign-in address not known from evidence")}`),node("p",t(a.evidence_reason)));
+  const decided=a.decided_at?localDate(a.decided_at):"";
+  $("decision-status").textContent=a.decision==="confirmed"?t("Confirmed by you on {date}.",{date:decided}):a.decision==="rejected"?t("Rejected on {date}: {reason}.",{date:decided,reason:t(reasonLabels[a.decision_reason])}):t("Not decided yet. Evidence alone never confirms an account.");
+  $("reconsider-note").classList.toggle("hidden",!a.reconsider);
+  $("decide-confirm").disabled=busy||a.decision==="confirmed";
+  $("decide-reject").disabled=busy||(a.decision==="rejected"&&a.decision_reason===$("reject-reason").value);
+  $("reject-reason").disabled=busy;
+  $("decide-reset").disabled=busy||a.decision==="undecided";
   const links=[link(t("Official website ↗"),a.website)];
   if(a.password_url){links.push(link(t("Documented password settings ↗"),a.password_url),link(t("Source · checked {p0} ↗",{p0:(a.password_verified)}),a.password_source));}
   else links.push(node("span",t("No verified direct password-settings link."),"small-muted"));
@@ -247,36 +351,33 @@ function renderDetail(){
   newAccountEmail.value=state.emails.includes(previousEmail)?previousEmail:"";
   for(const id of ["new-account-email","new-account-label","new-account-owned","add-account-button"])$(id).disabled=busy;
   $("sso-note").classList.toggle("hidden",a.login_method==="password");
-  const steps=[
-    ["reviewed",t("I verified that this account exists"),t("Confirm only after your own review. An email clue alone is not enough.")],
-    ["saved_in_bitwarden",t("Assigned in Bitwarden"),t("Use an existing item or save a new one directly in Bitwarden.")],
-    ["password_changed",t("Unique password set at the provider"),t("Generate it in Bitwarden and change it yourself at the provider. Never enter it here.")],
-    ["login_tested",t("Sign-in tested"),t("Sign in successfully using the new password, passkey or central identity provider.")],
-    ["mfa_checked",t("MFA and recovery reviewed (recommended)"),t("Enable multi-factor authentication if available and store recovery codes securely.")]
-  ];
-  const items=[];
-  for(const [key,title,description] of steps){
-    if(key==="password_changed"&&a.login_method!=="password")continue;
-    const label=node("label",undefined,"check-item");const checkbox=node("input");checkbox.type="checkbox";checkbox.checked=a.checklist[key];checkbox.disabled=busy;
-    checkbox.onchange=()=>update({checklist:{[key]:checkbox.checked}});
-    const text=node("span",title);text.append(node("small",description));label.append(checkbox,text);items.push(label);
-  }
-  $("checklist").replaceChildren(...items);
+  $("checklist").replaceChildren(...STEP_ORDER.map(step=>stepRow(a,step,busy)));
+  $("progress-status").textContent=a.progress==="complete"?t("Complete on {date}: every step is done or not applicable. This is not a security guarantee.",{date:localDate(a.completed_at)}):progressText(a);
   $("detail-evidence").replaceChildren(...(a.evidence.length?a.evidence.map(evidenceCard):[node("p",t("No local evidence. This does not prove that an account does not exist."),"small-muted")]));
   const sharedClues=a.unassigned_evidence||[];
   $("shared-evidence-panel").classList.toggle("hidden",!sharedClues.length);
   $("shared-evidence").replaceChildren(...sharedClues.map(evidenceCard));
-  const required=["reviewed","saved_in_bitwarden","login_tested",...(a.login_method==="password"?["password_changed"]:[])];
-  $("finish-account").disabled=busy||a.identity_review_required||!required.every(k=>a.checklist[k]);
-  $("finish-account").textContent=a.status==="done"?t("Already done"):t("Mark as done");
-  $("login-method").disabled=busy;$("registered-email").disabled=busy||Boolean(a.identity_email);$("detail-priority").disabled=busy;$("defer-account").disabled=busy;
+  $("login-method").disabled=busy;$("registered-email").disabled=busy||Boolean(a.identity_email);$("detail-priority").disabled=busy;
+  $("defer-account").disabled=busy||workflowBusy||(a.evidence_level==="none"&&a.decision==="undecided")||a.deferred||a.decision==="rejected";
 }
+// Attribute changes (address, sign-in method, priority) use the account update.
 async function update(change){
   if(saving||addingAccount)return;saving=true;renderDetail();$("detail-error").classList.add("hidden");
-  try{await api(`/api/accounts/${encodeURIComponent(selected)}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(change)});await refresh();toast(t("Change saved locally."));if(change.status==="done"&&view==="workflow"&&!state.workflow.paused&&state.workflow.current)selected=state.workflow.current;}
+  try{await api(`/api/accounts/${encodeURIComponent(selected)}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(change)});await refresh();toast(t("Change saved locally."));}
   catch(e){problem("detail-error",e.message,e.hint);}
   finally{saving=false;renderDetail();}
 }
+// Decisions and steps are logged; the toast offers to undo exactly this change.
+async function accountAction(kind,body,message){
+  if(saving||addingAccount)return false;saving=true;renderDetail();$("detail-error").classList.add("hidden");
+  try{
+    const result=await api(`/api/accounts/${encodeURIComponent(selected)}/${kind}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    await refresh();toast(t(message),result.batch);return true;
+  }catch(e){problem("detail-error",e.message,e.hint);return false;}
+  finally{saving=false;renderDetail();}
+}
+function decide(decision,reason){return accountAction("decision",reason?{decision,reason}:{decision},"Decision saved locally.");}
+function setStep(step,body){return accountAction("steps",{step,...body},"Step saved locally.");}
 async function addLocalAccount(event){
   event.preventDefault();if(addingAccount||saving||!$("new-account-owned").checked)return;
   const account=state.accounts.find(a=>a.id===selected);if(!account)return;
@@ -289,7 +390,7 @@ async function addLocalAccount(event){
   finally{addingAccount=false;renderDetail();}
 }
 function renderExport(){
-  const items=state.accounts.filter(a=>a.classification!=="unknown"&&!a.checklist.saved_in_bitwarden);
+  const items=state.accounts.filter(a=>a.classification!=="unknown"&&a.steps.vault.state==="open");
   const eligible=new Set(items.filter(a=>!a.identity_review_required).map(a=>a.id));
   for(const id of exportChoices.keys())if(!eligible.has(id))exportChoices.delete(id);
   $("export-selection").replaceChildren(...items.map(a=>{
@@ -352,7 +453,7 @@ function renderWorklist(){
   }));
   if(!workflow.items.length)$("worklist-items").append(node("p",t("Your worklist is empty. Choose accounts below.")));
   const queued=new Set(workflow.items.map(item=>item.id));
-  const available=state.accounts.filter(a=>a.classification!=="unknown"&&a.status!=="done"&&!queued.has(a.id));
+  const available=state.accounts.filter(a=>a.classification!=="unknown"&&a.progress!=="complete"&&!queued.has(a.id));
   const eligible=new Set(available.map(a=>a.id));
   for(const id of worklistChoices.keys())if(!eligible.has(id))worklistChoices.delete(id);
   $("worklist-selection").replaceChildren(...available.map(account=>{
@@ -365,12 +466,12 @@ function renderWorklist(){
 }
 function guidedStepCopy(account,step){
   if(step==="identify")return t("This account needs an assigned sign-in address first.");
-  if(step==="review")return t("Confirm the account after your own review, then complete this checklist step.");
+  if(step==="review")return t("Confirm the account after your own review. Evidence alone never confirms it.");
+  if(step==="identity")return t("Make sure the sign-in address or username is right and belongs to you, then complete this step.");
   if(step==="bitwarden")return t("Prepare an empty Bitwarden item for this exact account. ARGUS never generates or handles its password.");
   if(step==="change_password")return account.password_url?t("Open the verified provider page, change the password in your browser, then return here and complete the checklist step."):t("No verified password-settings link is available. Open the provider website and navigate manually.");
   if(step==="test_signin")return t("Test the sign-in yourself, then complete this checklist step.");
   if(step==="mfa")return t("Review multi-factor authentication and recovery options yourself, then complete this checklist step.");
-  if(step==="finish")return t("Required steps are checked. You can mark this account done.");
   return t("This account is complete.");
 }
 function renderGuided(){
@@ -533,14 +634,17 @@ async function createGuidedItem(accountId,transferLanguage){
   }catch(e){failure(e);try{await refresh();}catch(_){} }
   finally{bitwardenBusy=false;renderExport();renderHandoffs();if($("account-dialog").open)renderDetail();}
 }
+// Guided step -> what the person confirms: the decision or one dated step.
+const guidedCompletion={review:"decision",identity:"identity",change_password:"password",test_signin:"signin_test",mfa:"mfa_recovery"};
 async function completeGuidedStep(){
   const account=state.accounts.find(item=>item.id===selected);
   const completion=$("guided-complete-step").dataset.completion;
   if(!account||account.id!==state.workflow.current||!completion||saving)return;
-  const change=completion==="done"?{status:"done"}:{checklist:{[completion]:true}};
-  const message=completion==="done"?"Confirm that you completed every required step for this account.":"Confirm that you completed this step yourself. ARGUS will only record your confirmation locally.";
-  if(!window.confirm(t(message)))return;
-  await update(change);
+  if(!window.confirm(t("Confirm that you completed this step yourself. ARGUS will only record your confirmation locally.")))return;
+  const saved=completion==="decision"?await decide("confirmed"):await setStep(completion,{state:"done"});
+  // A finished account hands the dialog to the next account of the worklist.
+  const updated=state.accounts.find(item=>item.id===account.id);
+  if(saved&&updated&&updated.next_step==="done"&&!state.workflow.paused&&state.workflow.current){selected=state.workflow.current;renderDetail();}
 }
 // File names stay in this browser tab; the server only learns a skip count.
 function skipReason(file){
@@ -607,8 +711,12 @@ $("registered-email").onchange=()=>{
 };
 $("add-account-form").onsubmit=addLocalAccount;
 $("detail-priority").onchange=()=>update({priority:$("detail-priority").value});
-$("defer-account").onclick=()=>update({status:"skipped"});
-$("finish-account").onclick=()=>update({status:"done"});
+$("defer-account").onclick=()=>changeWorklist({action:"defer",id:selected});
+$("decide-confirm").onclick=()=>decide("confirmed");
+$("decide-reject").onclick=()=>decide("rejected",$("reject-reason").value);
+$("decide-reset").onclick=()=>decide("undecided");
+$("reject-reason").onchange=renderDetail;
+$("toast-undo").onclick=()=>{const batch=toastBatch;$("toast").classList.add("hidden");toastBatch=null;if(batch)undoChange(batch);};
 $("export-button").onclick=exportMetadata;
 $("preview-confirm").onclick=confirmPreview;
 $("preview-cancel").onclick=()=>$("export-preview").close();

@@ -110,6 +110,21 @@ See [the security review](SECURITY_REVIEW_2026-10.md) and
 - New API routes for decisions, steps, undo and history; new CLI commands
   `argus changes` and `argus undo`. The dashboard follows in the next step.
 
+### Dashboard: three marks, decisions, dated steps and undo (D2, A10, F5)
+
+- The account list and dialog show three separate marks: evidence, your
+  decision and progress. The meaning of each is explained below the list.
+- The dialog asks “Is this your account?” with confirm, reject with a reason
+  and undecided, and lists five dated steps. MFA can be marked as not offered or
+  not used, and done steps can get a local review date. A prepared vault item is
+  labelled as such. The “Mark as done” button is gone: completion follows the
+  steps.
+- Every decision and step offers Undo in the toast, and “Your recent changes” in
+  the worklist lists the history with Undo per change.
+- Filters now separate evidence and decision (confirmed by you, evidence only,
+  no evidence, rejected) and progress (not started, in progress, complete,
+  deferred). “Defer” plans the account in the worklist.
+
 ### Security and robustness
 
 - **Approvals are bound to their target (master plan priority 10).** Scheduled

@@ -65,8 +65,10 @@ def next_step(account):
     if account["progress"] == "complete":
         return "done"
     steps = account["steps"]
-    if account["decision"] != "confirmed" or steps["identity"]["state"] != "done":
+    if account["decision"] != "confirmed":
         return "review"
+    if steps["identity"]["state"] != "done":
+        return "identity"
     for step, name in (("vault", "bitwarden"), ("password", "change_password"), ("signin_test", "test_signin"),
                        ("mfa_recovery", "mfa")):
         if steps[step]["state"] not in {"done", "not_applicable"}:
@@ -212,9 +214,16 @@ def change_worklist(store, data):
         resume_after = custom_snooze_date(data["date"], utcnow()) if action == "snooze_until" else None
         with store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
-            if not db.execute("SELECT 1 FROM instance_work_queue WHERE account_id=?", (account_id,)).fetchone():
-                raise UserFacingError("Account is not in the worklist")
+            queued = db.execute("SELECT 1 FROM instance_work_queue WHERE account_id=?", (account_id,)).fetchone()
             before = planning(db, account_id)
+            if not queued and action == "defer":
+                # Deferring plans the account for later, so it joins the worklist deferred.
+                if not db.execute("SELECT 1 FROM account_instances WHERE id=?", (account_id,)).fetchone():
+                    raise UserFacingError("Invalid worklist account")
+                position = db.execute("SELECT COALESCE(MAX(position),0) FROM instance_work_queue").fetchone()[0] + 1
+                db.execute("INSERT INTO instance_work_queue(account_id,position) VALUES (?,?)", (account_id, position))
+            elif not queued:
+                raise UserFacingError("Account is not in the worklist")
             if action == "remove":
                 db.execute("DELETE FROM instance_work_queue WHERE account_id=?", (account_id,))
             elif action in {"defer", "restore"}:

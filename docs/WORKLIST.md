@@ -30,9 +30,10 @@ provider password automatically.
    the steps you actually completed.
    SSO and passkey accounts do not require a separate password change.
    For the current guided account, **I completed this step** asks for a second
-   local confirmation and then records only that matching checklist step.
-6. Choose **Mark as done**. While viewing the worklist, the dialog advances to the
-   next available account. Required checkboxes alone do not mark an account done.
+   local confirmation and then records only that matching step with its date.
+6. The account is complete once every step is done or not applicable; there is
+   no separate “done” button. While viewing the worklist, the dialog then
+   advances to the next available account. Any step can be undone.
 7. **Pause worklist** preserves your place. **Defer** skips one queued account
    until you restore it. **Tomorrow** and **In one week** record a local resume
    date; ARGUS makes the item ready again when the date is reached while the
@@ -79,10 +80,11 @@ Scans und ändert keine Anbieterpasswörter automatisch.
    keinen separaten Passwortwechsel.
    Beim aktuell geführten Account verlangt **Ich habe diesen Schritt erledigt**
    eine weitere lokale Bestätigung und speichert danach nur den passenden
-   Checklistenpunkt.
-6. Wähle **Als erledigt markieren**. In der Arbeitslistenansicht wechselt der
-   Dialog zum nächsten verfügbaren Account. Abgehakte Pflichtschritte allein
-   schließen keinen Account automatisch ab.
+   Schritt mit Datum.
+6. Der Account ist abgeschlossen, sobald jeder Schritt erledigt ist oder nicht
+   zutrifft; einen eigenen „Erledigt“-Knopf gibt es nicht mehr. In der
+   Arbeitslistenansicht wechselt der Dialog dann zum nächsten verfügbaren
+   Account. Jeder Schritt lässt sich rückgängig machen.
 7. **Arbeitsliste pausieren** behält deinen Platz. **Zurückstellen** überspringt
    einen Account, bis du ihn wieder aufnimmst. **Morgen** und **In einer Woche**
    speichern einen lokalen Wiedervorlagetermin; ARGUS macht den Eintrag wieder

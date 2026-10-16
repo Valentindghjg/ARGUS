@@ -376,21 +376,33 @@ clue type and strength, status and security priority. Documented password-settin
 links are supplied for Google, Apple and GitHub with source and verification date.
 Others link to the curated homepage; email links are never used for this purpose.
 
-- **Confirmed:** you checked “I verified that this account exists”.
-- **Probable:** an account-related local clue reaches the rule threshold. Emails
-  may still be historical or spoofed.
-- **Unknown:** insufficient evidence. This never means “does not exist”.
+Every account shows three separate marks; “What the three marks mean” below the
+list explains them:
 
-Newsletters, guest orders and reset requests do not establish an account. A score
-is a heuristic clue-strength value, not a calibrated probability. Multiple own
-To-recipients are ambiguous; no arbitrary sign-in address is selected.
+- **Evidence** (automatic): probable, weak, older or none. It follows your
+  imported emails, which may be historical or spoofed. “None” never means
+  “does not exist”. A score is a heuristic clue strength, not a probability.
+- **Your decision**: open, confirmed by you, or rejected with a reason (not
+  mine, not an account, closed). New evidence never changes it; strong new
+  evidence after a rejection only shows a hint. Rejected accounts leave the
+  lists, the worklist and suggestions.
+- **Progress**: your five dated steps. Complete means each step is done or not
+  applicable. It is not a security guarantee.
 
-Click “Review”. Confirm existence yourself, assign a known own sign-in address
-if needed, and select password, SSO or passkey. Use an existing Bitwarden item
-where possible. Generate new passwords **in Bitwarden**, change them yourself at
-the provider and test sign-in. Review MFA and recovery too. Marking “Done” requires
-the checklist steps; SSO/passkeys do not require a separate service password.
-You can manually confirm a catalog provider even without email evidence.
+Newsletters, guest orders and reset requests do not establish an account.
+Multiple own To-recipients are ambiguous; no arbitrary sign-in address is
+selected.
+
+Click “Review”, decide whether the account is yours, then work through the
+steps: check how you sign in (assign a known own address if needed), store it in
+Bitwarden, set a unique password (not needed with SSO or a passkey), test the
+sign-in and review MFA and recovery (or mark them not offered or not used).
+Generate new passwords **in Bitwarden** and change them yourself at the
+provider. Each done step records its date and can get a local review date. A
+password-free item that ARGUS created is shown as “prepared” until you tick the
+vault step. The toast after each change and “Your recent changes” in the
+worklist undo your local decisions and steps; Bitwarden items and scans are
+never undone. You can confirm a catalog provider even without email evidence.
 
 Under “Prepare Bitwarden”:
 
