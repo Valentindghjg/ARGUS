@@ -61,7 +61,8 @@ jobs:
     # Separate job so the required Linux check names stay unchanged.
     name: Unit tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    # Hosted Windows runners take between 3 and 14 minutes for the same suite.
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
