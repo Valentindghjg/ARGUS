@@ -117,8 +117,11 @@ def main():
                     checkbox.uncheck()
                 expect(page.locator('#export-selection input[value="steam"]')).to_be_disabled()
                 page.locator(f'#export-selection input[value="{added["id"]}"]').check()
+                page.locator("#export-button").click()
+                expect(page.locator("#preview-items tr")).to_have_count(1)
+                expect(page.locator("#preview-items")).to_contain_text(second)
                 with page.expect_download() as download_info:
-                    page.locator("#export-button").click()
+                    page.locator("#preview-confirm").click()
                 download_path = root / "metadata.json"
                 download_info.value.save_as(download_path)
                 exported = json.loads(download_path.read_text(encoding="utf-8"))

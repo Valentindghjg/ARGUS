@@ -48,8 +48,12 @@ Open `http://127.0.0.1:8765/` if your browser does not open automatically. Ctrl+
 stops the server. Use `--port 8766` if the port is occupied. On Windows, replace
 `python` with `py -3` if needed; on macOS/Linux, use `python3` where appropriate.
 
-The demo uses 17 synthetic messages, 12 discovered providers, two simulated manual
-confirmations and one completed checklist. **These are not your real accounts.**
+The demo uses 18 synthetic messages for two invented own addresses: 13 discovered
+accounts at 12 providers, two simulated manual confirmations and one completed
+checklist. A short guide on the overview explains the hard cases: a newsletter,
+a guest order and a reset email that prove no account, two accounts at one
+service, single sign-on and a look-alike sender domain. **These are not your real
+accounts.**
 
 You can also clone the GitHub repository:
 
@@ -414,9 +418,16 @@ The separate optional audit is read-only; the creation action never reads or
 overwrites existing items. Neither action receives your master password. Follow
 the [Bitwarden CLI handoff guide](docs/BITWARDEN_CLI.md).
 
-A command-line metadata export is also supported:
+Before either path writes anything, the dashboard shows exactly what will be
+written: name, official website, sign-in address, note and extra fields for each
+item, plus the accounts left out because the local journal records them as
+created. Password, TOTP, passkey and recovery fields are never part of an item.
+
+A command-line metadata export is also supported. Add `--preview` to see the
+items first; it creates no file:
 
 ```bash
+python -m argus_security bitwarden-export /local/protected/path/argus-bitwarden.json --id github --id steam --preview
 python -m argus_security bitwarden-export /local/protected/path/argus-bitwarden.json --id github --id steam
 ```
 

@@ -174,10 +174,19 @@ def synthetic_mail(sender, subject, body, recipient="demo@example.invalid", news
     return message.as_bytes()
 
 
+DEMO_EMAILS = ["demo@example.invalid", "demo.work@example.invalid"]
+
+
 def load_demo(store: Store):
+    """Load invented messages that also explain the hard cases (plan F6).
+
+    Zalando (newsletter), Amazon (guest order) and eBay (password reset) stay
+    clues without an account; GitHub has two accounts, one per own address;
+    Notion uses single sign-on; a look-alike sender domain is not matched.
+    """
     if not store.meta("demo", False) and store.meta("emails"):
         raise ValueError("The demo requires a separate data directory")
-    store.configure(["demo@example.invalid"], demo=True)
+    store.configure(DEMO_EMAILS, demo=True)
     rows = [
         ("security@google.com", "New sign-in to your account", "A new device signed in to your account."),
         ("noreply@github.com", "Your account has been created", "Your account has been created. Welcome!"),
@@ -196,8 +205,11 @@ def load_demo(store: Store):
         ("orders@amazon.de", "Order confirmation", "Your order has shipped. Guest checkout is possible."),
         ("security@github.com.attacker.example", "Your password has been changed", "Your password has been changed."),
         ("noreply@ebay.de", "Reset your password", "Here is your password reset link."),
+        ("noreply@github.com", "Your account has been created", "Your account has been created. Welcome!",
+         "demo.work@example.invalid"),
     ]
     stats = scan_messages(store, (synthetic_mail(*row) for row in rows), "demo")
     store.update_account("github", {"checklist": {key: True for key in ("reviewed", "saved_in_bitwarden", "password_changed", "login_tested", "mfa_checked")}, "status": "done"})
     store.update_account("paypal", {"checklist": {"reviewed": True}})
+    store.update_account("notion", {"login_method": "sso"})
     return stats

@@ -32,7 +32,7 @@ function applyLanguage(next,remember=false){
   }
   document.querySelectorAll(".language-control").forEach(e=>e.value=language);
   const scan=displayedScan;
-  if(state){renderState();navigate(view,false);if($("account-dialog").open)renderDetail();}
+  if(state){renderState();navigate(view,false);if($("account-dialog").open)renderDetail();if($("export-preview").open)renderPreview();}
   if(scan){renderScan(scan);if(!$("import-progress").classList.contains("hidden"))$("import-status").textContent=scan.running&&importCancelled?t("Stopping after the current file. Saved clues are preserved."):scanDescription(scan);}
 }
 const token = document.querySelector('meta[name="af-token"]').content;
@@ -103,7 +103,7 @@ function renderState() {
   $("progress-fill").style.width=`${s.progress}%`;
   $("services-found-caption").textContent=t("{count} services found",{count:s.services_found??new Set(state.accounts.filter(a=>a.classification!=="unknown").map(a=>a.provider_id||a.id)).size});
   $("progress-bar").setAttribute("aria-valuenow",s.progress);
-  $("demo-banner").classList.toggle("hidden",!state.demo);
+  $("demo-banner").classList.toggle("hidden",!state.demo);$("demo-guide").classList.toggle("hidden",!state.demo);
   $("rescan-banner").classList.toggle("hidden",!state.stale_evidence);
   $("rescan-banner").textContent=t("{p0} older clues need the current detection rules. Re-import the original emails or start an authorized IMAP scan. Your checklists are preserved.",{p0:(state.stale_evidence||0)});
   const previous=$("category").value;
@@ -447,13 +447,46 @@ async function resolveHandoff(item,created){
   try{await api("/api/bitwarden/resolve",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:item.id,created,confirmed:true})});await refresh();toast(t("Transfer review saved locally."));}
   catch(e){failure(e);}finally{bitwardenBusy=false;renderExport();renderHandoffs();}
 }
-async function exportMetadata(){
+// Every Bitwarden write is shown first, exactly as the server will write it
+// (plan B2). The confirmed action reuses the previewed selection and language.
+let pendingPreview=null;
+async function showPreview(ids,target,action){
   if(bitwardenBusy)return;
-  const ids=selectedBitwardenIds();
-  if(!ids.length){error(t("Select the accounts you want to add to Bitwarden first."));return;}
+  const previewLanguage=language;
   bitwardenBusy=true;renderExport();
   try{
-    const result=await api("/api/bitwarden",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids,language})});
+    const preview=await api("/api/bitwarden/preview",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids,language:previewLanguage,target})});
+    pendingPreview={preview,ids,language:previewLanguage,action};renderPreview();$("export-preview").showModal();
+  }catch(e){failure(e);}finally{bitwardenBusy=false;renderExport();}
+}
+function renderPreview(){
+  if(!pendingPreview)return;
+  const preview=pendingPreview.preview,accounts=new Map(state.accounts.map(a=>[a.id,a]));
+  $("preview-target").textContent=preview.target==="file"?t("Download a Bitwarden JSON file with the folder {folder}. Import it once, then delete it; it contains personal metadata.",{folder:preview.folder}):t("Create these password-free items in your already-unlocked Bitwarden vault. Existing items are never changed. Each item gets a transfer ID so you can find it if the reply is lost.");
+  $("preview-items").replaceChildren(...preview.items.map(item=>{
+    const row=node("tr"),name=node("td");name.append(node("strong",item.name),node("small",item.notes,"preview-notes"));
+    row.append(name,node("td",item.uri),node("td",item.username||t("Empty: no confirmed sign-in address")),node("td",item.fields.join(", ")));
+    return row;
+  }));
+  const skipped=preview.already_created.map(id=>accounts.get(id)).filter(Boolean).map(accountTitle);
+  $("preview-skipped").textContent=skipped.length?t("Left out because the local journal records them as created: {names}",{names:skipped.join(", ")}):"";
+  $("preview-skipped").classList.toggle("hidden",!skipped.length);
+  $("preview-confirm").textContent=t(preview.target==="file"?"Download file":"Create in Bitwarden");
+}
+async function confirmPreview(){
+  const pending=pendingPreview;pendingPreview=null;$("export-preview").close();
+  if(pending)await pending.action(pending.ids,pending.language);
+}
+async function exportMetadata(){
+  const ids=selectedBitwardenIds();
+  if(!ids.length){error(t("Select the accounts you want to add to Bitwarden first."));return;}
+  await showPreview(ids,"file",downloadMetadata);
+}
+async function downloadMetadata(ids,exportLanguage){
+  if(bitwardenBusy)return;
+  bitwardenBusy=true;renderExport();
+  try{
+    const result=await api("/api/bitwarden",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids,language:exportLanguage})});
     const url=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:"application/json"}));
     const a=document.createElement("a");a.href=url;a.download="argus-bitwarden.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast(t("Metadata downloaded. No vault was changed."));
   }catch(e){failure(e);}finally{bitwardenBusy=false;renderExport();}
@@ -465,10 +498,13 @@ async function addToUnlockedBitwarden(){
   if(bitwardenBusy||state.demo)return;
   const ids=selectedBitwardenIds();
   if(!ids.length){error(t("Select the accounts you want to add to Bitwarden first."));return;}
-  if(!window.confirm(t("ARGUS will create password-free items in your already-unlocked Bitwarden vault. Existing items are never changed. Continue?")))return;
+  await showPreview(ids,"cli",createInBitwarden);
+}
+async function createInBitwarden(ids,transferLanguage){
+  if(bitwardenBusy||state.demo)return;
   bitwardenBusy=true;renderExport();
   try{
-    const result=await api("/api/bitwarden/cli",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids,language,confirmed:true})});
+    const result=await api("/api/bitwarden/cli",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids,language:transferLanguage,confirmed:true})});
     await refresh();if(result.status==="needs_review")error(t("The transfer result is unclear. Check Bitwarden below before trying again."));else toast(t("Added {count} password-free item(s) to Bitwarden. Generate the new password in Bitwarden, use the verified provider link to change it, then test the sign-in.",{count:result.items}));
   }catch(e){failure(e);try{await refresh();}catch(_){} }finally{bitwardenBusy=false;renderExport();renderHandoffs();}
 }
@@ -484,10 +520,13 @@ async function auditUnlockedBitwarden(){
 async function prepareGuidedBitwarden(){
   const account=state.accounts.find(item=>item.id===selected);
   if(!account||account.id!==state.workflow.current||accountStep(account)!=="bitwarden"||bitwardenBusy||state.demo)return;
-  if(!window.confirm(t("ARGUS will create one password-free item for this exact account in your already-unlocked Bitwarden vault. Existing items are never changed. Continue?")))return;
+  await showPreview([account.id],"cli",(ids,transferLanguage)=>createGuidedItem(account.id,transferLanguage));
+}
+async function createGuidedItem(accountId,transferLanguage){
+  if(bitwardenBusy||state.demo)return;
   bitwardenBusy=true;renderDetail();renderExport();
   try{
-    const result=await api("/api/secure-next/bitwarden",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({account_id:account.id,language,confirmed:true})});
+    const result=await api("/api/secure-next/bitwarden",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({account_id:accountId,language:transferLanguage,confirmed:true})});
     await refresh();
     if(result.status==="needs_review")error(t("The transfer result is unclear. Check Bitwarden below before trying again."));
     else toast(t("Bitwarden preparation saved locally. Generate the password in Bitwarden, then continue with the verified provider page."));
@@ -571,6 +610,10 @@ $("detail-priority").onchange=()=>update({priority:$("detail-priority").value});
 $("defer-account").onclick=()=>update({status:"skipped"});
 $("finish-account").onclick=()=>update({status:"done"});
 $("export-button").onclick=exportMetadata;
+$("preview-confirm").onclick=confirmPreview;
+$("preview-cancel").onclick=()=>$("export-preview").close();
+$("preview-close").onclick=()=>$("export-preview").close();
+$("export-preview").addEventListener("close",()=>{pendingPreview=null;});
 $("bitwarden-cli-button").onclick=addToUnlockedBitwarden;
 $("bitwarden-audit-button").onclick=auditUnlockedBitwarden;
 $("worklist-add").onclick=()=>{const ids=Array.from($("worklist-selection").querySelectorAll("input:checked")).map(input=>input.value);if(!ids.length){error(t("Select accounts for your worklist first."));return;}changeWorklist({action:"add",ids});};

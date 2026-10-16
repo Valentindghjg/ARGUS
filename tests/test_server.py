@@ -132,6 +132,22 @@ class ServerTests(unittest.TestCase):
         for payload in ["[]","{invalid}",json.dumps({"password":"not-accepted"})]:
             self.assertEqual(self.request("/api/accounts/discord","PATCH",payload,headers={"Content-Type":"application/json"})[0],400)
 
+    def test_bitwarden_preview_is_read_only_and_strictly_shaped(self):
+        raw = synthetic_mail("notify@discord.com", "Your account has been created", "")
+        self.request("/api/import", "POST", raw, headers={"Content-Type": "message/rfc822"})
+        body = json.dumps({"ids": ["discord"], "language": "en", "target": "cli"})
+        status, _, data = self.request("/api/bitwarden/preview", "POST", body, headers={"Content-Type": "application/json"})
+        self.assertEqual(status, 200)
+        preview = json.loads(data)
+        self.assertEqual(preview["items"][0]["account_id"], "discord")
+        self.assertIn("ARGUS-Transfer-ID", preview["items"][0]["fields"])
+        with self.store.connect() as db:
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM instance_bitwarden_handoffs").fetchone()[0], 0)
+        for payload in [{"ids": ["discord"], "language": "en"}, {"ids": ["discord"], "language": "en", "target": "vault"},
+                        {"ids": ["discord"], "language": "en", "target": "file", "confirmed": True}]:
+            self.assertEqual(self.request("/api/bitwarden/preview", "POST", json.dumps(payload),
+                                          headers={"Content-Type": "application/json"})[0], 400)
+
     def test_direct_bitwarden_cli_handoff_requires_explicit_selection(self):
         raw = synthetic_mail("notify@github.com", "Your account has been created", "")
         self.request("/api/import", "POST", raw, headers={"Content-Type":"message/rfc822"})

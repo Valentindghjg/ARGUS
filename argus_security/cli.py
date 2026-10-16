@@ -14,7 +14,7 @@ from .mailbox_lease import MailboxLease
 from .background import (BackgroundScanService, CredentialError, KeyringCredentialStore,
                          DEFAULT_INTERVAL_SECONDS, DEFAULT_LIMIT,
                          MIN_INTERVAL_SECONDS, MAX_INTERVAL_SECONDS, MAX_LIMIT)
-from .bitwarden import export_file
+from .bitwarden import export_file, preview_export
 from .scan import file_messages, load_demo, scan_messages
 from .server import serve
 from .store import Store
@@ -102,6 +102,7 @@ def parser(language="en"):
     export = sub.add_parser('bitwarden-export', help=t('Selected metadata as Bitwarden JSON, no passwords'))
     export.add_argument('path', type=Path)
     export.add_argument('--id', action='append', required=True, help=t('Account ID from list-accounts; may be repeated'))
+    export.add_argument('--preview', action='store_true', help=t('Show the items that would be written; create no file'))
     return p
 
 def main(argv=None):
@@ -220,6 +221,8 @@ def main(argv=None):
                 print(t('Scheduled read-only IMAP scans are enabled. They run only while the local ARGUS dashboard is running.'))
                 if config.auth == 'oauth2':
                     print(t('Note: OAuth2 access tokens usually expire within hours. Scheduled scans fail safely once it expires; run enable again with a fresh token or use a provider-supported app password.'))
+        elif args.command == 'bitwarden-export' and args.preview:
+            print(json.dumps(preview_export(store, args.id, language), ensure_ascii=False, indent=2))
         elif args.command == 'bitwarden-export':
             count = export_file(store, args.path, args.id, language=language)
             print(t('Saved {p0} metadata items privately; password fields are empty. Import the file into Bitwarden yourself, only once.', p0=count))

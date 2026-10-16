@@ -30,7 +30,9 @@ ARGUS never asks for, stores or generates your Bitwarden master password.
    logs or displays item names, usernames or passwords. Review possible matches
    yourself.
 5. Select only genuinely missing items, then choose **Add selected items through
-   unlocked Bitwarden CLI** and confirm.
+   unlocked Bitwarden CLI**. A preview shows each item exactly as it will be
+   created, including the `ARGUS-Transfer-ID` field. Check it, then choose
+   **Create in Bitwarden**.
 6. Use Bitwarden to generate the new password. Open the verified provider
    password-settings link, complete any sign-in or MFA step yourself, then test
    the sign-in and mark the checklist complete.
@@ -75,8 +77,10 @@ Bitwarden-Hauptpasswort, speichert es nicht und erzeugt es nicht.
    Namen, Benutzernamen und Passwörter werden nie gespeichert, geloggt oder
    angezeigt. Mögliche Treffer prüfst du selbst.
 5. Wähle anschließend nur tatsächlich fehlende Einträge. Wähle dann
-   **Ausgewählte Einträge über die entsperrte Bitwarden-CLI hinzufügen** und
-   bestätige den Schritt.
+   **Ausgewählte Einträge über die entsperrte Bitwarden-CLI hinzufügen**. Eine
+   Vorschau zeigt jeden Eintrag genau so, wie er angelegt wird, einschließlich
+   des Felds `ARGUS-Transfer-ID`. Prüfe sie und wähle dann **In Bitwarden
+   anlegen**.
 6. Erzeuge das neue Passwort in Bitwarden. Öffne den verifizierten Link zu den
    Passwort-Einstellungen des Anbieters, erledige Anmeldung oder MFA selbst,
    teste danach die Anmeldung und schließe die Checkliste ab.

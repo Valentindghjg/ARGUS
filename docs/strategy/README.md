@@ -40,7 +40,7 @@ Hauptnutzen kommt ohne sie aus.
 
 ## Umsetzungsstand der 15 Prioritäten
 
-Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S3 (F4, G1).
+Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S3.
 
 | Nr. | Priorität | Stand | Im Code |
 | --- | --- | --- | --- |
@@ -54,7 +54,7 @@ Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S3 (F4, G1).
 | 08 | Korrekturen erhalten und rückgängig machen | teilweise | Entscheidungen überstehen Neuauswertung; Rückgängig in ADR-0001 |
 | 09 | Nächste Aufgabe begründet vorbereiten | weitgehend | geführter Ablauf, Arbeitsliste, Prioritätsvorschau |
 | 10 | Freigaben vor externen Jobs prüfen | **umgesetzt** für geplante Scans | Zielbindung aus Host, Port, Benutzer, Anmeldeart und Ordnern; allgemeines Muster in ADR-0001 |
-| 11 | Bitwarden-Vorschau und Übergabestatus | teilweise | Übergabejournal und Status; keine Exportvorschau (B2) |
+| 11 | Bitwarden-Vorschau und Übergabestatus | weitgehend | Übergabejournal und Status; genaue Vorschau vor jedem Schreiben (B2) |
 | 12 | Unklare Schreibausgänge blockieren | umgesetzt | Status `uncertain`, keine blinde Wiederholung, manuelle Klärung |
 | 13 | Wiederkehrende lokale Importe vereinfachen | offen | – |
 | 14 | Begrenzte Ordnerüberwachung | offen | – |
@@ -75,7 +75,7 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 | S0 | Entscheidungen, ADR-0001 angenommen, Arbeitsplan | – | ✅ |
 | S1 | Pro-Grundlage entfernen; Laufzeit nur mit Standardbibliothek | Entscheidung | ✅ |
 | S2 | CI auf Linux, Windows und macOS | Installation und Plattformen | ✅ |
-| S3 | Fehler mit nächstem Schritt, Exportvorschau, präzises Produktversprechen | F4, F6, B2, G1 | F4, G1 ✅ · F6, B2 offen |
+| S3 | Fehler mit nächstem Schritt, Exportvorschau, präzises Produktversprechen | F4, F6, B2, G1 | ✅ |
 | S4 | Profil-Sicherung und Wiederherstellung | Installation, Migration und Sicherung | offen |
 | S5 | Zustandsmodell im Store mit Migration und Rückgängig | 01, 08, F5, B4, B5, E4 (Teil) | offen |
 | S6 | Zustandsmodell im Dashboard | D2, A10 | offen |
