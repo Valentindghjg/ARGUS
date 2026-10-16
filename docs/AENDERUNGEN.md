@@ -70,6 +70,20 @@ Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md) und
   ähnlich aussehende Absenderdomain. Ein vorhandener Demo-Ordner lässt sich
   erneut laden.
 
+## Profil sichern und wiederherstellen (Owner-Entscheidung, Plan „Installation, Migration und Sicherung“)
+
+- `argus backup` schreibt eine private ZIP-Datei (Datenbank per
+  SQLite-Online-Backup, passwortfreie `imap.json`, Manifest mit Prüfsummen);
+  `--output` wählt einen Ordner, `--list` zeigt Sicherungen. Sicherungen sind
+  bewusst unverschlüsselt: kein neues ARGUS-Passwortsystem.
+- `argus restore DATEI` zeigt, was wiederhergestellt würde; mit `--yes` prüft es
+  jede Prüfsumme und die Datenbank, sichert den aktuellen Stand und ersetzt dann
+  das Profil.
+- Das Profil speichert jetzt eine Schemaversion. Bevor ein neueres ARGUS eine
+  ältere Datenbank ändert, legt es eine automatische Sicherung an (die neuesten
+  fünf bleiben). Scheitert sie, wird nichts geändert. Ein Profil einer neueren
+  ARGUS-Version wird nicht geöffnet.
+
 ## Sicherheit und Robustheit
 
 - **Freigaben sind an ihr Ziel gebunden (Masterplan, Priorität 10).** Geplante

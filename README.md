@@ -455,6 +455,29 @@ A password link requires `password_url`, `password_source` and
 emails or run `scan-imap --allow-imap --full-scan` afterwards, and restart the
 dashboard with the same additional catalog.
 
+## Back up and restore your profile
+
+ARGUS saves a backup automatically before a new version updates the profile
+database, and it refuses to open a profile from a newer version. You can also
+make and restore backups yourself:
+
+```bash
+python -m argus_security backup                 # into the profile's backups folder
+python -m argus_security backup --output /encrypted/drive/argus
+python -m argus_security backup --list
+python -m argus_security restore /path/argus-backup-….zip         # shows what it would restore
+python -m argus_security restore /path/argus-backup-….zip --yes   # replaces the profile
+```
+
+A backup is one ZIP file with the database and the password-free `imap.json`.
+It is **not encrypted** and contains personal metadata; keep it on an encrypted
+drive. Files are created with private permissions and never overwritten.
+Restoring checks every checksum and the database first and saves the current
+state as another backup. Stop the dashboard and scans before restoring.
+Keyring authorizations are not part of a backup, so scheduled scans may need a
+new `background-imap enable`. The newest five automatic backups are kept;
+your own backups are never deleted.
+
 ## Upgrade and tests
 
 The repository includes GitHub Actions checks for Python 3.11–3.14 on Linux,

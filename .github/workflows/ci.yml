@@ -53,6 +53,9 @@ jobs:
           /tmp/argus-package/bin/python -m argus_security --data-dir /tmp/installed-demo demo
           /tmp/argus-package/bin/python -m argus_security --data-dir /tmp/installed-demo report
           /tmp/argus-package/bin/python -m argus_security --data-dir /tmp/installed-demo list-accounts
+          /tmp/argus-package/bin/python -m argus_security --data-dir /tmp/installed-demo backup --output /tmp/installed-backups
+          /tmp/argus-package/bin/python -m argus_security --data-dir /tmp/installed-restore restore /tmp/installed-backups/*.zip --yes
+          /tmp/argus-package/bin/python -m argus_security --data-dir /tmp/installed-restore list-accounts
 
   platforms:
     # Separate job so the required Linux check names stay unchanged.
@@ -90,6 +93,9 @@ jobs:
           "$bin/python" -m argus_security --data-dir "$RUNNER_TEMP/installed-demo" demo
           "$bin/python" -m argus_security --data-dir "$RUNNER_TEMP/installed-demo" report
           "$bin/python" -m argus_security --data-dir "$RUNNER_TEMP/installed-demo" list-accounts
+          "$bin/python" -m argus_security --data-dir "$RUNNER_TEMP/installed-demo" backup --output "$RUNNER_TEMP/installed-backups"
+          "$bin/python" -m argus_security --data-dir "$RUNNER_TEMP/installed-restore" restore "$RUNNER_TEMP"/installed-backups/*.zip --yes
+          "$bin/python" -m argus_security --data-dir "$RUNNER_TEMP/installed-restore" list-accounts
 
   browser:
     name: German and English browser checks

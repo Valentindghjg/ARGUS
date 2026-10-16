@@ -131,7 +131,7 @@ class LanguageTests(unittest.TestCase):
     def test_user_facing_errors_have_german_entries(self):
         """Typed errors reach the CLI or dashboard verbatim and are translated there."""
         import ast
-        typed = {"CredentialError", "MailboxError", "BitwardenCliError", "HandoffError", "DNSError",
+        typed = {"BackupError", "CredentialError", "MailboxError", "BitwardenCliError", "HandoffError", "DNSError",
                  "UserFacingError", "MailboxBusy", "LeaseLost"}
         missing = []
         for path in sorted((Path(__file__).resolve().parents[1] / "argus_security").glob("*.py")):

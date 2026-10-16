@@ -30,3 +30,11 @@ Wird während der Umsetzung fortgeschrieben.
   `~/.local/share/argus`. Ein plattformtypischer Ordner (etwa `%LOCALAPPDATA%`)
   bräuchte eine weitere Migration und ist kein Punkt des Plans; ein eigener
   Ordner geht mit `--data-dir`.
+- **S4, Ablage der Sicherungen:** Standardmäßig liegen Sicherungen im Ordner
+  `backups` des Profils, damit sie dieselben privaten Rechte haben. Geht der
+  ganze Profilordner verloren, sind sie mit weg; dafür gibt es
+  `backup --output`. Automatische Sicherungen werden auf die neuesten fünf
+  begrenzt, eigene nie gelöscht.
+- **S4, Wiederherstellen nur über die CLI:** Das Dashboard nimmt keine
+  Sicherungsdateien an. Wiederherstellen ersetzt die Datenbank, was bei
+  laufendem Dashboard nicht sicher wäre; die Oberfläche nennt nur die Befehle.

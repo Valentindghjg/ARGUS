@@ -14,6 +14,7 @@ from .mailbox_lease import MailboxLease
 from .background import (BackgroundScanService, CredentialError, KeyringCredentialStore,
                          DEFAULT_INTERVAL_SECONDS, DEFAULT_LIMIT,
                          MIN_INTERVAL_SECONDS, MAX_INTERVAL_SECONDS, MAX_LIMIT)
+from .backup import create_backup, list_backups, read_manifest, restore_backup
 from .bitwarden import export_file, preview_export
 from .scan import file_messages, load_demo, scan_messages
 from .server import serve
@@ -103,6 +104,12 @@ def parser(language="en"):
     export.add_argument('path', type=Path)
     export.add_argument('--id', action='append', required=True, help=t('Account ID from list-accounts; may be repeated'))
     export.add_argument('--preview', action='store_true', help=t('Show the items that would be written; create no file'))
+    backup = sub.add_parser('backup', help=t('Save a private, unencrypted copy of this profile'))
+    backup.add_argument('--output', type=Path, help=t('Folder for the backup file (default: backups in the profile)'))
+    backup.add_argument('--list', action='store_true', help=t('List the backups in the profile folder'))
+    restore = sub.add_parser('restore', help=t('Replace this profile with a backup; the current state is saved first'))
+    restore.add_argument('path', type=Path)
+    restore.add_argument('--yes', action='store_true', help=t('Confirm the replacement'))
     return p
 
 def main(argv=None):
@@ -110,8 +117,12 @@ def main(argv=None):
     t = lambda message, **values: translate(message, language, **values)
     args = parser(language).parse_args(argv)
     try:
+        data_dir = args.data_dir if args.data_dir is not None else default_data_dir(language)
+        if args.command in {'backup', 'restore'}:
+            # Work on the files as they are, before any migration opens them.
+            return backup_command(args, data_dir, t)
         registry = Registry(args.providers)
-        store = Store(args.data_dir if args.data_dir is not None else default_data_dir(language), registry)
+        store = Store(data_dir, registry)
         if args.command == 'init':
             store.configure(args.email)
             print(t('Local profile initialized. {p0} providers; no network connection.', p0=len(registry.providers)))
@@ -235,6 +246,26 @@ def main(argv=None):
         return fail(str(exc), t, prefix=t('Error: '))
     except (OSError, KeyboardInterrupt):
         return fail('Operation interrupted or local file access / port unavailable.', t)
+
+
+def backup_command(args, data_dir, t):
+    if args.command == 'backup' and args.list:
+        print(json.dumps(list_backups(data_dir), ensure_ascii=False, indent=2))
+    elif args.command == 'backup':
+        path = create_backup(data_dir, folder=args.output)
+        print(t('Saved a private backup: {p0}. It is not encrypted; keep it on an encrypted drive.', p0=path))
+    elif not args.yes:
+        manifest = read_manifest(args.path)
+        print(t('Backup from {p0} (ARGUS {p1}). Run restore again with --yes to replace the current profile; its current state is saved first.',
+                p0=manifest['created_at'], p1=manifest['app_version']))
+    else:
+        result = restore_backup(data_dir, args.path)
+        Store(data_dir, Registry(args.providers))
+        print(t('Profile restored from the backup of {p0}.', p0=result['restored']))
+        if result['safety_backup']:
+            print(t('The previous state was saved to {p0}.', p0=result['safety_backup']))
+        print(t('Keyring authorizations are not part of a backup. If scheduled scans stop, approve them again with background-imap enable.'))
+    return 0
 
 
 def fail(message, t, prefix=''):

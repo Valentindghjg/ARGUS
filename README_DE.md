@@ -481,6 +481,30 @@ Für einen Passwort-Direktlink sind `password_url`, `password_source` und
 Quelle. Danach lokal neu importieren bzw. `scan-imap --allow-imap --full-scan`
 ausführen und den Server mit dem gleichen Katalog neu starten.
 
+## Profil sichern und wiederherstellen
+
+ARGUS legt automatisch eine Sicherung an, bevor eine neue Version die
+Profildatenbank aktualisiert, und öffnet kein Profil einer neueren Version.
+Sicherungen kannst du auch selbst erstellen und wiederherstellen:
+
+```bash
+python -m argus_security backup                 # in den Ordner backups des Profils
+python -m argus_security backup --output /verschluesseltes/laufwerk/argus
+python -m argus_security backup --list
+python -m argus_security restore /pfad/argus-backup-….zip         # zeigt, was wiederhergestellt würde
+python -m argus_security restore /pfad/argus-backup-….zip --yes   # ersetzt das Profil
+```
+
+Eine Sicherung ist eine ZIP-Datei mit der Datenbank und der passwortfreien
+`imap.json`. Sie ist **nicht verschlüsselt** und enthält persönliche Metadaten;
+bewahre sie auf einem verschlüsselten Laufwerk auf. Dateien werden mit privaten
+Rechten angelegt und nie überschrieben. Vor dem Wiederherstellen prüft ARGUS
+jede Prüfsumme und die Datenbank und sichert den aktuellen Stand als weitere
+Sicherung. Beende Dashboard und Scans vor dem Wiederherstellen. Freigaben im
+Schlüsselbund gehören nicht zur Sicherung; geplante Scans brauchen danach
+eventuell ein neues `background-imap enable`. Die neuesten fünf automatischen
+Sicherungen bleiben erhalten; deine eigenen werden nie gelöscht.
+
 ## Bestehende Profile aktualisieren
 
 Version 1.9 übernimmt den bisherigen Anbieterstand in getrennte

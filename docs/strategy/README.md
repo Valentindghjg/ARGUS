@@ -40,7 +40,7 @@ Hauptnutzen kommt ohne sie aus.
 
 ## Umsetzungsstand der 15 Prioritäten
 
-Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S3.
+Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S4.
 
 | Nr. | Priorität | Stand | Im Code |
 | --- | --- | --- | --- |
@@ -76,7 +76,7 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 | S1 | Pro-Grundlage entfernen; Laufzeit nur mit Standardbibliothek | Entscheidung | ✅ |
 | S2 | CI auf Linux, Windows und macOS | Installation und Plattformen | ✅ |
 | S3 | Fehler mit nächstem Schritt, Exportvorschau, präzises Produktversprechen | F4, F6, B2, G1 | ✅ |
-| S4 | Profil-Sicherung und Wiederherstellung | Installation, Migration und Sicherung | offen |
+| S4 | Profil-Sicherung und Wiederherstellung | Installation, Migration und Sicherung | ✅ |
 | S5 | Zustandsmodell im Store mit Migration und Rückgängig | 01, 08, F5, B4, B5, E4 (Teil) | offen |
 | S6 | Zustandsmodell im Dashboard | D2, A10 | offen |
 | S7 | Drei Einstiegswege, ehrliche Ergebniszusammenfassung, klare nächste Aufgabe → **2.0.0** | F2, F3, D1, 02, 09 | offen |

@@ -31,6 +31,14 @@ HINTS = {
     "Aliases require an initialized personal profile": PROFILE_FIRST,
     "The demo requires a separate data directory":
         "Start the demo with its own folder, for example --data-dir .local/demo. Your personal profile stays unchanged.",
+    # Backups
+    "There is no local profile to back up yet": PROFILE_FIRST,
+    "The backup could not be written; nothing was changed":
+        "Check the free disk space and that the backup folder is writable, then try again.",
+    "The backup is damaged; its checksums do not match":
+        "Use another backup. ARGUS keeps the latest automatic backups in the backups folder of the profile.",
+    "This profile was updated by a newer ARGUS version; update ARGUS first":
+        "Or restore a backup from before that update with argus restore.",
     # Local database
     "The local database is temporarily unavailable":
         "Wait a moment and try again. If it keeps happening, close other ARGUS windows or terminals that use this profile.",
