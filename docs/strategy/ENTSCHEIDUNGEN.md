@@ -19,3 +19,14 @@ Getroffen vom Owner am 16.10.2026, bevor die Umsetzung des
 ## Übersprungene oder angepasste Punkte
 
 Wird während der Umsetzung fortgeschrieben.
+
+- **S2, Pflicht-Checks:** Die neuen Jobs „Unit tests on windows-latest“ und
+  „Unit tests on macos-latest“ laufen in jedem PR. Die Branch-Regeln von `main`
+  verlangen weiterhin nur die fünf bisherigen Linux-Checks, weil nur der Owner
+  sie in den GitHub-Einstellungen ändern kann. Gemergt wird trotzdem erst, wenn
+  alle sieben Checks grün sind. Der Owner kann die beiden Jobs unter
+  *Settings → Branches* als Pflicht-Checks ergänzen.
+- **S2, Standardordner:** Das Standardprofil liegt auf allen Plattformen unter
+  `~/.local/share/argus`. Ein plattformtypischer Ordner (etwa `%LOCALAPPDATA%`)
+  bräuchte eine weitere Migration und ist kein Punkt des Plans; ein eigener
+  Ordner geht mit `--data-dir`.

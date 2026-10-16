@@ -495,8 +495,8 @@ Bewertung in [Änderungen](docs/AENDERUNGEN.md).
 ## Tests und Projektstruktur
 
 Das Repository enthält automatische GitHub-Actions-Prüfungen für Python
-3.11–3.14 auf Linux, die Installation des gebauten Pakets und Browser-Prüfungen
-auf Deutsch und Englisch. Dafür werden nur künstliche Daten verwendet, keine
+3.11–3.14 auf Linux, Unit-Tests und eine Installationsprüfung auf Windows und
+macOS sowie Browser-Prüfungen auf Deutsch und Englisch. Dafür werden nur künstliche Daten verwendet, keine
 persönlichen Postfächer oder Bitwarden-Tresore. Hinweise zum
 [Mitwirken](CONTRIBUTING.md) und zum vertraulichen
 [Melden von Sicherheitsproblemen](SECURITY.md) liegen ebenfalls bei.
