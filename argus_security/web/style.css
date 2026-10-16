@@ -18,3 +18,4 @@
 html,body{max-width:100%;overflow-x:clip}
 .guided-detail .guided-copy{margin:8px 0 0;font-size:11px;line-height:1.7;color:#566e8b}.bitwarden-actions a.button{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}.guided-current-blocked{background:#fffaf0;border-color:#e3c786}
 @media(max-width:700px){.guided-detail .button{width:100%}.guided-detail .bitwarden-actions a.button{width:100%}}
+.error-hint{display:block;margin-top:6px;font-weight:400}.next-steps{margin:8px 0 12px;padding-left:20px;font-size:12px;line-height:1.7}

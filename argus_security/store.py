@@ -341,7 +341,7 @@ class Store:
                             (a["status"] != "done" or a["identity_review_required"]) for a in found),
                         "progress": round(done * 100 / len(found)) if found else 0},
             "emails": self.meta("emails", []), "demo": self.meta("demo", False),
-            "last_scan": self.meta("last_scan"),
+            "last_scan": self._last_scan(),
             "stale_evidence": stale_evidence, "analysis_version": ANALYSIS_VERSION,
         }
         from .workflow import worklist_snapshot
@@ -350,6 +350,13 @@ class Store:
         snapshot["bitwarden_handoffs"] = handoff_snapshot(self)
         from .i18n import localize_snapshot
         return localize_snapshot(snapshot, language)
+
+    def _last_scan(self):
+        from .guidance import scan_next_steps
+        scan = self.meta("last_scan")
+        if isinstance(scan, dict):
+            scan["next_steps"] = scan_next_steps(scan)
+        return scan
 
     def update_account(self, account_id: str, change: dict):
         allowed = {"checklist", "status", "priority", "login_method", "registered_email", "label"}

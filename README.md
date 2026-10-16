@@ -9,6 +9,12 @@ extensible providers**, local email analysis and a Bitwarden security checklist.
 Users choose their interface language. Email detection always supports both
 English and German, independently of that choice.
 
+**What ARGUS promises:** it helps you understand account clues in your own
+emails and work through important security tasks under your control. It cannot
+find every account, and emails alone cannot prove how well an account is
+protected. A completed checklist records your own steps; it is not a security
+guarantee.
+
 ## Preview
 
 The screenshots below use only the bundled synthetic demo data.

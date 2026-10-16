@@ -9,6 +9,12 @@ erweiterbaren Diensten**, lokaler E-Mail-Analyse und einer Checkliste zum
 Absichern mit Bitwarden. Die Nutzer wählen ihre Sprache selbst. Die Erkennung von
 Mails funktioniert unabhängig davon immer auf Deutsch und Englisch.
 
+**Was ARGUS verspricht:** Es hilft dir, Account-Hinweise in deinen eigenen
+E-Mails zu verstehen und wichtige Sicherheitsaufgaben kontrolliert abzuarbeiten.
+Es kann weder alle Accounts finden noch allein aus E-Mails beweisen, wie gut ein
+Konto geschützt ist. Eine erledigte Checkliste hält deine eigenen Schritte fest;
+sie ist keine Sicherheitsgarantie.
+
 ## Vorschau
 
 Die Bilder zeigen ausschließlich die mitgelieferten künstlichen Demodaten.

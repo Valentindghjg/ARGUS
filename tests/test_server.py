@@ -56,6 +56,16 @@ class ServerTests(unittest.TestCase):
                                                         "last_error": None, "running": False,
                                                         "target_confirmed": False})
 
+    def test_errors_carry_a_constant_next_step(self):
+        status, _, body = self.request("/api/accounts/github", "PATCH", json.dumps({"status": "done"}),
+                                       headers={"Content-Type": "application/json"})
+        self.assertEqual(status, 400)
+        self.assertEqual(json.loads(body), {
+            "error": "Check the required steps before marking this account done",
+            "hint": "Required: verified by you, assigned in Bitwarden, sign-in tested and, for password sign-ins, a new password."})
+        # Messages without a known next step stay unchanged.
+        self.assertEqual(json.loads(self.request("/api/unknown")[2]), {"error": "Not found"})
+
     def test_api_requires_token(self):
         self.assertEqual(self.request("/api/accounts",authorized=False)[0],401)
         self.assertEqual(self.request("/api/accounts",headers={"Authorization":"Bearer wrong"})[0],401)
