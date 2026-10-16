@@ -161,6 +161,9 @@ class LanguageTests(unittest.TestCase):
                     or value.startswith(("/api", "http", "Bearer", "argus."))):
                 continue
             texts.add(value)
+        # Literals handed straight to the translation helpers, whatever their case.
+        for match in re.finditer(r'(?:\b(?:t|error|toast|actionButton)\(|\bsetMessage\("[^"]+",)"((?:[^"\\\n]|\\.)*)"', script):
+            texts.add(json.loads('"' + match.group(1) + '"'))
         page = (root / "index.html").read_text(encoding="utf-8")
         texts |= {html.unescape(value) for value in re.findall(r'data-i18n(?:-[a-z-]+)?="([^"]*)"', page)}
         self.assertEqual(sorted(texts - set(catalog()["de"])), [])

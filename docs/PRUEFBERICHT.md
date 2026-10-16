@@ -13,6 +13,14 @@ bei neuen Hinweisen, umkehrbar), Adressnotizen (nur eigene Adressen, keine
 Zusammenführung), CLI und API-Formen; der Browser blendet eine Domain aus und
 wieder ein und speichert und entfernt eine Notiz.
 
+Schritt S10 (E5, E6): **268 Python-Tests** und **31 Browser-Prüfgruppen**.
+Eigene Katalogergänzungen werden auf jede Ablehnung geprüft (gemeinsamer
+Versanddienst, Katalogdomain, HTTP- oder fremde Website, Kategorie, Priorität,
+Feldform), ohne dass Dateien zurückbleiben, außerdem private Rechte, erneutes
+Laden und Regeln fürs Entfernen; Regeländerungen beim erneuten Import nennen alte
+und neue Begründung, Entscheidungen bleiben. Der Browser ergänzt einen Dienst nach
+einer abgelehnten Website, sieht den Hinweis zum erneuten Import und entfernt ihn.
+
 # Prüfbericht – Version 2.0.0 (Paket A, noch ohne Tag)
 
 Die Änderungen der Sicherheitsreview bestehen **208 Python-Tests** (vorher 166)

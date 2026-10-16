@@ -317,5 +317,8 @@ def fail(message, t, prefix=''):
 def report_scan(result, t):
     """JSON on stdout for scripts; translated next steps on stderr for people."""
     print(json.dumps(result, ensure_ascii=False))
+    if result.get('rule_changes_count'):
+        print(t('Current rules changed {p0} stored clue(s); your decisions stay as they were.', p0=result['rule_changes_count']),
+              file=sys.stderr)
     for step in result.get('next_steps', []):
         print(t('Next step: ') + t(step), file=sys.stderr)

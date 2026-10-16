@@ -51,3 +51,12 @@ Wird während der Umsetzung fortgeschrieben.
 - **S4, Wiederherstellen nur über die CLI:** Das Dashboard nimmt keine
   Sicherungsdateien an. Wiederherstellen ersetzt die Datenbank, was bei
   laufendem Dashboard nicht sicher wäre; die Oberfläche nennt nur die Befehle.
+- **S10, eigener Katalog nur im Profil:** Ergänzungen aus dem Dashboard landen
+  in `my-providers.json` im Profil, nie im gemeinsamen Katalog; ein Vorschlag für
+  alle läuft über die Vorlage im Repository. ARGUS speichert keine Mailinhalte,
+  deshalb ordnet eine Ergänzung gespeicherte Hinweise erst beim erneuten Import
+  der ursprünglichen E-Mails zu; bis dahin bleibt die Domain sichtbar und
+  gekennzeichnet. Entfernen geht nur, solange kein Hinweis, keine Entscheidung
+  und kein Schritt auf den Dienst verweist, damit nichts Bestätigtes verwaist.
+  Gemeinsam genutzte Versanddienste stehen als feste Liste im Code; sie lassen
+  sich weder ergänzen noch einem Dienst zuordnen.

@@ -482,6 +482,23 @@ are matched automatically; more specific domains take precedence. Do not assign
 generic shared email-delivery domains to a service. Custom names and category
 labels are used as supplied.
 
+### Add a provider in the dashboard
+
+In “Unclear items”, **Add to my catalog** fills in a form for a sender domain
+outside the catalog. ARGUS checks the entry like the built-in catalog (unique
+domains, an HTTPS website on one of the sender domains, an existing category)
+and saves it only in your profile as `my-providers.json` with private
+permissions. It never looks the provider up online. Shared sending services
+(bulk-mail platforms such as `sendgrid.net` or `amazonses.com`) are refused,
+because they send mail for many companies. Stored clues keep their old
+assignment until you import the original emails again; ARGUS never stored
+their content. Under “Mailbox & Import” you can remove an addition as long as
+no clue, decision or step refers to it.
+
+After a re-import, the import result lists clues whose rating changed under the
+current rules, with the old and new reason and score; the CLI prints the number.
+Your decisions and steps stay as they were.
+
 A password link requires `password_url`, `password_source` and
 `password_verified`. Add these only after verifying an official source. Re-import
 emails or run `scan-imap --allow-imap --full-scan` afterwards, and restart the

@@ -30,6 +30,23 @@ def is_subdomain(host: str, root: str) -> bool:
     return host == root or host.endswith("." + root)
 
 
+# Delivery infrastructure that sends mail for many companies (plan E5). Such a
+# sender domain never identifies a provider and cannot enter any catalog.
+SHARED_SENDERS = (
+    "amazonses.com", "sendgrid.net", "mailgun.org", "mcsv.net", "mcdlv.net", "rsgsv.net",
+    "list-manage.com", "mandrillapp.com", "sparkpostmail.com", "exct.net", "hubspotemail.net",
+    "cmail19.com", "cmail20.com", "bnc3.mailjet.com",
+)
+
+
+def is_shared_sender(domain: str) -> bool:
+    try:
+        domain = normalize_domain(domain)
+    except ValueError:
+        return False
+    return any(is_subdomain(domain, shared) or is_subdomain(shared, domain) for shared in SHARED_SENDERS)
+
+
 def validate_url(value: str, domains: tuple[str, ...]) -> str:
     parts = urlsplit(value)
     if (parts.scheme != "https" or not parts.hostname or parts.username or
@@ -52,21 +69,35 @@ class Provider:
     password_source: str | None = None
     password_verified: str | None = None
     historical: bool = False
+    # "builtin", "extra" (--providers file) or "personal" (added in this profile).
+    source: str = "builtin"
 
     def public(self) -> dict:
         return asdict(self)
 
 
+def _rows(path: Path, source: str):
+    data = json.loads(path.read_text(encoding="utf-8"))
+    rows = data["providers"] if isinstance(data, dict) else data
+    if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
+        raise ValueError("Invalid provider entry")
+    return [(row, source) for row in rows]
+
+
 class Registry:
-    def __init__(self, custom: Path | None = None):
-        rows = json.loads(CATALOG.read_text(encoding="utf-8"))["providers"]
+    def __init__(self, custom: Path | None = None, personal: Path | None = None):
+        self.custom, self.personal = custom, personal
+        rows = _rows(CATALOG, "builtin")
         if custom:
-            extra = json.loads(custom.read_text(encoding="utf-8"))
-            rows += extra["providers"] if isinstance(extra, dict) else extra
+            rows += _rows(custom, "extra")
+        if personal and personal.is_file() and not personal.is_symlink():
+            rows += _rows(personal, "personal")
         self.providers: dict[str, Provider] = {}
         owners: dict[str, str] = {}
-        for row in rows:
+        for row, source in rows:
             domains = tuple(normalize_domain(d) for d in row["domains"])
+            if any(is_shared_sender(domain) for domain in domains):
+                raise ValueError("A shared sending service cannot identify a provider")
             if not domains or not re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,79}", row["id"]):
                 raise ValueError("Invalid provider entry")
             if row["id"] in self.providers:
@@ -81,21 +112,27 @@ class Registry:
                 owners[domain] = row["id"]
             website = validate_url(row["website"], domains)
             password_url = row.get("password_url")
-            source, verified = row.get("password_source"), row.get("password_verified")
+            source_url, verified = row.get("password_source"), row.get("password_verified")
             if password_url:
                 validate_url(password_url, domains)
-                if not source or not verified or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", verified):
+                if not source_url or not verified or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", verified):
                     raise ValueError("A password link requires documented verification")
-                validate_url(source, domains)
+                validate_url(source_url, domains)
             if row.get("priority", "normal") not in {"critical", "high", "normal"}:
                 raise ValueError("Invalid priority")
             self.providers[row["id"]] = Provider(
                 row["id"], row["name"], website, row["category"], domains,
-                row.get("priority", "normal"), password_url, source, verified,
-                bool(row.get("historical", False)),
+                row.get("priority", "normal"), password_url, source_url, verified,
+                bool(row.get("historical", False)), source,
             )
         self._domains = sorted(owners, key=len, reverse=True)
         self._owners = owners
+
+    def with_personal(self, path: Path):
+        """This catalog plus the profile's own providers (plan E5), as a new registry."""
+        if path == self.personal or not path.is_file():
+            return self
+        return Registry(self.custom, path)
 
     def match(self, domain: str) -> Provider | None:
         try:

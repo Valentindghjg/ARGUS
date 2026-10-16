@@ -28,6 +28,24 @@
 - Neue CLI-Befehle `unclear`, `exclude` und `relate`; Schemaversion 4 ergänzt
   zwei Tabellen nach der automatischen Sicherung.
 
+## Eigene Katalogergänzungen und sichtbare Regeländerungen (E5, E6)
+
+- „Zu meinem Katalog hinzufügen“ unter „Unklares“ speichert einen Dienst für eine
+  Absenderdomain außerhalb des Katalogs nur im Profil (`my-providers.json`,
+  private Rechte). Er wird wie der eingebaute Katalog geprüft und nie online
+  nachgeschlagen; gemeinsam genutzte Versanddienste werden abgelehnt und in der
+  Liste gekennzeichnet.
+- Eine so ergänzte Domain bleibt in der Liste, markiert als jetzt im Katalog, bis
+  ihre ursprünglichen E-Mails erneut importiert sind; ein Hinweis zählt diese
+  Hinweise. Ergänzungen ohne Hinweise, Entscheidungen oder Schritte lassen sich
+  wieder entfernen.
+- Ein erneuter Import listet Hinweise, deren Bewertung sich mit den aktuellen
+  Regeln geändert hat (alte und neue Begründung und Punktzahl); die CLI nennt die
+  Anzahl. Entscheidungen und Schritte bleiben.
+- Neue API-Routen `POST /api/catalog` und `POST /api/catalog/remove`; der
+  Snapshot enthält `catalog`, Kandidaten enthalten `shared_sender` und
+  `catalog_match`.
+
 # Änderungen – Version 2.0.0, Paket A: klare Zustände und kontrollierbarer Kern (noch ohne Tag)
 
 Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md) und

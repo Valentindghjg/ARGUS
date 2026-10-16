@@ -30,6 +30,21 @@
 - New CLI commands `unclear`, `exclude` and `relate`; schema version 4 adds two
   tables after the automatic backup.
 
+### Your own catalog additions and visible rule changes (E5, E6)
+
+- “Add to my catalog” in “Unclear items” saves a provider for a sender domain
+  outside the catalog in the profile only (`my-providers.json`, private
+  permissions). It is validated like the built-in catalog and never looked up
+  online; shared sending services are refused and marked in the list.
+- A domain added this way stays in the list, marked as now in the catalog,
+  until its original emails are imported again; a notice counts these clues.
+  Additions without clues, decisions or steps can be removed again.
+- A re-import lists clues whose rating changed under the current rules (old and
+  new reason and score); the CLI prints the number. Decisions and steps stay.
+- New API routes `POST /api/catalog` and `POST /api/catalog/remove`; the
+  snapshot carries `catalog` and candidates carry `shared_sender` and
+  `catalog_match`.
+
 ## 2.0.0 — Package A: clear states and a controllable core (not yet tagged)
 
 See [the security review](SECURITY_REVIEW_2026-10.md) and
