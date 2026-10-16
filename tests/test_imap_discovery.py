@@ -162,7 +162,7 @@ class IMAPTests(unittest.TestCase):
         path = self.root / "data" / "imap.json"
         save_config(path, self.config)
         self.assertEqual(load_config(path), self.config)
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
         data["password"] = "SECRET-TOKEN"
         path.write_text(json.dumps(data))
         with self.assertRaises(ValueError):

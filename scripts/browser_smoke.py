@@ -250,7 +250,7 @@ def main():
                 zoom = root / "zoom.eml"
                 zoom.write_bytes(synthetic_mail("notify@zoom.us","Your account has been created",""))
                 invalid = root / "invalid.txt"
-                invalid.write_text("synthetic non-mail")
+                invalid.write_text("synthetic non-mail", encoding="utf-8")
                 page.locator("#email-files").set_input_files([str(eml),str(zoom),str(invalid)])
                 expect(page.locator("#import-status")).to_contain_text("3/3 messages processed")
                 expect(page.locator("#found-count")).to_have_text("14")

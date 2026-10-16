@@ -101,7 +101,7 @@ class LanguageTests(unittest.TestCase):
         with redirect_stdout(output):
             self.assertEqual(main(argv), 0)
         self.assertIn("1 Metadaten-Einträge", output.getvalue())
-        self.assertEqual(json.loads(destination.read_text())["items"][0]["login"]["password"], "")
+        self.assertEqual(json.loads(destination.read_text(encoding="utf-8"))["items"][0]["login"]["password"], "")
         before = destination.read_bytes()
         with redirect_stderr(output):
             self.assertEqual(main(argv), 2)
