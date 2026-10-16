@@ -1,4 +1,4 @@
-# Änderungen – unveröffentlicht (Sicherheitsreview 2026-10)
+# Änderungen – Version 2.0.0, Paket A: klare Zustände und kontrollierbarer Kern (noch ohne Tag)
 
 Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md) und
 [Umsetzungsstand des Masterplans](strategy/README.md).
@@ -137,6 +137,21 @@ Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md) und
   keine Belege, verworfen) sowie Fortschritt (nicht begonnen, in Arbeit,
   abgeschlossen, zurückgestellt). „Zurückstellen“ plant den Account in der
   Arbeitsliste ein.
+
+## Drei Einstiege, eine ehrliche Zusammenfassung und eine nächste Aufgabe (F2, F3, D1)
+
+- Ein neues Profil zeigt drei getrennte Einstiege: die Demo, einen lokalen
+  Import und die optionale, nur lesende Postfachverbindung. Die ersten beiden
+  nutzen nie das Netzwerk.
+- Die Übersicht fasst zusammen, was ARGUS weiß: verarbeitete Nachrichten,
+  Hinweise, Accounts mit Belegen, deine Entscheidungen, Unklares (Identitäten,
+  Hinweise ohne eindeutigen Account, unbekannte Domains) und Lücken. Sie sagt
+  ausdrücklich, dass das keine vollständige Liste ist.
+- Eine begründete nächste Aufgabe steht oben in der Übersicht: Import,
+  unterbrochener Import, zuzuordnende Identitäten, unklare Übertragung, fällige
+  Wiedervorlage, Arbeitsliste, zu entscheidende Accounts oder der nächste
+  abzusichernde Account. `argus report` enthält beides.
+- Die Bilder in den READMEs stammen jetzt aus der Demo dieser Version.
 
 ## Sicherheit und Robustheit
 

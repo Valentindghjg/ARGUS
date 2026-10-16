@@ -1,4 +1,4 @@
-# Prüfbericht – unveröffentlichte Sicherheitsreview (2026-10)
+# Prüfbericht – Version 2.0.0 (Paket A, noch ohne Tag)
 
 Die Änderungen der Sicherheitsreview bestehen **208 Python-Tests** (vorher 166)
 und **24 Chromium-Prüfgruppen**, ohne Seitenfehler und ohne externe
@@ -46,6 +46,13 @@ bestätigt, verwirft mit Grund und macht über den Hinweis und den Verlauf
 rückgängig, geht die geführten Schritte Entscheidung und Anmeldung durch,
 schließt einen Account erst ab, wenn jeder Schritt beantwortet ist (MFA als
 nicht genutzt), setzt eine Wiedervorlage und prüft beide Sprachen.
+
+Schritt S7: **253 Python-Tests** und **28 Browser-Prüfgruppen**. Die nächste
+Aufgabe folgt der dokumentierten Reihenfolge (Import, unterbrochener Import,
+Identitäten, unklare Übertragung, fällige Wiedervorlage, Arbeitsliste,
+entscheiden, absichern, erledigt); die Zusammenfassung zählt Unklares und
+Lücken; ein neues Profil zeigt drei Einstiege; ein Test verlangt für jeden
+Dashboard-Text eine deutsche Übersetzung.
 
 Neue Simulationen verbinden einen echten lokalen Store mit einem
 Fake-IMAP-Server, einem Fake-Schlüsselbund und einer simulierten Uhr. Sie prüfen:

@@ -147,6 +147,24 @@ class LanguageTests(unittest.TestCase):
                         missing.append(f"{path.name}:{node.lineno}: {message}")
         self.assertEqual(missing, [])
 
+    def test_every_dashboard_text_has_a_german_translation(self):
+        """Visible literals in the dashboard script and markup need a catalog entry."""
+        import html
+        root = Path(__file__).resolve().parents[1] / "argus_security" / "web"
+        script = (root / "app.js").read_text(encoding="utf-8")
+        technical = {"Content-Type", "PATCH", "POST", "GET", "X-Import-ID", "Authorization", "de-DE", "en-GB"}
+        texts = set()
+        for match in re.finditer(r'"((?:[^"\\\n]|\\.)*)"', script):
+            value = json.loads('"' + match.group(1) + '"')
+            if (value in technical or not re.search(r"[A-Za-z]", value) or "${" in value
+                    or re.fullmatch(r"[a-z0-9_.:#\-\[\] =/*>~^$(),@&!]*", value)
+                    or value.startswith(("/api", "http", "Bearer", "argus."))):
+                continue
+            texts.add(value)
+        page = (root / "index.html").read_text(encoding="utf-8")
+        texts |= {html.unescape(value) for value in re.findall(r'data-i18n(?:-[a-z-]+)?="([^"]*)"', page)}
+        self.assertEqual(sorted(texts - set(catalog()["de"])), [])
+
     def test_translation_catalog_has_no_unused_entries(self):
         """Every German entry must match a literal in code, markup or a catalog category.
 

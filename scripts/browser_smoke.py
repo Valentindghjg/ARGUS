@@ -53,6 +53,15 @@ def main():
                 expect(page.locator("#demo-guide")).to_contain_text("two separate accounts, one for each own address")
                 expect(page.locator("#account-rows")).to_contain_text("GitHub · demo.work@example.invalid")
                 checks.append("Demo guide explains newsletter, guest order, reset mail, SSO, two accounts and look-alike domain")
+                expect(page.locator("#start-paths")).to_be_hidden()
+                expect(page.locator("#next-task-title")).to_contain_text("Decide on 11 account(s) with evidence")
+                expect(page.locator("#result-lines")).to_contain_text("18 clues from your emails")
+                expect(page.locator("#result-summary")).to_contain_text("this is not a complete list")
+                page.locator("#next-task-action").click()
+                expect(page.locator("#account-dialog")).to_be_visible()
+                expect(page.locator("#decision-status")).to_contain_text("Not decided yet")
+                page.locator("#close-dialog").click()
+                checks.append("Honest result summary and one reasoned next task on the overview")
                 expect(page.locator("#account-rows tr")).to_have_count(13)
                 expect(page.locator("html")).to_have_attribute("lang", "en")
                 expect(page.locator("#page-title")).to_have_text("Your accounts, in one place.")
@@ -386,6 +395,36 @@ def main():
                 assert stored == ["de", None], stored
                 legacy.close()
                 checks.append("Pre-rename language preference is honoured and moved to the ARGUS key")
+
+                # Plan F2: a new personal profile offers three separate ways in.
+                empty_store = Store(root / "empty", Registry())
+                empty_store.configure(["empty@example.invalid"])
+                empty_server = DashboardServer(empty_store, 0)
+                threading.Thread(target=empty_server.serve_forever, daemon=True).start()
+                try:
+                    fresh = browser.new_context(locale="en-GB")
+                    def fresh_route(request_route):
+                        if request_route.request.url.startswith(empty_server.url):
+                            request_route.continue_()
+                        else:
+                            external.append(request_route.request.url)
+                            request_route.abort()
+                    fresh.route("**/*", fresh_route)
+                    fresh_page = fresh.new_page()
+                    fresh_page.on("pageerror", lambda e: errors.append(str(e)))
+                    fresh_page.goto(empty_server.url, wait_until="networkidle")
+                    expect(fresh_page.locator("#start-paths")).to_be_visible()
+                    expect(fresh_page.locator("#start-paths .start-card")).to_have_count(3)
+                    expect(fresh_page.locator("#next-task-title")).to_have_text("Import your first emails")
+                    fresh_page.locator("#language").select_option("de")
+                    expect(fresh_page.locator("#start-paths")).to_contain_text("Wähle deinen Einstieg")
+                    fresh_page.locator("#start-paths [data-go='setup']").click()
+                    expect(fresh_page.locator("#setup-view")).to_be_visible()
+                    fresh.close()
+                finally:
+                    empty_server.shutdown()
+                    empty_server.server_close()
+                checks.append("New profile shows three separate ways in and the import as first task")
                 assert not errors, errors
                 assert not external, external
                 browser.close()
