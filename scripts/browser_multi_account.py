@@ -153,6 +153,17 @@ def main():
                 checks.append("Legacy progress stays blocked from Bitwarden until the user explicitly confirms its identity")
 
                 page.locator("#close-dialog").click()
+                page.locator('[data-view="setup"]').click()
+                page.locator("#relation-address").select_option(first)
+                page.locator("#relation-kind").select_option("replaced_by")
+                page.locator("#relation-other").select_option(second)
+                page.locator("#relation-save").click()
+                expect(page.locator("#relation-items")).to_contain_text(f"{first} was replaced by {second}.")
+                assert len([a for a in store.snapshot()["accounts"] if a["provider_id"] == "github"]) == 3
+                page.locator("#relation-items button").click()
+                expect(page.locator("#relation-items article")).to_have_count(0)
+                checks.append("Address relations are notes only; accounts stay separate")
+
                 page.reload(wait_until="networkidle")
                 page.locator("#search").fill("Second work profile")
                 expect(page.locator("#account-rows tr")).to_have_count(1)

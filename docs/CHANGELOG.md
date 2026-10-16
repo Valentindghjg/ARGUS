@@ -17,6 +17,19 @@
   message is imported again; the profile gets one new column (schema version
   3, with the automatic backup first).
 
+### Unclear items in one list, reversible exclusions, address notes (E3, E4, A9)
+
+- A new “Unclear items” view lists accounts that need a sign-in address,
+  services with clues that name no clear account, rejected accounts with new
+  evidence and sender domains outside the catalog.
+- Sender domains outside the catalog can be hidden with a reason; new clues
+  bring them back and “Show again” reverses it. Domains in the catalog cannot be
+  hidden; reject the account instead.
+- Notes between two own addresses (same mailbox, replaced by) are shown on the
+  affected accounts and never merge accounts.
+- New CLI commands `unclear`, `exclude` and `relate`; schema version 4 adds two
+  tables after the automatic backup.
+
 ## 2.0.0 — Package A: clear states and a controllable core (not yet tagged)
 
 See [the security review](SECURITY_REVIEW_2026-10.md) and

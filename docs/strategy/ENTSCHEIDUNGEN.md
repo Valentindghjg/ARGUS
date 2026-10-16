@@ -42,6 +42,12 @@ Wird während der Umsetzung fortgeschrieben.
   in 1.x ohne MFA abgeschlossene Accounts erhalten „nicht zutreffend“, damit kein
   abgeschlossener Account zurückgestuft und keine Prüfung erfunden wird. Details
   in ADR-0001, Abschnitt 8.
+- **S9, Ausschlüsse nur für Domains außerhalb des Katalogs:** Für Katalogdienste
+  gibt es das Verwerfen je Account (mit Grund und Rückgängig). Ein Ausschluss
+  ganzer Katalogdomains würde echte Accounts verdecken und ist deshalb nicht
+  vorgesehen. Hinweise ohne eindeutigen Account lassen sich nicht einem Account
+  zuweisen; die Liste führt zum Dienst, wo du eigene Accounts anlegst oder
+  zuordnest.
 - **S4, Wiederherstellen nur über die CLI:** Das Dashboard nimmt keine
   Sicherungsdateien an. Wiederherstellen ersetzt die Datenbank, was bei
   laufendem Dashboard nicht sicher wäre; die Oberfläche nennt nur die Befehle.

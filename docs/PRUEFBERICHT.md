@@ -7,6 +7,12 @@ Domains; der Snapshot zeigt Art, Alter und Merkmale, die Datenbank enthält kein
 Nachrichtentext; ältere Hinweise erhalten ihre Erklärung beim erneuten Import;
 der Browser zeigt die Erklärung in beiden Sprachen.
 
+Schritt S9: **263 Python-Tests** und **30 Browser-Prüfgruppen**. Geprüft werden
+die Liste „Unklares“, Ausschlüsse (nur Domains außerhalb des Katalogs, Rückkehr
+bei neuen Hinweisen, umkehrbar), Adressnotizen (nur eigene Adressen, keine
+Zusammenführung), CLI und API-Formen; der Browser blendet eine Domain aus und
+wieder ein und speichert und entfernt eine Notiz.
+
 # Prüfbericht – Version 2.0.0 (Paket A, noch ohne Tag)
 
 Die Änderungen der Sicherheitsreview bestehen **208 Python-Tests** (vorher 166)

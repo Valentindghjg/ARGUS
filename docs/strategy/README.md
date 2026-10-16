@@ -40,14 +40,14 @@ Hauptnutzen kommt ohne sie aus.
 
 ## Umsetzungsstand der 15 Prioritäten
 
-Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S8.
+Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S9.
 
 | Nr. | Priorität | Stand | Im Code |
 | --- | --- | --- | --- |
 | 01 | Zustände sauber trennen | **umgesetzt** | [ADR-0001](../architecture/ADR-0001-zustands-und-freigabemodell.md): getrennte Achsen, Migration mit Sicherung, drei Marken im Dashboard |
 | 02 | Importergebnisse und Grenzen erklären | weitgehend | Scanstatistik mit Lücken und nächsten Schritten (F4), ehrliche Ergebniszusammenfassung (F3); Abdeckungsansicht folgt (D4) |
 | 03 | Erkennungsbegründungen | **umgesetzt** | Regelmerkmale, Hinweisart, Alter, Stärke und Einschränkung je Beleg; Belegbegründung bleibt neben der Entscheidung sichtbar |
-| 04 | Mehrdeutigkeiten gesammelt prüfen | teilweise | Identitätsprüfung und nicht zugeordnete Belege je Account; keine Sammelliste |
+| 04 | Mehrdeutigkeiten gesammelt prüfen | **umgesetzt** | Sammelliste „Unklares“: Identitäten, Hinweise ohne Account, neue Belege nach Verwerfen, unbekannte Domains |
 | 05 | Änderungen automatisch zusammenstellen | offen | – |
 | 06 | Unverändertes nicht erneut vorlegen | teilweise | Fingerabdruck-Deduplizierung und IMAP-Checkpoints; Oberfläche blendet noch nichts aus |
 | 07 | Jobs, Pause, Wiederaufnahme vereinheitlichen | teilweise | Importsitzungen, Leases, Abbruch zwischen Nachrichten; gemeinsames Jobmodell in ADR-0001 |
@@ -81,7 +81,7 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 | S6 | Zustandsmodell im Dashboard | D2, A10 | ✅ |
 | S7 | Drei Einstiegswege, ehrliche Ergebniszusammenfassung, klare nächste Aufgabe → **2.0.0** | F2, F3, D1, 02, 09 | ✅ (2.0.0) |
 | S8 | Erkennungsbegründungen, Hinweisarten und Alter | E1, E2, 03 | ✅ |
-| S9 | Mehrdeutigkeitsliste, Ausschlüsse, Alias-Beziehungen | E3, E4, A9, 04 | offen |
+| S9 | Mehrdeutigkeitsliste, Ausschlüsse, Alias-Beziehungen | E3, E4, A9, 04 | ✅ |
 | S10 | Unbekannte Domains, eigener Katalog, Regeländerungen, Benchmark → **2.1.0** | E5, E6, G3, G5 | offen |
 | S11 | Änderungszentrale und Rückkehr-Zusammenfassung | A1–A4, A7, A28, 05, 06 | offen |
 | S12 | Passende Checkliste, Arbeitsliste, Sitzungen, Prioritäten, Identitätskonten, Bericht → **2.2.0** | A5, A6, A8, A10, A17, A18, A20, D3, B6 | offen |

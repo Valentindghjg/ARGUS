@@ -7,6 +7,11 @@ kind, age and features and the database holds no message text; older clues gain
 their explanation on re-import; the browser shows the explanation in both
 languages.
 
+Step S9: **263 Python tests** and **30 browser check groups**. The unclear list,
+exclusions (only domains outside the catalog, back on new clues, reversible),
+address notes (own addresses only, no merging), CLI and API shapes are covered;
+the browser hides and shows a domain and saves and removes a note.
+
 # Test report — Version 2.0.0 (package A, not yet tagged)
 
 The security-review changes passed **208 Python tests** (previously 166) and
