@@ -434,18 +434,18 @@ Außerdem: `tests/test_review_simulations.py::PublisherKeySimulation` (D-04).
 ## 9. Hinweis zum Abschluss
 
 Gewünscht war ein Commit direkt auf `main`. Der Push wurde vom Server abgelehnt
-(`protected branch hook declined`). Die Ergebnisse liegen deshalb auf dem Branch
-`claude/security-review-2026-10`. Einen Pull Request legt diese Review nicht an;
-das Mergen entscheidet der Owner.
+(`protected branch hook declined`). Die Ergebnisse kamen deshalb über den Branch
+`claude/security-review-2026-10` und, nach ausdrücklicher Freigabe des Owners,
+über Pull Request #3 nach `main`. Der Merge erfolgte erst, als die CI auf
+Python 3.11–3.14 und die Browserchecks grün waren.
 
 ## 10. Empfohlene nächste Schritte
 
 Stand nach der Nachbesserung (Abschnitt 11):
 
-1. Den Branch `claude/security-review-2026-10` prüfen und in `main` übernehmen.
-   Die CI mit Python 3.11–3.14 und Browserchecks läuft dann automatisch.
-   Wegen der Umbenennung sollte die nächste Version eine neue Hauptversion sein
-   (2.0.0).
+1. Erledigt: Die Änderungen sind über PR #3 in `main`, die CI war auf Python
+   3.11–3.14 und in den Browserchecks grün. Wegen der Umbenennung sollte die
+   nächste Version eine neue Hauptversion sein (2.0.0).
 2. In GitHub unter **Settings → Security** die private Meldefunktion aktivieren.
    SECURITY.md und CODE_OF_CONDUCT.md nennen sie als einzigen privaten Weg.
 3. D-08: Auf den beiden Dependabot-PRs `@dependabot rebase` kommentieren, dann
