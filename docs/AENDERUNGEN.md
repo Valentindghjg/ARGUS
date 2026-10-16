@@ -1,4 +1,4 @@
-# Änderungen – unveröffentlicht (Paket B: erklärbare, korrigierbare Erkennung)
+# Änderungen – Version 2.1.0, Paket B: erklärbare, korrigierbare Erkennung (noch ohne Tag)
 
 ## Warum ein Hinweis zählt, welche Art er hat und wie alt er ist (E1, E2, Priorität 03)
 
@@ -45,6 +45,19 @@
 - Neue API-Routen `POST /api/catalog` und `POST /api/catalog/remove`; der
   Snapshot enthält `catalog`, Kandidaten enthalten `shared_sender` und
   `catalog_match`.
+
+## Dienstvorschläge und synthetischer Benchmark (G3, G5)
+
+- Das Issue-Formular **Dienst vorschlagen** fragt nach offizieller Website,
+  Kategorie, jeder Domainwurzel mit Begründung, öffentlichen Quellen mit
+  Prüfdatum und vier Prüfkriterien und schließt echte E-Mails aus. Die
+  Katalogrichtlinie beschreibt jetzt gemeinsam genutzte Versanddienste und die
+  eigenen Ergänzungen im Dashboard.
+- `python scripts/benchmark.py` schickt 27 erfundene Nachrichten durch die
+  Auswertung und berichtet Treffer, zur Prüfung Behaltenes, Verfehltes,
+  Fehlalarme und drei dokumentierte Grenzen (gefälschte Katalogabsender, andere
+  Sprachen, ungewöhnliche Formulierungen). Das beweist keine Genauigkeit bei
+  echten Postfächern; ein Test hält jedes Ergebnis dokumentiert.
 
 # Änderungen – Version 2.0.0, Paket A: klare Zustände und kontrollierbarer Kern (noch ohne Tag)
 

@@ -1,4 +1,4 @@
-# Test report — unreleased (package B)
+# Test report — Version 2.1.0 (package B, not yet tagged)
 
 Step S8: **257 Python tests** and **28 browser check groups**. Rule features are
 checked for subject and body matches, direct, indirect and multiple recipients,
@@ -18,6 +18,14 @@ HTTP or foreign website, category, priority, field shape) without leaving files
 behind, for private permissions, reloading and removal rules; rule changes on
 re-import list old and new reasons while decisions stay. The browser adds a
 provider after a refused website, sees the re-import notice and removes it.
+
+Step S10 (G3, G5): **273 Python tests** and **31 browser check groups**. The
+synthetic benchmark (27 cases) must match every documented outcome, explain each
+gap between truth and outcome, use only invented addresses and state that it is
+no proof of real accuracy; the proposal form offers exactly the catalog's
+categories. Current result on the synthetic set: of 15 real accounts, 10 count
+as probable, 3 are kept for review and 2 are missed (documented limits); of 7
+non-accounts, 1 is a false alarm (forged sender, documented limit).
 
 # Test report — Version 2.0.0 (package A, not yet tagged)
 

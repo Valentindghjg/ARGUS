@@ -1,4 +1,4 @@
-# Prüfbericht – unveröffentlicht (Paket B)
+# Prüfbericht – Version 2.1.0 (Paket B, noch ohne Tag)
 
 Schritt S8: **257 Python-Tests** und **28 Browser-Prüfgruppen**. Geprüft werden
 Regelmerkmale für Treffer in Betreff und Text, direkte, indirekte und mehrfache
@@ -20,6 +20,16 @@ Feldform), ohne dass Dateien zurückbleiben, außerdem private Rechte, erneutes
 Laden und Regeln fürs Entfernen; Regeländerungen beim erneuten Import nennen alte
 und neue Begründung, Entscheidungen bleiben. Der Browser ergänzt einen Dienst nach
 einer abgelehnten Website, sieht den Hinweis zum erneuten Import und entfernt ihn.
+
+Schritt S10 (G3, G5): **273 Python-Tests** und **31 Browser-Prüfgruppen**. Der
+synthetische Benchmark (27 Fälle) muss jedes dokumentierte Ergebnis treffen, jede
+Abweichung zwischen Wirklichkeit und Ergebnis begründen, nur erfundene Adressen
+verwenden und sagen, dass er keine echte Genauigkeit beweist; das
+Vorschlagsformular bietet genau die Kategorien des Katalogs an. Aktuelles
+Ergebnis im künstlichen Satz: von 15 echten Accounts zählen 10 als
+wahrscheinlich, 3 bleiben zur Prüfung, 2 werden verfehlt (dokumentierte
+Grenzen); von 7 Nicht-Accounts ist 1 ein Fehlalarm (gefälschter Absender,
+dokumentierte Grenze).
 
 # Prüfbericht – Version 2.0.0 (Paket A, noch ohne Tag)
 

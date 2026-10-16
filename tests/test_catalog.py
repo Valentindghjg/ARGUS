@@ -119,5 +119,16 @@ class CatalogTests(unittest.TestCase):
         self.assertIn("1 gespeicherte(n) Hinweis(e) geändert", errors.getvalue())
 
 
+class ProposalTemplateTests(unittest.TestCase):
+    """Plan G3: the public proposal form offers exactly the catalog's categories."""
+
+    def test_template_categories_match_the_catalog(self):
+        text = (Path(__file__).resolve().parents[1] / ".github" / "ISSUE_TEMPLATE" / "provider.yml").read_text(encoding="utf-8")
+        block = text.split("id: category", 1)[1].split("validations:", 1)[0]
+        offered = [line.strip()[2:] for line in block.splitlines() if line.strip().startswith("- ")]
+        self.assertEqual(offered, sorted({p.category for p in Registry().providers.values()}))
+        self.assertIn("Do not attach real emails", text)
+
+
 if __name__ == "__main__":
     unittest.main()

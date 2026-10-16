@@ -1,6 +1,6 @@
 # Change log
 
-## Unreleased — Package B: explainable, correctable detection
+## 2.1.0 — Package B: explainable, correctable detection (not yet tagged)
 
 ### Why a clue counts, what kind it is and how old (E1, E2, priority 03)
 
@@ -44,6 +44,18 @@
 - New API routes `POST /api/catalog` and `POST /api/catalog/remove`; the
   snapshot carries `catalog` and candidates carry `shared_sender` and
   `catalog_match`.
+
+### Provider proposals and a synthetic benchmark (G3, G5)
+
+- A **Provider proposal** issue form asks for the official website, category,
+  each domain root with a reason, public sources with a check date and four
+  review criteria, and forbids real emails. The catalog policy now describes
+  shared sending services and the dashboard's own additions.
+- `python scripts/benchmark.py` runs 27 invented messages through the analysis
+  and reports hits, messages kept for review, misses, false alarms and three
+  documented limits (forged catalog senders, other languages, unusual
+  wording). It is not proof of accuracy on real mailboxes; a test keeps every
+  outcome documented.
 
 ## 2.0.0 — Package A: clear states and a controllable core (not yet tagged)
 
