@@ -1,5 +1,5 @@
 """Deterministic, entirely local MIME classification. Mail is untrusted input."""
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import timezone
 from email import policy
 from email.parser import BytesParser
@@ -104,9 +104,6 @@ class Evidence:
     date: str | None
     source: str
     caveat: str | None = None
-
-    def public(self):
-        return {**asdict(self), "reason": LABELS[self.signal]}
 
 
 def _addresses(message, fields):

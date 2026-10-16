@@ -412,6 +412,3 @@ class Store:
                                                         "checklist": json.dumps({"reviewed": True})})
         return ident
 
-    def known_fingerprints(self):
-        with self.connect() as db:
-            return {r[0] for r in db.execute("SELECT fingerprint FROM evidence")}

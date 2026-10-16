@@ -38,12 +38,17 @@ access or publication.
 | R-14 | Bitwarden | `bw create item <base64>` exposes metadata (no password) in the process list | low | open: use stdin after a manual vault test |
 | R-15 | IMAP | A manual `scan-imap` does not take the scheduler lease | low | open: documented |
 | R-16 | Server/UI | Specific validation errors are replaced by generic messages | low | open: add `UserFacingError` |
+| D-01 | Docs | Claims contradicted the code (dependencies, stored secrets, vault access, activation path) | medium | fixed |
+| D-02/03 | Packaging | `pyproject.toml` pointed to another repository and had no license metadata | medium | fixed (PEP 639 `MPL-2.0`) |
+| D-04 | Keys | `data/*.pem` was packaged, private keys were not ignored, and the key generator wrote anywhere | medium | fixed |
+| D-05/06/07 | Docs/CI/code | MPL switch missing from changelog, pip missing from Dependabot, dead code | low | fixed |
+| D-08–D-12 | Owner | Stale Dependabot branches, a personal domain in history, copyright holder and data license, naming, reporting contact | low–medium | open (owner decision) |
 
 ## Verification
 
 | Check | Result |
 | --- | --- |
-| Unit tests | 177 passed (previously 166) |
+| Unit tests | 178 passed (previously 166) |
 | `node --check` | passed |
 | Companion validator | passed |
 | Wheel build and clean install smoke test | passed |
@@ -53,3 +58,6 @@ access or publication.
 The new file `tests/test_review_simulations.py` covers lease renewal,
 cancellation, secret-free profile files, poison messages, read-only mbox
 originals, scheduler resilience, the start message and the OAuth2 warning.
+
+`main` is protected against direct pushes, so the changes are on the branch
+`claude/security-review-2026-10`. No pull request was opened.

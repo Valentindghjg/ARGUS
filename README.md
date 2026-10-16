@@ -39,7 +39,8 @@ activatable yet, so Free is not limited by an artificial trial. See [the Freemiu
 
 **Quick start:** Python 3.11 or newer and a modern browser. Install the one
 security dependency from the project metadata; npm and Docker are not required.
-Extract the archive, open a terminal in `account-finder`, then run:
+Extract the archive or clone the repository, open a terminal in its folder
+(`ARGUS` for a Git clone), then run:
 
 ```bash
 python -m pip install .

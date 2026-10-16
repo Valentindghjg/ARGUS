@@ -10,7 +10,9 @@ The local profile can contain account evidence, configured own email addresses,
 checklist state and optional IMAP settings metadata. Email bodies are analysed
 locally to create bounded evidence records; raw message bodies, attachments,
 passwords, Bitwarden master passwords and OAuth refresh tokens are not stored by
-ARGUS. Protect the profile and its backups with your operating system account and
+ARGUS. The only exception is opt-in: `background-imap enable` keeps a separate
+IMAP app password or access token in your operating-system keyring, never in
+the profile, until you run `background-imap revoke`. Protect the profile and its backups with your operating system account and
 an encrypted drive.
 
 Network connections occur only when you explicitly start an allowed action:
@@ -46,7 +48,9 @@ Das lokale Profil kann Account-Belege, konfigurierte eigene Mailadressen,
 Checklisten und Metadaten optionaler IMAP-Einstellungen enthalten. Mailtexte
 werden lokal ausgewertet, um begrenzte Belegdaten zu erzeugen; rohe Mailtexte,
 Anhänge, Passwörter, Bitwarden-Hauptpasswörter und OAuth-Refresh-Tokens speichert
-ARGUS nicht. Schütze das Profil und seine Sicherungen mit deinem Betriebssystem-
+ARGUS nicht. Einzige, ausdrücklich gewählte Ausnahme: `background-imap enable`
+legt ein separates IMAP-App-Passwort oder Access-Token im Schlüsselbund des
+Betriebssystems ab, nie im Profil, bis du `background-imap revoke` ausführst. Schütze das Profil und seine Sicherungen mit deinem Betriebssystem-
 Konto und einem verschlüsselten Laufwerk.
 
 Netzwerkverbindungen entstehen nur durch ausdrücklich gestartete erlaubte

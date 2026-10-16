@@ -157,7 +157,7 @@ class PersistenceImprovements(StoreFixture):
     def test_migration_of_v1_schema_and_duplicate_signals(self):
         directory = self.root / "v1"
         directory.mkdir()
-        with sqlite3.connect(directory / "accounts.sqlite3") as db:
+        with closing(sqlite3.connect(directory / "accounts.sqlite3")) as db, db:
             db.execute("""CREATE TABLE evidence(id INTEGER PRIMARY KEY, provider_id TEXT, sender_domain TEXT NOT NULL,
                 registered_email TEXT, signal TEXT NOT NULL, score INTEGER NOT NULL, fingerprint TEXT NOT NULL,
                 date TEXT, source TEXT NOT NULL, caveat TEXT, UNIQUE(fingerprint,sender_domain,signal))""")

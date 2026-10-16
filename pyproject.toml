@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,6 +8,8 @@ version = "1.16.0"
 description = "Offline-first account inventory, local email evidence and Bitwarden security checklists"
 readme = "README.md"
 requires-python = ">=3.11"
+license = "MPL-2.0"
+license-files = ["LICENSE"]
 dependencies = ["cryptography>=42,<51"]
 keywords = ["account-security", "bitwarden", "email", "imap", "privacy", "password-manager"]
 classifiers = [
@@ -27,16 +29,17 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Valentindghjg/account-compass"
-Repository = "https://github.com/Valentindghjg/account-compass"
-Issues = "https://github.com/Valentindghjg/account-compass/issues"
-Security = "https://github.com/Valentindghjg/account-compass/security/advisories"
+Homepage = "https://github.com/Valentindghjg/ARGUS"
+Repository = "https://github.com/Valentindghjg/ARGUS"
+Issues = "https://github.com/Valentindghjg/ARGUS/issues"
+Security = "https://github.com/Valentindghjg/ARGUS/security/advisories"
 
 [project.scripts]
 account-finder = "account_finder.cli:main"
 
 [tool.setuptools.package-data]
-account_finder = ["data/*.json", "data/*.pem", "web/*"]
+# Only the publisher PUBLIC key may ship; private keys are git-ignored.
+account_finder = ["data/*.json", "data/license_public_key.pem", "web/*"]
 
 [tool.setuptools.packages.find]
 include = ["account_finder*"]

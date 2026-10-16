@@ -261,7 +261,7 @@ class HandoffTests(ProfileFixture, unittest.TestCase):
         self.assertNotEqual(handoff_snapshot(self.store)[0]['operation_id'], operation)
 
     def test_crash_does_not_allow_reconciliation_until_lease_expires(self):
-        attempt = reserve(self.store, 'github', 'demo@example.invalid')
+        reserve(self.store, 'github', 'demo@example.invalid')
         with self.assertRaises(HandoffError):
             self.review(False)
         with patch('account_finder.handoffs.time.time', return_value=10**12):

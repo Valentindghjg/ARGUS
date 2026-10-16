@@ -19,7 +19,13 @@ See [the security review](SECURITY_REVIEW_2026-10.md).
   German text for the 4 new messages from this review. A regression test now requires German text for every typed
   user-facing error.
 - Added a warning when enabling a schedule with an expiring OAuth2 token.
-- `.gitignore` now excludes private key files.
+- `.gitignore` now excludes private key files. Only the public license key is
+  packaged, and the key generator refuses to write a private key inside the
+  repository.
+- Package metadata now declares `MPL-2.0` (PEP 639) and points to the ARGUS
+  repository. Dependabot also monitors pip dependencies.
+- Corrected documentation that contradicted current behavior, and removed dead
+  code.
 - Added end-to-end simulations with a fake IMAP server, fake keyring and
   simulated clock.
 
@@ -176,6 +182,8 @@ See [the security review](SECURITY_REVIEW_2026-10.md).
 - Added license status and activation commands, a dashboard activation path for a
   future signed build, tests for valid, expired and tampered licenses, and
   commercial integration documentation.
+- Licensed the Free edition source code under MPL-2.0 (`LICENSE`, `LICENSING.md`);
+  earlier versions were published without a selected license.
 
 ## 1.5.0 — Freemium foundation, 14 October 2026
 

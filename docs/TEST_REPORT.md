@@ -1,6 +1,6 @@
 # Test report — unreleased security review (2026-10)
 
-The security-review changes passed **177 Python tests** (previously 166) and
+The security-review changes passed **178 Python tests** (previously 166) and
 **23 Chromium browser check groups**, with zero page errors and zero external
 browser requests.
 

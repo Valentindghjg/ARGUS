@@ -242,7 +242,7 @@ def _imap_messages(store: Store, config: IMAPConfig, secret: str, *, allow_netwo
                 if delay:
                     time.sleep(delay)
             info["folders_processed"] += 1
-    except (imaplib.IMAP4.error, OSError, UnicodeError, ValueError) as exc:
+    except (imaplib.IMAP4.error, OSError, UnicodeError, ValueError):
         # Never forward server text, exception details, usernames, passwords or tokens.
         raise MailboxError("IMAP connection / authentication failed. Check TLS, host, authorization and app password or OAuth2 with your provider. Saved progress is preserved.") from None
     finally:

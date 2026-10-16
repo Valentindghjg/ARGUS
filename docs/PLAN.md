@@ -1,11 +1,13 @@
 # Technical plan
 
-1. **Local detection and dashboard first:** Python 3.11+, standard library,
+1. **Local detection and dashboard first:** Python 3.11+, standard library plus
+   `cryptography` for offline license verification,
    extensible provider JSON, deterministic MIME analysis, SQLite, responsive local
    dashboard and a separate synthetic demo.
 2. **Then mailbox ingestion:** EML/Maildir/mbox import and TLS IMAP with certificate
    verification, EXAMINE/read-only and bounded BODY.PEEK. App passwords or short-lived
-   OAuth2 tokens are entered only in a hidden terminal prompt, never stored.
+   OAuth2 tokens are entered only in a hidden terminal prompt and never stored by
+   ARGUS; only an opt-in scheduled scan keeps one in the OS keyring (version 1.8).
 3. **Setup:** explicitly authorized MX lookup of the mail domain only. MX identifies
    the receiving route, not necessarily the actual IMAP host. Verify settings with
    the provider before authorizing a connection; never try guessed host lists.
@@ -15,7 +17,9 @@
    mark an account Confirmed; email evidence reaches at most Probable.
 5. **Bitwarden:** official metadata-only JSON with empty password fields and null
    TOTP. Explicit account selection and separate import folder, excluding assigned
-   entries. No vault access or password generation by this app. The user creates
+   entries. No vault changes or password generation by this app; since 1.6.1 an
+   unlocked official CLI may add selected password-free items, and since 1.16 an
+   explicitly confirmed read-only audit derives only a match summary. The user creates
    passwords in Bitwarden and changes them directly at providers.
 6. **Privacy:** no outgoing network by default; dashboard only on 127.0.0.1 with
    a memory-only bearer token, Host/Origin checks, CSP and no external assets.

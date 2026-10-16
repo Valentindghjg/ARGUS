@@ -29,16 +29,17 @@ dagegen abzugleichen.
 | Keine Zugangsdaten in Konfiguration, API, Logs, Ergebnissen | SECURITY | Keine Secrets angefordert oder gespeichert; Tests prüfen Profildateien |
 | Bitwarden: kein Hauptpasswort, keine Änderung bestehender Einträge | SECURITY, BITWARDEN_CLI | Nur gefälschte CLI-Runner; keine echte `bw`-Ausführung |
 | Hintergrund-IMAP nur nach Opt-in im Terminal | SECURITY | Nur simulierte Uhr, Fake-Keyring und Fake-IMAP |
-| Keine Veröffentlichung | Auftrag | Kein Release, Tag, PR oder Issue; nur Commit auf `main` |
+| Keine Veröffentlichung | Auftrag | Kein Release, Tag, PR, Issue oder Kommentar; nur Commits auf einem Branch (siehe 9) |
 
 ## 2. Ausgeführte Prüfungen
 
 | Prüfung | Ergebnis |
 | --- | --- |
-| `python -m unittest discover -s tests` (Python 3.13) | vorher 166 OK → nachher **177 OK** |
+| `python -m unittest discover -s tests` (Python 3.13) | vorher 166 OK → nachher **178 OK** |
+| `ruff check --select F` (Pyflakes-Regeln) über das ganze Repository | nachher ohne Befund |
 | `node --check` für `app.js` und `popup.js` | OK |
 | `browser-companion/tests/validate.py` (verschärft) | OK, 527 Dienste |
-| Wheel/Sdist bauen, in sauberer venv installieren, `--help` en/de, `demo`, `report`, `list-accounts` | OK |
+| Wheel/Sdist bauen, in sauberer venv installieren, `--help` en/de, `demo`, `report`, `list-accounts` | OK; Metadaten jetzt mit `License-Expression: MPL-2.0` und ARGUS-URLs |
 | `scripts/browser_smoke.py` (Chromium, Playwright) | 18 Prüfgruppen, 0 Seitenfehler, 0 externe Requests |
 | `scripts/browser_multi_account.py` (erweitert) | 5 Prüfgruppen, 0 Seitenfehler, 0 externe Requests |
 | MIME-Fuzzing von `analysis.analyze` (30 000 mutierte Nachrichten + 13 gezielte Grenzfälle) | Keine unbehandelten Ausnahmetypen. Rekursion, NUL-Zeichen und exotische Codecs enden als gezählte Fehler. |
@@ -72,9 +73,20 @@ Wirkung; **niedrig** = Härtung/Konsistenz; **info** = Hinweis.
 | R-16 | Server/UI | Spezifische Validierungsfehler werden durch generische Meldungen ersetzt | niedrig | offen (Empfehlung) |
 | R-17 | Begleiter | Subdomain-Hinweis und Popup nur auf Englisch | info | offen |
 | R-18 | i18n | 22 ungenutzte Übersetzungsschlüssel | info | offen (siehe 6) |
-
-Weitere Befunde aus Dokumentation, Lizenzierung und GitHub-Reife stehen in
-Abschnitt 5.
+| D-01 | Doku | Aussagen widersprachen dem Code: „keine Laufzeitabhängigkeiten“, „IMAP-Secrets nie gespeichert“, „kein Tresorzugriff“, „ohne bestehende Einträge zu lesen“, „kein Aktivierungspfad“ | mittel | **behoben** |
+| D-02 | Paket | `pyproject.toml` verwies auf ein anderes Repository (`account-compass`) | mittel | **behoben** |
+| D-03 | Lizenz | Keine Lizenz-Metadaten im Paket (PyPI hätte keine Lizenz gezeigt) | mittel | **behoben** |
+| D-04 | Lizenz/Schlüssel | `data/*.pem` wurde gepackt; ein versehentlich abgelegter privater Schlüssel wäre im Wheel gelandet; der Generator schrieb überallhin | mittel | **behoben** |
+| D-05 | Doku | Wechsel zu MPL-2.0 und 1.6.1 fehlten im Changelog | niedrig | **behoben** |
+| D-06 | GitHub | Dependabot überwachte nur Actions, nicht `cryptography` | niedrig | **behoben** |
+| D-07 | Code | Toter Code und ungenutzte Importe; ResourceWarning in einem Test | niedrig | **behoben** |
+| D-08 | GitHub | Dependabot-Branches basieren auf einem Stand vor MPL/1.7 | mittel | offen (Owner) |
+| D-09 | GitHub | Eine früher entfernte persönliche Domain ist noch in der Git-Historie | mittel | offen (Owner) |
+| D-10 | Lizenz | Kein Copyright-Inhaber, keine SPDX-Kopfzeilen; Lizenz für Katalogdaten, Doku und Bilder ungeklärt | niedrig | offen (Owner) |
+| D-11 | Projekt | Sechs Namen (ARGUS, Account Compass, Account-Finder, …) | niedrig | offen (Owner) |
+| D-12 | GitHub | Melde- und Kontaktweg hängt an optionalen GitHub-Funktionen | niedrig | offen (Owner) |
+| D-13 | Doku | Lücken zwischen englischer und deutscher Doku, veraltete Screenshots | niedrig | offen |
+| D-14 | `main` | Der Branch `main` ist serverseitig gegen direkte Pushes geschützt | info | siehe 9 |
 
 ## 4. Befunde im Detail
 
@@ -239,11 +251,111 @@ zu `HandoffError`, und nur deren feste Texte durchreichen.
 
 ## 5. Dokumentation, Lizenzierung, GitHub-Reife
 
-_Wird nach Abschluss der Teilprüfung ergänzt._
+Version 1.16.0 ist überall konsistent: `pyproject.toml`, `__init__.py`,
+Oberfläche und beide READMEs. Der Katalog hat wie angegeben 527 Dienste.
+`LICENSE` ist der vollständige MPL-2.0-Text. Die CI ist solide: `contents: read`,
+per SHA gepinnte Actions, `persist-credentials: false`, Timeouts und eine Matrix
+für 3.11–3.14. `examples/` enthält nur synthetische Empfänger
+(`example.invalid`). Ein Scan der gesamten Historie fand keine Schlüssel oder
+Tokens.
+
+**Behoben:**
+
+- **D-01:** CONTRIBUTING, PLAN/PLAN_DE, PRIVACY (en/de), FREEMIUM/FREEMIUM_DE
+  und PUBLISHING beschreiben jetzt:
+  - die Abhängigkeit von `cryptography` und das optionale `keyring`;
+  - die Schlüsselbund-Ausnahme für geplante Scans;
+  - die Bitwarden-CLI-Übergabe und die nur lesende Prüfung;
+  - den deaktivierten Aktivierungspfad.
+
+  Außerdem nennen die READMEs den richtigen Ordnernamen, und das Bug-Template
+  verwendet eine aktuelle Beispielversion.
+- **D-02/D-03:** In `pyproject.toml` stehen jetzt:
+  - `license = "MPL-2.0"` und `license-files` (PEP 639), dafür `setuptools>=77`;
+  - Repository-URLs auf `Valentindghjg/ARGUS`.
+- **D-04:**
+  - Gepackt wird nur noch `data/license_public_key.pem`.
+  - `.gitignore` schließt `*.pem` und `*.key` aus, außer dem öffentlichen
+    Schlüssel.
+  - `scripts/generate_license_keys.py` verweigert einen privaten Schlüssel
+    innerhalb des Repositorys.
+  - Simulationstest: `test_key_generator_refuses_private_key_inside_the_repository`.
+- **D-05:** Der Wechsel zu MPL-2.0 (ab 1.6.0) ist in beiden Changelogs
+  vermerkt, 1.6.1 in AENDERUNGEN.
+- **D-06:** `dependabot.yml` überwacht zusätzlich das `pip`-Ökosystem.
+
+**Offen, Owner-Entscheidung:**
+
+- **D-08:** Die offenen Dependabot-PRs (checkout 7.0.1, setup-python 7.0.0)
+  ändern nur die SHA-Zeilen in `ci.yml` und lassen sich sauber mergen. Ihre CI
+  lief aber gegen einen alten Stand. Empfehlung: auf GitHub `@dependabot rebase`
+  kommentieren, dann die Release Notes von v6 → v7 prüfen. In dieser Review
+  wurde auf GitHub bewusst nichts gepostet.
+- **D-09:** Eine in 42a58fc entfernte persönliche Domain steht noch in älteren
+  Commits. Ob vor einer Veröffentlichung die Historie umgeschrieben wird,
+  entscheidet der Owner.
+- **D-10:** Für SPDX-Kopfzeilen (`# SPDX-License-Identifier: MPL-2.0`) muss
+  zuerst feststehen, wer als Copyright-Inhaber genannt wird. `LICENSING.md` deckt
+  nur „Quellcode“ ab. Lizenz für `providers.json`, `translations.json`, Doku und
+  PNGs festlegen. Das Feld `notes` im Katalog („public-domain catalog“) wirkt wie
+  eine Gemeinfreiheitserklärung. Rechtlich prüfen.
+- **D-11:** ARGUS, Account Compass, Account-Finder, `local-account-finder`,
+  `account-finder` und `AccountFinder` vereinheitlichen. Achtung: Der
+  Schlüsselbund-Dienstname und das Datenverzeichnis brauchen eine Migration,
+  sonst gehen gespeicherte Freigaben und Profile verloren.
+- **D-12:** SECURITY.md stützt sich auf „private vulnerability reporting“, falls
+  verfügbar, ohne Ausweichkontakt. Auch CODE_OF_CONDUCT nennt keinen Kontakt.
+  SUPPORT verweist auf Discussions, die eventuell deaktiviert sind.
+
+**Offen, niedrig (D-13):**
+
+- README_DE fehlen CI-Badge, Vorschau und die Zeilen zu Datenschutz und Support.
+- AENDERUNGEN beginnt erst bei 1.6.
+- TEST_REPORT nennt für 1.6 zwei verschiedene Gruppenzahlen.
+- Die Screenshots in `docs/preview/` stammen aus 1.6.
+- In der CI sind `build` und `playwright` nicht exakt gepinnt.
+  `cancel-in-progress` bricht auch Läufe auf `main` ab.
 
 ## 6. Toter Code und technische Schulden
 
-_Wird nach Abschluss der Teilprüfung ergänzt._
+**Entfernt (D-07):**
+
+- `Store.known_fingerprints` (ohne Aufrufer)
+- `Evidence.public` (ohne Aufrufer; `snapshot` bildet dasselbe Label selbst)
+- ungenutzte Importe in `cli.py` und `tests/test_server.py`, ungenutztes `as exc`
+  in `imap_client.py`, eine ungenutzte Variable in `tests/test_workflow.py`
+- die No-op-Zuweisung `secret = "" if "secret" in locals() else ""` in
+  `background.py`
+- `sqlite3.connect` in `tests/test_improvements.py` wird jetzt geschlossen; die
+  ResourceWarning entfällt
+
+**Bewusst belassen, als Schulden dokumentiert:**
+
+- **Legacy-Tabellen:** `accounts`, `work_queue` und `bitwarden_handoffs` werden
+  in jedem neuen Profil angelegt. Gelesen werden sie nur einmal, von
+  `migrate_instances`. Nach der Migration bleiben alte Metadaten wie
+  `manual_email` darin liegen. Empfehlung: nur noch bei Altprofilen anlegen und
+  nach erfolgreicher, gesicherter Migration leeren. Die Migration muss dafür
+  gesondert getestet werden.
+- **Aliasse:** `BackgroundScanService.start` und `stop` sind Aliasse von
+  `configure` und `disable`. Ein Paar genügt.
+- **Testhelfer:** `Store.add_evidence` wird nur von Tests genutzt.
+- **Doppelter Code:** `write_new` steht doppelt in den beiden Herausgeber-Skripten.
+- **Versionsangabe:** Die Version steht an vier Stellen. Empfehlung:
+  `dynamic = ["version"]`.
+- **Schreibender Lesezugriff:** `Store.snapshot()` schreibt bei jedem GET
+  (`BEGIN IMMEDIATE` + `synchronize_instances`). Das ist funktional korrekt,
+  aber ein Lesezugriff sollte keine Schreibsperre brauchen.
+- **Übersetzungsschlüssel:** 22 Schlüssel werden nicht mehr verwendet (alte
+  Fragmente und Formulierungen). Sie bleiben vorerst, weil gespeicherte
+  Altwerte sie eventuell noch anzeigen. Vor dem Löschen gegen gespeicherte
+  Belege und Caveats prüfen.
+- **Statischer Platzhaltertext:** In der Dashboard-Karte „Secure your next
+  account“ steht Platzhaltertext ohne `data-i18n`. Das Skript ersetzt ihn sofort,
+  sichtbar ist er nur bis zum ersten Laden.
+- **Zurückgestellte Accounts:** Mit „skipped“ markierte Accounts können weiter
+  als nächster geführter Account vorgeschlagen werden. Das ist eine
+  UX-Entscheidung, keine Sicherheitslücke.
 
 ## 7. Geprüft ohne Befund
 
@@ -316,3 +428,25 @@ Erweitert wurden außerdem:
 - `tests/test_background.py`: Runner-Signatur mit `keep_alive`
 - `scripts/browser_multi_account.py`: Abbruch und Bestätigung der Adressbindung
 - `browser-companion/tests/validate.py` (R-13)
+
+Außerdem: `tests/test_review_simulations.py::PublisherKeySimulation` (D-04).
+
+## 9. Hinweis zum Abschluss
+
+Gewünscht war ein Commit direkt auf `main`. Der Push wurde vom Server abgelehnt
+(`protected branch hook declined`). Die Ergebnisse liegen deshalb auf dem Branch
+`claude/security-review-2026-10`. Einen Pull Request legt diese Review nicht an;
+das Mergen entscheidet der Owner.
+
+## 10. Empfohlene nächste Schritte
+
+1. Den Branch `claude/security-review-2026-10` prüfen und in `main` übernehmen.
+   Die CI mit Python 3.11–3.14 und Browserchecks läuft dann automatisch.
+2. Owner-Entscheidungen D-08 bis D-12 treffen. Die Grundlage dafür ist
+   [PUBLISHING.md](PUBLISHING.md).
+3. Die Übergabe `docs/CLAUDE_CODE_HANDOFF.md` und das Strategie-PDF ins
+   Repository legen. Danach diesen Bericht gegen die dort genannten Grenzen und
+   Tests abgleichen.
+4. Die Empfehlungen R-14 (stdin für `bw create`, mit Test-Tresor prüfen), R-15
+   (Lease auch für den manuellen Scan) und R-16 (`UserFacingError`) als
+   getrennte, kleine Änderungen umsetzen.

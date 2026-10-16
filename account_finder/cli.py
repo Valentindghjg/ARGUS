@@ -1,5 +1,4 @@
 """Terminal interface; passwords are never command-line arguments."""
-import argparse
 import getpass
 import json
 from pathlib import Path

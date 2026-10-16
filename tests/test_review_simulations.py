@@ -4,7 +4,6 @@ Everything is synthetic: a real local Store, the in-memory FakeIMAP server from
 the IMAP tests, a fake keyring and a controllable clock. No socket to a mail
 server, keyring backend or Bitwarden CLI is ever opened.
 """
-import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -203,6 +202,32 @@ class OAuthScheduleNoticeSimulation(unittest.TestCase):
                 self.assertIn(expected, output.getvalue())
                 self.assertNotIn(SECRET, output.getvalue())
                 self.assertNotIn(SECRET.encode(), (data_dir / "accounts.sqlite3").read_bytes())
+
+
+class PublisherKeySimulation(unittest.TestCase):
+    def test_key_generator_refuses_private_key_inside_the_repository(self):
+        import subprocess
+        import sys
+        repository = Path(__file__).resolve().parents[1]
+        private = repository / ".local" / "review-simulation-private.pem"
+        self.assertFalse(private.exists())
+        with tempfile.TemporaryDirectory() as temporary:
+            public = Path(temporary) / "public.pem"
+            result = subprocess.run([sys.executable, str(repository / "scripts" / "generate_license_keys.py"),
+                                     "--private-key", str(private), "--public-key", str(public)],
+                                    capture_output=True, text=True, timeout=60)
+            self.addCleanup(lambda: private.unlink(missing_ok=True))
+            self.assertNotEqual(result.returncode, 0)
+            self.assertFalse(private.exists())
+            self.assertFalse(public.exists())
+            self.assertNotIn("PRIVATE KEY", result.stdout + result.stderr)
+            outside = Path(temporary) / "offline" / "private.pem"
+            created = subprocess.run([sys.executable, str(repository / "scripts" / "generate_license_keys.py"),
+                                      "--private-key", str(outside), "--public-key", str(public)],
+                                     capture_output=True, text=True, timeout=60)
+            self.assertEqual(created.returncode, 0, created.stderr)
+            self.assertEqual(outside.stat().st_mode & 0o777, 0o600)
+            self.assertNotIn("PRIVATE KEY", created.stdout)
 
 
 class DashboardSchedulerSimulation(unittest.TestCase):

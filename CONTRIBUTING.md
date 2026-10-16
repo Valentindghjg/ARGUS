@@ -3,7 +3,9 @@
 English and German contributions are welcome. User guides:
 [English](README.md) · [Deutsch](README_DE.md).
 
-Use Python 3.11 or newer. The app has no third-party runtime dependencies.
+Use Python 3.11 or newer. The app has one runtime dependency, `cryptography`
+(offline license verification); `keyring` is optional and used only for opt-in
+scheduled IMAP scans.
 Run it from the source directory with a separate synthetic profile:
 
 ```bash

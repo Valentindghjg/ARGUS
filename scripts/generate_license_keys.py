@@ -6,6 +6,8 @@ from pathlib import Path
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
+REPOSITORY = Path(__file__).resolve().parents[1]
+
 
 def write_new(path: Path, content: bytes, mode: int):
     if path.exists() or path.is_symlink():
@@ -21,6 +23,9 @@ def main():
     parser.add_argument("--private-key", type=Path, required=True)
     parser.add_argument("--public-key", type=Path, required=True)
     args = parser.parse_args()
+    private_target = args.private_key.resolve()
+    if private_target == REPOSITORY or REPOSITORY in private_target.parents:
+        raise SystemExit("Refusing to write the private key inside the repository; keep it offline.")
     key = Ed25519PrivateKey.generate()
     private = key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8,
                                 serialization.NoEncryption())

@@ -33,7 +33,8 @@ Voraussetzung: **Python 3.11 oder neuer** und ein aktueller Browser. Installiere
 die eine Sicherheitsabhängigkeit aus den Projektmetadaten; npm und Docker sind
 nicht nötig.
 
-1. Projektarchiv entpacken und Terminal im Ordner `account-finder` öffnen.
+1. Projektarchiv entpacken oder Repository klonen und ein Terminal in diesem Ordner
+   öffnen (bei einem Git-Klon `ARGUS`).
 2. Python-Version mit `python --version` prüfen. Auf Windows bei Bedarf alle
    `python`-Befehle durch `py -3` ersetzen; auf macOS/Linux gegebenenfalls `python3`.
 3. Demo starten:

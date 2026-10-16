@@ -31,7 +31,8 @@ künstliche Testlimits eingeschränkt.
 - Mailinhalte, IMAP-Geheimnisse, Zahlungsdaten und Bitwarden-Tresordaten werden
   nicht an einen Produktdienst gesendet. Eine optionale bereits entsperrte
   Bitwarden-CLI kann ausdrücklich ausgewählte passwortfreie Einträge lokal
-  erstellen, ohne bestehende Einträge zu lesen.
+  erstellen, ohne bestehende Einträge zu ändern. Eine getrennt bestätigte, nur
+  lesende Prüfung erzeugt nur eine lokale Trefferübersicht.
 - Ein späterer Kauf muss über einen getrennten Checkout des Herausgebers laufen.
   Zahlungsgeheimnisse gehören nicht in die Desktop-App oder dieses Repository.
 - Eine spätere Pro-Lizenz benötigt unabhängig geprüfte, signierte Offline-

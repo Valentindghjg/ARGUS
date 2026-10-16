@@ -1,6 +1,6 @@
 # Prüfbericht – unveröffentlichte Sicherheitsreview (2026-10)
 
-Die Änderungen der Sicherheitsreview bestehen **177 Python-Tests** (vorher 166)
+Die Änderungen der Sicherheitsreview bestehen **178 Python-Tests** (vorher 166)
 und **23 Chromium-Prüfgruppen**, ohne Seitenfehler und ohne externe
 Browseranfragen.
 

@@ -2,7 +2,6 @@ import http.client
 from contextlib import closing
 import json
 from pathlib import Path
-import re
 import tempfile
 import threading
 import unittest

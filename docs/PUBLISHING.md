@@ -17,8 +17,9 @@ publish itself.
   this Free repository.
 - For the Freemium product, complete
   [COMMERCIAL_RELEASE.md](COMMERCIAL_RELEASE.md) before offering a paid Pro
-  edition. The current dashboard marks Pro as in development; it has no checkout
-  or activation path.
+  edition. The current dashboard marks Pro as in development; it has no checkout.
+  The `activate-license` command and dashboard activation stay disabled until a
+  publisher public key is bundled.
 - Decide whether the current GitHub username, repository name, issues and Actions
   history should be public. Rename or transfer the repository before publishing if
   needed.
@@ -34,7 +35,7 @@ publish itself.
    if they are available for the selected visibility and plan.
 5. In **General → Danger Zone**, change visibility to Public only after the
    preceding review. GitHub may show an irreversible-effects confirmation.
-6. Create a release from a signed-off tag after publication, for example `v1.6.0`.
+6. Create a release from a signed-off tag after publication, for example `v1.16.0`.
    Do not attach personal databases, exports or email files.
 
 ## What a public user gets

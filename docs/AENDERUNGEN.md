@@ -17,7 +17,13 @@ Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md).
   Zeitplanfehler), dazu deutsche Texte für die 4 neuen Meldungen dieser Review. Ein Regressionstest verlangt deutschen Text für jede
   typisierte Fehlermeldung.
 - Hinweis auf ablaufende OAuth2-Tokens beim Aktivieren eines Zeitplans.
-- `.gitignore` schließt private Schlüsseldateien aus.
+- `.gitignore` schließt private Schlüsseldateien aus. Gepackt wird nur der
+  öffentliche Lizenzschlüssel. Der Schlüsselgenerator verweigert private Schlüssel
+  innerhalb des Repositorys.
+- Die Paketmetadaten nennen `MPL-2.0` (PEP 639) und das ARGUS-Repository.
+  Dependabot überwacht zusätzlich pip-Abhängigkeiten.
+- Dokumentation korrigiert, die dem aktuellen Verhalten widersprach; toter Code
+  entfernt.
 - End-to-End-Simulationen mit Fake-IMAP-Server, Fake-Schlüsselbund und
   simulierter Uhr ergänzt.
 
@@ -222,6 +228,10 @@ Arbeitslistenfunktion ist kein erneuter Mailimport erforderlich.
   technische Dokumentation für den getrennten Zahlungs-/Webhook-Dienst ergänzt.
 - Weiterhin kein Checkout, keine Zahlungsdaten, Telemetrie oder Online-Konto in
   der Anwendung. Die bisherigen Free-Funktionen bleiben erhalten.
+- Der Quellcode der Free-Edition steht ab 1.6.0 unter MPL-2.0 (`LICENSE`,
+  `LICENSING.md`); frühere Versionen hatten keine gewählte Lizenz.
+- 1.6.1 ergänzt die optionale Übergabe an eine bereits entsperrte offizielle
+  Bitwarden-CLI (siehe [BITWARDEN_CLI.md](BITWARDEN_CLI.md)).
 - 101 Python-Tests und 15 Browser-Prüfgruppen verwenden ausschließlich künstliche
   Daten.
 
