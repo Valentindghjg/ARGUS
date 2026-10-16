@@ -65,6 +65,20 @@ See [the security review](SECURITY_REVIEW_2026-10.md) and
   two GitHub accounts, single sign-on at Notion and a look-alike sender domain.
   An existing demo folder can be loaded again.
 
+### Profile backup and restore (owner decision, plan "Installation, Migration und Sicherung")
+
+- `argus backup` writes one private ZIP (database via SQLite online backup,
+  password-free `imap.json`, manifest with checksums); `--output` chooses a
+  folder and `--list` shows backups. Backups are unencrypted by decision: no new
+  ARGUS password system.
+- `argus restore FILE` shows what it would restore; with `--yes` it verifies
+  every checksum and the database integrity, saves the current state first and
+  then replaces the profile.
+- The profile now records a schema version. Before a newer ARGUS changes an
+  older database, it saves an automatic backup (the newest five are kept). If
+  that backup fails, nothing is changed. A profile from a newer ARGUS is not
+  opened.
+
 ### Security and robustness
 
 - **Approvals are bound to their target (master plan priority 10).** Scheduled

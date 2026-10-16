@@ -16,6 +16,11 @@ from .registry import Registry
 
 CHECKLIST = ("reviewed", "saved_in_bitwarden", "password_changed", "login_tested", "mfa_checked")
 
+# Bump with every change to stored data. Opening an older profile first saves
+# an automatic backup; a profile from a newer ARGUS is never opened.
+#   1: account identities, rule versions, unique fingerprints, snoozes (1.9-1.16)
+SCHEMA_VERSION = 1
+
 
 def now():
     return datetime.now(timezone.utc).isoformat()
@@ -128,6 +133,7 @@ class Store:
         if self.path.is_symlink():
             raise ValueError("The database must not be a symlink")
         self.registry = registry
+        self._backup_before_migration()
         with self.connect() as db:
             db.executescript(CORE_SCHEMA)
             tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
@@ -152,8 +158,21 @@ class Store:
                 db.execute("ALTER TABLE instance_work_queue ADD COLUMN resume_after TEXT")
             db.execute("BEGIN IMMEDIATE")
             migrate_instances(db, registry)
+            db.execute("INSERT INTO meta VALUES ('schema_version',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                       (json.dumps(SCHEMA_VERSION),))
         if os.name == "posix":
             self.path.chmod(0o600)
+
+    def _backup_before_migration(self):
+        """Save the untouched profile before this version changes its database."""
+        from .backup import create_backup, schema_version
+        if not self.path.is_file() or self.path.stat().st_size == 0:
+            return
+        stored = schema_version(self.path)
+        if stored is not None and stored > SCHEMA_VERSION:
+            raise UserFacingError("This profile was updated by a newer ARGUS version; update ARGUS first")
+        if stored != SCHEMA_VERSION:
+            create_backup(self.data_dir, reason="pre-migration", label=f"v{stored or 0}-to-v{SCHEMA_VERSION}")
 
     @contextmanager
     def connect(self):

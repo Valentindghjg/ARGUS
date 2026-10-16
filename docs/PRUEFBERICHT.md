@@ -19,6 +19,14 @@ Vorschau muss Feld für Feld den geschriebenen Einträgen entsprechen, nichts
 schreiben und laut Protokoll angelegte Accounts nennen. Der Browser prüft
 Vorschau, Abbrechen und Download sowie die Demo-Erklärung.
 
+Schritt S4: **229 Python-Tests**. Sicherungen werden tatsächlich
+wiederhergestellt und mit dem gesicherten Stand verglichen; beschädigte, fremde,
+Pfad-ausbrechende und neuere Archive lassen das Profil unberührt; eine Sicherung
+bleibt bei gleichzeitigem Schreiben konsistent; ältere Profile werden vor der
+Migration einmal gesichert, eine gescheiterte Sicherung stoppt sie, neuere
+Profile werden abgelehnt. Die CI sichert und stellt im Paketcheck auf Linux,
+Windows und macOS wieder her.
+
 Neue Simulationen verbinden einen echten lokalen Store mit einem
 Fake-IMAP-Server, einem Fake-Schlüsselbund und einer simulierten Uhr. Sie prüfen:
 die Verlängerung der Lease bei langen geplanten Scans, den Abbruch durch

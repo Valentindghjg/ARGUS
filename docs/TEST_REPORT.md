@@ -19,6 +19,13 @@ preview must match the written items field by field, write nothing and list
 journal-created accounts. The browser checks preview, cancel and download, and
 the demo guide.
 
+Step S4: **229 Python tests**. Backups are restored for real and compared
+with the saved state; damaged, foreign, path-traversal and newer-format archives
+leave the profile untouched; a backup is consistent during a concurrent write;
+older profiles are backed up once before migration, a failed backup stops it
+and newer profiles are refused. The CI package check backs up and restores on
+Linux, Windows and macOS.
+
 New simulations combine a real local store with a fake IMAP server, a fake
 keyring and a simulated clock. They cover lease renewal during long scheduled
 scans, cancellation by `disable`/`revoke`, the absence of secrets in profile
