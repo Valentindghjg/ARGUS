@@ -1,3 +1,28 @@
+# Test report — unreleased security review (2026-10)
+
+The security-review changes passed **177 Python tests** (previously 166) and
+**23 Chromium browser check groups**, with zero page errors and zero external
+browser requests.
+
+New simulations combine a real local store with a fake IMAP server, a fake
+keyring and a simulated clock. They cover lease renewal during long scheduled
+scans, cancellation by `disable`/`revoke`, the absence of secrets in profile
+files, malformed messages that must not block later incremental scans,
+byte-identical mbox originals, scheduler resilience and the startup notice.
+
+Further checks:
+
+- The multi-account browser check now covers both cancelling and confirming a
+  permanent sign-in-address binding.
+- The companion validator checks all 527 providers and the HTTPS-only labelling.
+- The wheel was built and smoke-tested in a clean virtual environment.
+- 30,000 mutated MIME messages raised no unhandled exception type.
+
+Only Python 3.13 ran locally; GitHub Actions covers 3.11–3.14. No real mailbox,
+provider, password, keyring or Bitwarden vault was used.
+
+---
+
 # Test report — Version 1.16.0
 
 The read-only Bitwarden-audit and guided-MFA release passed **166 Python tests**

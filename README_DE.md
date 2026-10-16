@@ -301,7 +301,7 @@ python -m account_finder background-imap revoke
 
 `disable` pausiert künftige Scans und behält den Schlüsselbund-Eintrag. `revoke`
 deaktiviert zuerst die Scans und entfernt anschließend den Eintrag aus dem
-Schlüsselbund. Das Dashboard zeigt nur den Status und fragt niemals nach Passwort
+Schlüsselbund. Ein bereits laufender Scan endet vor dem nächsten Nachrichtenabruf. Das Dashboard zeigt nur den Status und fragt niemals nach Passwort
 oder Token.
 
 ### OAuth2, Microsoft, Google und Proton

@@ -1,3 +1,31 @@
+# Prüfbericht – unveröffentlichte Sicherheitsreview (2026-10)
+
+Die Änderungen der Sicherheitsreview bestehen **177 Python-Tests** (vorher 166)
+und **23 Chromium-Prüfgruppen**, ohne Seitenfehler und ohne externe
+Browseranfragen.
+
+Neue Simulationen verbinden einen echten lokalen Store mit einem
+Fake-IMAP-Server, einem Fake-Schlüsselbund und einer simulierten Uhr. Sie prüfen:
+die Verlängerung der Lease bei langen geplanten Scans, den Abbruch durch
+`disable` und `revoke`, dass keine Secrets in Profildateien landen, dass fehlerhafte
+Nachrichten keine Folgescans blockieren, dass mbox-Originale byte-identisch
+bleiben, die Robustheit des Schedulers und die Startmeldung.
+
+Weitere Prüfungen:
+
+- Die Mehrkonto-Browserprüfung deckt jetzt Abbruch und Bestätigung der dauerhaften
+  Adressbindung ab.
+- Der Begleiter-Validator prüft alle 527 Dienste und die Kennzeichnung nur für
+  HTTPS.
+- Das Wheel wurde gebaut und in einer sauberen virtuellen Umgebung getestet.
+- 30 000 mutierte MIME-Nachrichten lösten keinen unbehandelten Ausnahmetyp aus.
+
+Lokal lief nur Python 3.13; GitHub Actions deckt 3.11–3.14 ab. Es wurden keine
+echten Postfächer, Anbieter, Passwörter, Schlüsselbünde oder Bitwarden-Tresore
+verwendet.
+
+---
+
 # Prüfbericht – Version 1.16.0
 
 Die Version mit nur lesender Bitwarden-Prüfung und geführter MFA-Prüfung besteht

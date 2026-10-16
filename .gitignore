@@ -17,3 +17,7 @@ license.json
 *.mbox
 *bitwarden*.json
 !examples/*.eml
+# Publisher signing keys never belong in Git; only the public key may ship.
+*.pem
+*.key
+!account_finder/data/license_public_key.pem

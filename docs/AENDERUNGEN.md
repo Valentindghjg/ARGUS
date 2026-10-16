@@ -1,3 +1,28 @@
+# Änderungen – unveröffentlicht (Sicherheitsreview 2026-10)
+
+Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md).
+
+- Geplante IMAP-Scans verlängern ihre Lease zwischen Nachrichten. So bleibt auch
+  ein langer Scan exklusiv. `disable`, `revoke` oder eine ersetzte Lease beenden
+  einen laufenden Scan vor dem nächsten Nachrichtenabruf.
+- Der Scheduler-Thread des Dashboards übersteht Datenbanksperren und defekte
+  Zeitpläne. Während eines Browser-Imports startet er keinen Scan.
+- Die Startmeldung des Dashboards weist auf aktivierte geplante IMAP-Scans hin.
+- Das Dashboard fragt nach, bevor es eine Anmeldeadresse dauerhaft bindet. Die
+  API für die direkte Bitwarden-Übertragung verlangt ausdrücklich
+  `confirmed: true`.
+- Der Browser-Begleiter kennzeichnet nur HTTPS-Katalogdomains und ihren
+  `www.`-Host als offiziell. Bei anderen Subdomains warnt er.
+- 24 fehlende deutsche Meldungen ergänzt (Lizenz-, Schlüsselbund- und
+  Zeitplanfehler), dazu deutsche Texte für die 4 neuen Meldungen dieser Review. Ein Regressionstest verlangt deutschen Text für jede
+  typisierte Fehlermeldung.
+- Hinweis auf ablaufende OAuth2-Tokens beim Aktivieren eines Zeitplans.
+- `.gitignore` schließt private Schlüsseldateien aus.
+- End-to-End-Simulationen mit Fake-IMAP-Server, Fake-Schlüsselbund und
+  simulierter Uhr ergänzt.
+
+---
+
 # Änderungen – Version 1.16.0
 
 - Eine ausdrücklich bestätigte, nur lesende Prüfung für ausgewählte Accounts über

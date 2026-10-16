@@ -13,6 +13,17 @@ function hostMatches(host, root) {
   return host === root || host.endsWith(`.${root}`);
 }
 
+// The most specific catalogue domain wins, independent of bundle order.
+function bestMatch(providers, host) {
+  let best = null;
+  for (const provider of providers) {
+    for (const root of provider.domains) {
+      if (hostMatches(host, root) && (!best || root.length > best.root.length)) best = {provider, root};
+    }
+  }
+  return best;
+}
+
 function showUnknown(message) {
   state.textContent = message;
   details.hidden = true;
@@ -39,21 +50,32 @@ async function inspectActiveTab() {
   }
   let host;
   try {
-    host = new URL(url).hostname.toLowerCase().replace(/\.$/, "");
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:") {
+      showUnknown("This tab does not use an HTTPS website URL. ARGUS only labels HTTPS pages.");
+      return;
+    }
+    host = parsed.hostname.toLowerCase().replace(/\.$/, "");
   } catch {
     showUnknown("This tab does not use a website URL.");
     return;
   }
   const response = await fetch(chrome.runtime.getURL("providers.json"));
   const providers = await response.json();
-  const match = providers.find((provider) => provider.domains.some((root) => hostMatches(host, root)));
-  if (!match) {
+  const found = bestMatch(providers, host);
+  if (!found) {
     showUnknown("This domain is not in the bundled ARGUS provider catalogue. This says nothing about whether an account exists.");
     return;
   }
-  state.textContent = "Official ARGUS provider domain";
+  const match = found.provider;
+  // Many services let anyone publish on their subdomains (blogs, shops, forms).
+  // Only the catalogue domain itself or its www host is labelled as official.
+  const exact = host === found.root || host === `www.${found.root}`;
+  state.textContent = exact
+    ? "Official ARGUS provider domain"
+    : "Subdomain of an ARGUS catalogue domain. Other people may publish pages here; check the address yourself.";
   providerName.textContent = match.name;
-  domainName.textContent = host;
+  domainName.textContent = found.root;
   details.hidden = false;
   passwordUrl = typeof match.password_url === "string" ? match.password_url : null;
   if (!passwordUrl) {

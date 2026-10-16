@@ -284,7 +284,8 @@ python -m account_finder background-imap revoke
 ```
 
 `disable` pauses future scans while retaining the keyring entry. `revoke`
-disables scans first and then removes the entry from the OS keyring. Dashboard
+disables scans first and then removes the entry from the OS keyring. A scan that
+is already running stops before its next message fetch. Dashboard
 setup shows status only and never accepts a password or token.
 
 ### OAuth2 and provider differences

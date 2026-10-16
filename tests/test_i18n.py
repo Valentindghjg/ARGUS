@@ -126,6 +126,23 @@ class LanguageTests(unittest.TestCase):
             with self.subTest(message=english):
                 self.assertEqual(set(re.findall(r"\{([^}]+)\}", english)), set(re.findall(r"\{([^}]+)\}", german)))
 
+    def test_user_facing_errors_have_german_entries(self):
+        """Typed errors reach the CLI or dashboard verbatim and are translated there."""
+        import ast
+        typed = {"LicenseError", "CredentialError", "MailboxError", "BitwardenCliError", "HandoffError", "DNSError"}
+        # Raised only by the publisher's offline license-issuing script.
+        publisher_only = {"Invalid publisher private key", "Publisher private key must use Ed25519"}
+        missing = []
+        for path in sorted((Path(__file__).resolve().parents[1] / "account_finder").glob("*.py")):
+            for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+                if (isinstance(node, ast.Raise) and isinstance(node.exc, ast.Call)
+                        and isinstance(node.exc.func, ast.Name) and node.exc.func.id in typed
+                        and node.exc.args and isinstance(node.exc.args[0], ast.Constant)):
+                    message = node.exc.args[0].value
+                    if message not in catalog()["de"] and message not in publisher_only:
+                        missing.append(f"{path.name}:{node.lineno}: {message}")
+        self.assertEqual(missing, [])
+
 
 if __name__ == "__main__":
     unittest.main()

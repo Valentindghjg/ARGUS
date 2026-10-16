@@ -123,16 +123,17 @@ def file_messages(path: Path, kind: str):
     if kind == "mbox":
         if not path.is_file():
             raise ValueError("mbox file not found")
-        # A read-only file object avoids mailbox.mbox creating/changing files or locks.
-        with path.open("rb") as handle:
-            box = mailbox.mbox(handle.name, create=False)
-            try:
-                for key in box.iterkeys():
-                    with box.get_file(key, from_=False) as message_file:
-                        raw = message_file.read(MAX_MESSAGE_BYTES + 1)
-                    yield raw if len(raw) <= MAX_MESSAGE_BYTES else None
-            finally:
-                box.close()
+        # mailbox.mbox opens the file itself (read/write when permitted, otherwise
+        # read-only). ARGUS only reads: it never adds, removes, locks or flushes
+        # changes, so the original stays unchanged. create=False never creates it.
+        box = mailbox.mbox(path, create=False)
+        try:
+            for key in box.iterkeys():
+                with box.get_file(key, from_=False) as message_file:
+                    raw = message_file.read(MAX_MESSAGE_BYTES + 1)
+                yield raw if len(raw) <= MAX_MESSAGE_BYTES else None
+        finally:
+            box.close()
     elif kind == "maildir":
         if not path.is_dir() or not (path / "cur").is_dir() or not (path / "new").is_dir():
             raise ValueError("Maildir requires cur/ and new/")

@@ -38,7 +38,13 @@ and removes the keyring entry. Each run uses the existing incremental TLS/IMAP
 path and fixed safe failure text, never a password retry list.
 An atomic SQLite lease ensures that only one scheduled runner per profile may
 open the mailbox at a time; a stale worker cannot overwrite a later result or
-reactivate a disabled schedule. Folder checkpoints merge atomically.
+reactivate a disabled schedule. A running scan renews its lease at most every
+15 seconds between messages, so long scans keep exclusive access. If the
+schedule was disabled, revoked or replaced meanwhile, the run stops before the
+next message fetch, logs out and keeps the evidence already saved. Folder
+checkpoints merge atomically. While scheduling is enabled, the dashboard start
+message says that mailbox connections may occur. A manual `scan-imap` does not
+take this lease; avoid starting it while a scheduled scan is running.
 
 The app never requests your Bitwarden master password or signs into Bitwarden.
 Its optional direct transfer requires an already-unlocked official Bitwarden CLI

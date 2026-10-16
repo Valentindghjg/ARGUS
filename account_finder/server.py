@@ -76,16 +76,28 @@ class DashboardServer(ThreadingHTTPServer):
 
     def _background_loop(self):
         while not self.background_stop.is_set():
-            # Never overlap a browser EML import with an automatic mailbox run.
-            # The next pass will see the same persistent IMAP checkpoint.
-            if not self.active_import():
-                self.background_service.run_due(allow_network=True)
+            self._background_pass()
             status = self.background_snapshot()
             due = status.get("next_run_at")
             seconds = 60
             if isinstance(due, (int, float)):
                 seconds = max(1, min(60, due - time.time()))
             self.background_stop.wait(seconds)
+
+    def _background_pass(self):
+        # Never start an automatic mailbox run during a browser EML import.
+        # The next pass will see the same persistent IMAP checkpoint.
+        with self.import_lock:
+            busy = self.active_import() is not None
+        if busy:
+            return
+        try:
+            self.background_service.run_due(allow_network=True)
+        except Exception:
+            # A locked database or damaged schedule must not end the scheduler
+            # thread silently; run_due already records safe scan failures, and
+            # the next pass retries without exposing exception text.
+            pass
 
     def server_close(self):
         self.background_stop.set()
@@ -273,8 +285,8 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/bitwarden/cli":
                 from .bitwarden import add_to_unlocked_cli
                 data = self._json()
-                if set(data) != {"ids", "language"}:
-                    raise ValueError("Specify the selected accounts and language")
+                if set(data) != {"ids", "language", "confirmed"} or data["confirmed"] is not True:
+                    raise ValueError("Confirm the Bitwarden transfer")
                 result = add_to_unlocked_cli(self.server.store, data["ids"], data["language"])
                 self._send(200, result)
             elif path == "/api/bitwarden/audit":
@@ -322,12 +334,20 @@ class Handler(BaseHTTPRequestHandler):
         self._error(403, "Cross-origin access is not authorized")
 
 
+def startup_notice(background, language="en"):
+    """Tell the truth about mailbox activity before the dashboard starts serving."""
+    from .i18n import translate
+    if background.get("enabled"):
+        return translate("Press Ctrl+C to stop the server. Scheduled read-only IMAP scans are enabled and may connect to your mailbox while it runs; use background-imap disable to stop them.", language)
+    return translate("Press Ctrl+C to stop the server. No mailbox connection is active.", language)
+
+
 def serve(store: Store, port=8765, open_browser=False, language="en"):
     from .i18n import translate
     with DashboardServer(store, port) as server:
         server.start_background_scans()
         print(translate("Local dashboard: ", language) + server.url, flush=True)
-        print(translate("Press Ctrl+C to stop the server. No mailbox connection is active.", language), flush=True)
+        print(startup_notice(server.background_snapshot(), language), flush=True)
         if open_browser:
             import webbrowser
             webbrowser.open(server.url)

@@ -1,5 +1,28 @@
 # Change log
 
+## Unreleased — Security review 2026-10
+
+See [the security review](SECURITY_REVIEW_2026-10.md).
+
+- Scheduled IMAP scans renew their lease between messages, so a long scan keeps
+  exclusive mailbox access. `disable`, `revoke` or a replacement lease now stops
+  a running scan before its next message fetch.
+- The dashboard scheduler thread survives database locks and damaged schedules.
+  It no longer starts a scan while a browser import is running.
+- The dashboard start message now discloses enabled scheduled IMAP scans.
+- The dashboard asks for confirmation before permanently binding a sign-in
+  address. The direct Bitwarden transfer API requires an explicit
+  `confirmed: true`.
+- The browser companion labels only HTTPS catalogue domains and their `www.`
+  hosts as official. It warns on other subdomains.
+- Added 24 missing German messages (license, keyring and scheduler errors) and
+  German text for the 4 new messages from this review. A regression test now requires German text for every typed
+  user-facing error.
+- Added a warning when enabling a schedule with an expiring OAuth2 token.
+- `.gitignore` now excludes private key files.
+- Added end-to-end simulations with a fake IMAP server, fake keyring and
+  simulated clock.
+
 ## 1.16.0 — Read-only vault audit and guided MFA recovery
 
 - Added an explicitly confirmed, read-only audit for selected accounts through

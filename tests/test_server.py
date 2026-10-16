@@ -126,11 +126,18 @@ class ServerTests(unittest.TestCase):
         raw = synthetic_mail("notify@github.com", "Your account has been created", "")
         self.request("/api/import", "POST", raw, headers={"Content-Type":"message/rfc822"})
         with patch("account_finder.bitwarden.add_to_unlocked_cli", return_value={"items":1,"providers":["github"]}) as handoff:
-            status, _, body = self.request("/api/bitwarden/cli", "POST", json.dumps({"ids":["github"],"language":"en"}), headers={"Content-Type":"application/json"})
+            status, _, body = self.request("/api/bitwarden/cli", "POST", json.dumps({"ids":["github"],"language":"en","confirmed":True}), headers={"Content-Type":"application/json"})
         self.assertEqual(status, 200)
         self.assertEqual(json.loads(body)["items"], 1)
         handoff.assert_called_once_with(self.store, ["github"], "en")
         self.assertEqual(self.request("/api/bitwarden/cli", "POST", json.dumps({"ids":["github"]}), headers={"Content-Type":"application/json"})[0], 400)
+        with patch("account_finder.bitwarden.add_to_unlocked_cli") as unconfirmed:
+            for confirmed in (None, False, "true", 1):
+                payload = {"ids":["github"],"language":"en"}
+                if confirmed is not None:
+                    payload["confirmed"] = confirmed
+                self.assertEqual(self.request("/api/bitwarden/cli", "POST", json.dumps(payload), headers={"Content-Type":"application/json"})[0], 400)
+            unconfirmed.assert_not_called()
 
     def test_bitwarden_audit_requires_confirmation_and_returns_only_summary(self):
         raw = synthetic_mail("notify@github.com", "Your account has been created", "")

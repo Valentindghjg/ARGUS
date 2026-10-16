@@ -44,8 +44,15 @@ inkrementellen TLS-/IMAP-Pfad und feste sichere Fehlermeldungen, niemals eine
 Passwort-Versuchsliste.
 Eine atomare SQLite-Lease stellt sicher, dass nur ein geplanter Lauf pro Profil
 gleichzeitig das Postfach öffnet. Ein veralteter Worker kann weder ein neueres
-Ergebnis überschreiben noch einen deaktivierten Zeitplan wieder aktivieren.
-Ordner-Checkpoints werden atomar zusammengeführt.
+Ergebnis überschreiben noch einen deaktivierten Zeitplan wieder aktivieren. Ein
+laufender Scan verlängert seine Lease zwischen zwei Nachrichten höchstens alle
+15 Sekunden, sodass auch lange Läufe exklusiv bleiben. Wurde der Zeitplan
+inzwischen deaktiviert, widerrufen oder ersetzt, endet der Lauf vor dem nächsten
+Nachrichtenabruf, meldet sich ab und behält bereits gespeicherte Belege.
+Ordner-Checkpoints werden atomar zusammengeführt. Solange Zeitpläne aktiv sind,
+weist die Startmeldung des Dashboards auf mögliche Postfachverbindungen hin. Ein
+manueller `scan-imap` nutzt diese Lease nicht; starte ihn nicht während eines
+laufenden geplanten Scans.
 
 Das Bitwarden-Hauptpasswort wird niemals abgefragt. Die Anwendung meldet sich
 nicht bei Bitwarden an. Die optionale direkte Übertragung benötigt eine bereits

@@ -38,7 +38,9 @@ The popup shows one of these local decisions:
 
 | Result | Meaning |
 | --- | --- |
-| Official ARGUS provider domain | The current host is in the bundled provider catalogue. |
+| Official ARGUS provider domain | The current HTTPS host is a bundled catalogue domain itself or its `www.` host. |
+| Subdomain of an ARGUS catalogue domain | The host is below a catalogue domain (for example a blog or shop subdomain). Other people may publish there, so ARGUS does not call it official; check the address yourself. |
+| Not an HTTPS website URL | Plain `http:`, local files and browser pages are never labelled. |
 | Known password-management link | ARGUS has a documented, verified password-management URL for that provider. The user can copy it or open it in a new tab. |
 | No verified password-management link | Do not guess a settings URL. Use the provider's official help site after manually checking the account. |
 | Not in the catalogue | No conclusion about whether an account exists. |

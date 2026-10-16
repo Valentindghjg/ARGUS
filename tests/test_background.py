@@ -76,7 +76,8 @@ class BackgroundScanTests(unittest.TestCase):
     def test_due_run_is_incremental_and_uses_only_injected_runner(self):
         selector = self.credentials.save("APP-PASSWORD-DO-NOT-STORE")
         received = []
-        def runner(store, config, secret, *, limit):
+        def runner(store, config, secret, *, limit, keep_alive):
+            keep_alive()
             received.append((store, config, secret, limit))
             return {"result": "completed", "processed": 3, "evidence": 1}
         service = self.service(runner)

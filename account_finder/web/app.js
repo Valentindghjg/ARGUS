@@ -6,7 +6,7 @@ if(!["en","de"].includes(language))language=(navigator.language||"en").toLowerCa
 const translations=window.AF_TRANSLATIONS.de;
 const translationSpacing=new WeakMap();
 function t(message,values={}) {
-  const text=language==="de"?(translations[message]||message):message;
+  const text=language==="de"&&Object.hasOwn(translations,message)?translations[message]:message;
   return String(text).replace(/\{([a-zA-Z0-9_]+)\}/g,(match,key)=>Object.hasOwn(values,key)?String(values[key]):match);
 }
 function translateCaveat(value){
@@ -451,7 +451,7 @@ async function addToUnlockedBitwarden(){
   if(!window.confirm(t("ARGUS will create password-free items in your already-unlocked Bitwarden vault. Existing items are never changed. Continue?")))return;
   bitwardenBusy=true;renderExport();
   try{
-    const result=await api("/api/bitwarden/cli",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids,language})});
+    const result=await api("/api/bitwarden/cli",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids,language,confirmed:true})});
     await refresh();if(result.status==="needs_review")error(t("The transfer result is unclear. Check Bitwarden below before trying again."));else toast(t("Added {count} password-free item(s) to Bitwarden. Generate the new password in Bitwarden, use the verified provider link to change it, then test the sign-in.",{count:result.items}));
   }catch(e){error(canonicalMessage(e.message));try{await refresh();}catch(_){} }finally{bitwardenBusy=false;renderExport();renderHandoffs();}
 }
@@ -539,7 +539,12 @@ document.querySelector(".brand").onclick=e=>{e.preventDefault();navigate("dashbo
 for(const id of ["search","category","classification","status-filter"])$(id).addEventListener(id==="search"?"input":"change",renderRows);
 $("close-dialog").onclick=()=>$("account-dialog").close();
 $("login-method").onchange=()=>update({login_method:$("login-method").value});
-$("registered-email").onchange=()=>update({registered_email:$("registered-email").value||null});
+$("registered-email").onchange=()=>{
+  const email=$("registered-email").value||null;
+  // Binding an address is permanent for this account; require an explicit choice.
+  if(email&&!window.confirm(t("Use {p0} as this account's sign-in address? This cannot be changed later; a different address needs a separate account.",{p0:email}))){renderDetail();return;}
+  update({registered_email:email});
+};
 $("add-account-form").onsubmit=addLocalAccount;
 $("detail-priority").onchange=()=>update({priority:$("detail-priority").value});
 $("defer-account").onclick=()=>update({status:"skipped"});

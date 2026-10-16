@@ -161,7 +161,7 @@ def main(argv=None):
                     raise ValueError(t('Scheduled scan limit must be between 1 and 10000'))
                 # Load and validate the existing credential-free configuration before
                 # asking for the secret. This command never opens an IMAP socket.
-                load_config(store.data_dir / 'imap.json')
+                config = load_config(store.data_dir / 'imap.json')
                 if not sys.stdin.isatty():
                     raise MailboxError(t('Enter credentials only in an interactive terminal; no pipes or command-line passwords'))
                 schedule = service.schedule()
@@ -172,6 +172,8 @@ def main(argv=None):
                     secret = ''
                 service.start(credential_id=selector, interval_seconds=args.interval_minutes * 60, limit=args.limit)
                 print(t('Scheduled read-only IMAP scans are enabled. They run only while the local ARGUS dashboard is running.'))
+                if config.auth == 'oauth2':
+                    print(t('Note: OAuth2 access tokens usually expire within hours. Scheduled scans fail safely once it expires; run enable again with a fresh token or use a provider-supported app password.'))
         elif args.command == 'bitwarden-export':
             count = export_file(store, args.path, args.id, language=language)
             print(t('Saved {p0} metadata items privately; password fields are empty. Import the file into Bitwarden yourself, only once.', p0=count))

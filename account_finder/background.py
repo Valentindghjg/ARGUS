@@ -2,9 +2,9 @@
 
 This module deliberately has no daemon or import-time side effects.  A caller
 must explicitly enable a schedule, provide OS-keyring-backed authorization and
-call :meth:`BackgroundScanService.run_due` with network permission.  It is a
-foundation for a future dashboard/CLI integration; no scan is started merely
-because this module is installed.
+call :meth:`BackgroundScanService.run_due` with network permission.  The local
+dashboard process (``server.py``) is the only host that calls it; no scan is
+started merely because this module is installed.
 """
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Callable, Protocol
 from uuid import UUID, uuid4
 
-from .imap_client import IMAPConfig, imap_messages, load_config
+from .imap_client import IMAPConfig, IMAPStream, imap_messages, load_config
 from .scan import scan_messages
 
 
@@ -27,6 +27,9 @@ DEFAULT_INTERVAL_SECONDS = 24 * 60 * 60
 DEFAULT_LIMIT = 500
 MAX_LIMIT = 10_000
 RUN_LEASE_SECONDS = 5 * 60
+# A running scan renews its lease well before expiry and notices a disable,
+# revoke or replacement lease within this interval.
+LEASE_RENEW_SECONDS = 15
 
 
 class MetaStore(Protocol):
@@ -39,6 +42,10 @@ class MetaStore(Protocol):
 
 class CredentialError(Exception):
     """A fixed, non-sensitive credential-storage error."""
+
+
+class ScanCancelled(Exception):
+    """The scheduled run no longer owns its lease (disabled, revoked or replaced)."""
 
 
 def _valid_credential_id(value: object) -> bool:
@@ -181,16 +188,37 @@ class BackgroundSchedule:
                 "run_id": self.run_id, "lease_until": self.lease_until}
 
 
-def _default_runner(store: MetaStore, config: IMAPConfig, secret: str, *, limit: int) -> dict[str, Any]:
+def _with_keep_alive(stream: IMAPStream, keep_alive: Callable[[], None]) -> IMAPStream:
+    """Check the lease before each mailbox fetch; closing also closes the IMAP stream."""
+    def guarded():
+        iterator = iter(stream)
+        try:
+            while True:
+                keep_alive()
+                try:
+                    raw = next(iterator)
+                except StopIteration:
+                    return
+                yield raw
+        finally:
+            close = getattr(iterator, "close", None)
+            if close:
+                close()
+    return IMAPStream(guarded(), stream.scan_info, stream.scan_emails)
+
+
+def _default_runner(store: MetaStore, config: IMAPConfig, secret: str, *, limit: int,
+                    keep_alive: Callable[[], None]) -> dict[str, Any]:
     """The only network path, reached after explicit schedule + runtime consent."""
     messages = imap_messages(store, config, secret, allow_network=True, full_scan=False, limit=limit)
-    return scan_messages(store, messages, "imap")
+    return scan_messages(store, _with_keep_alive(messages, keep_alive), "imap")
 
 
 class BackgroundScanService:
     """Runs at most one *due* incremental scan when the host app calls it.
 
-    The service does not spawn a thread, discover hosts or retain credentials.
+    The service itself does not spawn a thread, discover hosts or retain
+    credentials; the dashboard owns the scheduling loop.
     It reads the normal credential-free ``imap.json`` immediately before a run,
     so host changes are always made through the existing explicit IMAP setup.
     """
@@ -335,6 +363,34 @@ class BackgroundScanService:
 
         return self._atomic_update(finish)
 
+    def _renew_claim(self, run_id) -> bool:
+        moment = self.clock()
+
+        def renew(schedule):
+            if schedule.run_id != run_id or not schedule.enabled:
+                return None, False
+            return replace(schedule, lease_until=moment + RUN_LEASE_SECONDS), True
+
+        return self._atomic_update(renew)
+
+    def _keep_alive(self, run_id) -> Callable[[], None]:
+        """Return the runner's heartbeat: renew the lease or stop the run.
+
+        Without renewal a long scan (up to ``MAX_LIMIT`` messages) outlives
+        ``RUN_LEASE_SECONDS`` and a second process could open the mailbox too.
+        """
+        renewed = [self.clock()]
+
+        def keep_alive():
+            moment = self.clock()
+            if moment - renewed[0] < LEASE_RENEW_SECONDS:
+                return
+            if not self._renew_claim(run_id):
+                raise ScanCancelled()
+            renewed[0] = moment
+
+        return keep_alive
+
     def run_due(self, *, allow_network: bool = False) -> dict[str, Any]:
         """Run a due scan only after the caller grants runtime network access.
 
@@ -353,7 +409,8 @@ class BackgroundScanService:
             config = self.config_loader()
             if not isinstance(config, IMAPConfig):
                 raise ValueError("Invalid IMAP configuration")
-            result = self.scan_runner(self.store, config, secret, limit=schedule.limit)
+            result = self.scan_runner(self.store, config, secret, limit=schedule.limit,
+                                      keep_alive=self._keep_alive(run_id))
             if not isinstance(result, dict):
                 raise ValueError("Invalid scan result")
             outcome = result.get("result", "completed")
@@ -367,9 +424,8 @@ class BackgroundScanService:
         except Exception:
             # Do not retain implementation/server/keyring exception text.  A
             # failure backs off for the selected interval instead of retrying.
+            # A lost lease (ScanCancelled) ends here as "cancelled" because the
+            # schedule no longer carries this run ID.
             error = "Background IMAP scan could not complete; check local setup and authorization"
             committed = self._finish_claim(run_id, outcome="failed", error=error)
             return {"status": "failed" if committed else "cancelled", "error": error}
-        finally:
-            # Best effort only: Python cannot zero immutable string storage.
-            secret = "" if "secret" in locals() else ""
