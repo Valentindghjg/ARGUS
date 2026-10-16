@@ -2,7 +2,7 @@
 
 | | |
 | --- | --- |
-| Status | **Vorgeschlagen.** Wird erst nach Freigabe durch den Owner umgesetzt. |
+| Status | **Angenommen** am 2026-10-16 durch den Owner (Antworten in Abschnitt 6). |
 | Datum | 2026-10-16 |
 | Bezug | [Gesamtplan](../strategy/README.md), Phase 0 und Releasepaket A; Prioritäten 01, 07, 08, 10; Ideen D2, E4, F5, B4, B5, A9, A23–A27 |
 | Ersetzt | – |
@@ -151,19 +151,18 @@ Priorität 07). Die bestehende `keep_alive`-Mechanik trägt das bereits.
   Feldnamen, Werte und Zeit, nie Mailinhalte, Geheimnisse oder Tresordaten.
   Die Aufbewahrung ist begrenzt (Plan A25).
 
-## 6. Offene Fragen an den Owner
+## 6. Entscheidungen des Owners (16.10.2026)
 
-1. Soll „Bestätigt“ von der Checkliste getrennt werden, wie vorgeschlagen? Die
-   Alternative wäre, `reviewed` als Bestätigung zu behalten und nur die Anzeige
-   zu trennen.
-2. Soll es **Verwerfen mit Grund** geben (nicht meiner / kein Account /
-   geschlossen), umkehrbar?
-3. Sollen Schritte ein **Datum** tragen („geprüft am …“, B5), mit optionaler
-   Wiedervorlage später (A10)?
-4. Soll der Tresor-Schritt **zweistufig** werden (vorbereitet / Passwort
-   gespeichert)?
-5. Sollen die Änderungen als **ein** Releasepaket A kommen, mit neuer
-   Hauptversion 2.0.0 zusammen mit der Umbenennung, oder in kleineren Schritten?
+| Frage | Entscheidung |
+| --- | --- |
+| „Bestätigt“ von der Checkliste trennen? | **Ja, getrennt.** Bestätigung ist eine eigene Entscheidung mit Datum. |
+| Verwerfen mit Grund? | **Ja**, mit Grund (nicht meiner / kein Account / geschlossen), umkehrbar. |
+| Datierte Schritte? | **Ja, mit Wiedervorlage** (A10), nur lokal. |
+| Tresor-Schritt zweistufig? | **Ja**: vorbereitet (passwortfrei durch ARGUS) / erledigt (durch die Person). |
+| Paketierung | Kleine Schritte mit je einem Merge; Versionserhöhung je Releasepaket (Paket A → 2.0.0), Tags und Releases legt der Owner an. |
+
+Weitere Entscheidungen zum Gesamtplan stehen in
+[ENTSCHEIDUNGEN.md](../strategy/ENTSCHEIDUNGEN.md).
 
 ## 7. Umsetzungsschritte nach Freigabe
 
