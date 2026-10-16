@@ -1,11 +1,12 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 ARGUS contributors
 """Durable Bitwarden creation attempts. An ambiguous write is never retried blindly."""
-import json
 import time
 import uuid
 
+from .changes import ChangeBatch
 from .errors import UserFacingError
+from .instances import read_steps, write_step
 from .store import now
 
 LEASE_SECONDS = 60  # Longer than the CLI's 20-second request deadline.
@@ -71,7 +72,12 @@ def mark_assigned_if_complete(store, account_id):
 
 
 def _mark_assigned_if_complete(db, account_id):
-    """Commit final creation and its checklist flag in the same transaction."""
+    """Mark the vault step "prepared" in the transaction that records the creation.
+
+    This is the only automatic change to a security step (ADR-0001, rule 4): a
+    password-free item exists, but only the person can mark the step done once
+    the password is stored in Bitwarden.
+    """
     account_row = db.execute("SELECT * FROM account_instances WHERE id=?", (account_id,)).fetchone()
     if not account_row or account_row["identity_review_required"]:
         return False
@@ -79,11 +85,14 @@ def _mark_assigned_if_complete(db, account_id):
     if not db.execute("SELECT 1 FROM instance_bitwarden_handoffs WHERE account_id=? AND email=? AND state='created'",
                       (account_id, expected)).fetchone():
         return False
-    checklist = json.loads(account_row["checklist"])
-    checklist["saved_in_bitwarden"] = True
-    status = "in_progress" if account_row["status"] == "pending" else account_row["status"]
-    db.execute("UPDATE account_instances SET checklist=?,status=?,updated=? WHERE id=?",
-               (json.dumps(checklist), status, now(), account_id))
+    vault = read_steps(db, account_id, account_row["login_method"])["vault"]
+    if vault["state"] == "open":
+        prepared = {**vault, "state": "prepared", "done_at": now()}
+        write_step(db, account_id, "vault", prepared)
+        batch = ChangeBatch(db)
+        batch.record(account_id, "step:vault", vault, prepared)
+        batch.close()
+        db.execute("UPDATE account_instances SET updated=? WHERE id=?", (now(), account_id))
     return True
 
 

@@ -75,15 +75,15 @@ class SeparateAccountWorkflowTests(unittest.TestCase):
             return self.successful(arguments, **kwargs)
         result = self.run_cli([first["id"], second["id"]], fail_second)
         self.assertEqual((result["items"], result["status"]), (1, "needs_review"))
-        self.assertTrue(self.accounts()[self.emails[0]]["checklist"]["saved_in_bitwarden"])
-        self.assertFalse(self.accounts()[self.emails[1]]["checklist"]["saved_in_bitwarden"])
+        self.assertEqual(self.accounts()[self.emails[0]]["steps"]["vault"]["state"], "prepared")
+        self.assertEqual(self.accounts()[self.emails[1]]["steps"]["vault"]["state"], "open")
         with self.assertRaises(HandoffError):
             make_export(self.store, [second["id"]])
         entry = next(e for e in handoff_snapshot(self.store) if e["account_id"] == second["id"])
         resolve(self.store, {"id": entry["id"], "created": False, "confirmed": True})
         retry = self.run_cli([second["id"]], self.successful)
         self.assertEqual(retry["items"], 1)
-        self.assertTrue(all(a["checklist"]["saved_in_bitwarden"] for a in self.accounts().values()))
+        self.assertTrue(all(a["steps"]["vault"]["state"] == "prepared" for a in self.accounts().values()))
         self.assertTrue(all(not a["checklist"]["password_changed"] for a in self.accounts().values()))
         self.assertNotIn(b"FAKE-SESSION-NEVER-STORED", self.store.path.read_bytes())
 
@@ -94,8 +94,8 @@ class SeparateAccountWorkflowTests(unittest.TestCase):
         self.assertNotEqual(ident, canonical["id"])
         self.assertEqual(self.run_cli([ident], self.successful)["items"], 1)
         rows = {a["id"]: a for a in self.store.snapshot()["accounts"]}
-        self.assertTrue(rows[ident]["checklist"]["saved_in_bitwarden"])
-        self.assertFalse(rows[canonical["id"]]["checklist"]["saved_in_bitwarden"])
+        self.assertEqual(rows[ident]["steps"]["vault"]["state"], "prepared")
+        self.assertEqual(rows[canonical["id"]]["steps"]["vault"]["state"], "open")
         self.assertFalse(rows[ident]["evidence"])
 
     def test_changing_or_clearing_bound_address_does_not_move_completed_work(self):

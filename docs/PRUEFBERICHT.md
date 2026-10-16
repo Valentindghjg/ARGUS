@@ -27,6 +27,13 @@ Migration einmal gesichert, eine gescheiterte Sicherung stoppt sie, neuere
 Profile werden abgelehnt. Die CI sichert und stellt im Paketcheck auf Linux,
 Windows und macOS wieder her.
 
+Schritt S5 (Schema und Migration): **236 Python-Tests**. Jeder 1.x-Zustand wird
+migriert und gegen die dokumentierte Abbildung geprüft; ein Abbruch mittendrin
+lässt das 1.x-Profil unverändert; die automatische Sicherung stellt das
+1.x-Profil wieder her, das danach zum selben Ergebnis migriert; neue Belege
+ändern nur die Belegachse; jede Änderung wird je Aktion protokolliert, das
+Protokoll behält ganze Vorgänge.
+
 Neue Simulationen verbinden einen echten lokalen Store mit einem
 Fake-IMAP-Server, einem Fake-Schlüsselbund und einer simulierten Uhr. Sie prüfen:
 die Verlängerung der Lease bei langen geplanten Scans, den Abbruch durch

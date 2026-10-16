@@ -185,7 +185,11 @@ class InstanceTests(unittest.TestCase):
         legacy = identities[None]
         self.assertEqual(legacy["id"], "github")
         self.assertTrue(legacy["identity_review_required"])
-        self.assertEqual(legacy["status"], "done")
+        # The 1.x steps survive; only the open identity blocks completion.
+        self.assertEqual(legacy["decision"], "confirmed")
+        self.assertEqual(legacy["steps"]["identity"]["state"], "open")
+        self.assertTrue(all(legacy["steps"][step]["state"] == "done" for step in ("vault", "password", "signin_test")))
+        self.assertEqual(legacy["progress"], "in_progress")
         from argus_security.bitwarden import make_export
         from argus_security.handoffs import HandoffError
         with self.assertRaises(HandoffError):
@@ -229,7 +233,9 @@ class InstanceTests(unittest.TestCase):
         with self.store.connect() as db:
             journals = {row["email"]: dict(row) for row in db.execute("SELECT * FROM instance_bitwarden_handoffs")}
         self.assertEqual(journals[self.secondary]["account_id"], rows[self.secondary]["id"])
-        self.assertTrue(rows[self.secondary]["checklist"]["saved_in_bitwarden"])
+        # A created password-free item only prepares the vault step (ADR-0001, B4).
+        self.assertEqual(rows[self.secondary]["steps"]["vault"]["state"], "prepared")
+        self.assertFalse(rows[self.secondary]["checklist"]["saved_in_bitwarden"])
         self.assertFalse(rows[self.secondary]["checklist"]["password_changed"])
         self.assertEqual(journals[""]["account_id"], rows[None]["id"])
         self.assertTrue(rows[None]["identity_review_required"])
