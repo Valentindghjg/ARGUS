@@ -8,6 +8,9 @@ from .i18n import translate, cli_language, LocalizedArgumentParser, localize_dis
 from .registry import Registry
 from .discovery import discover, DNSError
 from .imap_client import IMAPConfig, MailboxError, load_config, save_config, imap_messages
+from .background import (BackgroundScanService, CredentialError, KeyringCredentialStore,
+                         DEFAULT_INTERVAL_SECONDS, DEFAULT_LIMIT,
+                         MIN_INTERVAL_SECONDS, MAX_INTERVAL_SECONDS, MAX_LIMIT)
 from .bitwarden import export_file
 from .scan import file_messages, load_demo, scan_messages
 from .server import serve
@@ -36,6 +39,8 @@ def parser(language="en"):
     imp.add_argument('path', type=Path)
     imp.add_argument('--format', choices=['eml', 'mbox', 'maildir'], default='eml')
     sub.add_parser('report', help=t('Show local statistics only'))
+    accounts = sub.add_parser('list-accounts', help=t('Show local account IDs for individual selections'))
+    accounts.add_argument('--all', action='store_true', help=t('Include entries without reliable account evidence'))
     dis = sub.add_parser('discover', help=t('Mail provider hints; offline by default'))
     dis.add_argument('--domain', help=t('Mail domain only, not a full email address'))
     dis.add_argument('--allow-dns', action='store_true', help=t('Explicitly allow a public MX query to the DNS resolver'))
@@ -51,9 +56,15 @@ def parser(language="en"):
     imap.add_argument('--full-scan', action='store_true', help=t('Recheck all messages and deduplicate locally'))
     imap.add_argument('--limit', type=int, help=t('Maximum messages; no limit scans all selected folders'))
     imap.add_argument('--list-folders', action='store_true', help=t('Show folder names only'))
+    background = sub.add_parser('background-imap', help=t('Configure explicitly authorized scheduled read-only IMAP scans'))
+    background.add_argument('action', choices=['enable', 'disable', 'revoke', 'status'])
+    background.add_argument('--interval-minutes', type=int, default=DEFAULT_INTERVAL_SECONDS // 60,
+                            help=t('Minutes between scheduled scans (15 to 10080)'))
+    background.add_argument('--limit', type=int, default=DEFAULT_LIMIT,
+                            help=t('Maximum messages in each scheduled scan (1 to 10000)'))
     export = sub.add_parser('bitwarden-export', help=t('Selected metadata as Bitwarden JSON, no passwords'))
     export.add_argument('path', type=Path)
-    export.add_argument('--id', action='append', required=True, help=t('Provider ID; may be repeated'))
+    export.add_argument('--id', action='append', required=True, help=t('Account ID from list-accounts; may be repeated'))
     sub.add_parser('license-status', help=t('Show the local Free or Pro license status'))
     activation = sub.add_parser('activate-license', help=t('Verify and store a signed Pro license locally'))
     activation.add_argument('path', type=Path, help=t('Signed Pro license JSON file'))
@@ -85,6 +96,12 @@ def main(argv=None):
             print(json.dumps(result, ensure_ascii=False))
         elif args.command == 'report':
             print(json.dumps(store.snapshot()['summary'], ensure_ascii=False, indent=2))
+        elif args.command == 'list-accounts':
+            fields = ('id', 'provider_id', 'name', 'identity_email', 'label',
+                      'classification', 'status', 'identity_review_required')
+            rows = [{key: account[key] for key in fields} for account in store.snapshot()['accounts']
+                    if args.all or account['classification'] != 'unknown']
+            print(json.dumps(rows, ensure_ascii=False, indent=2))
         elif args.command == 'discover':
             domain = args.domain
             if not domain:
@@ -125,6 +142,36 @@ def main(argv=None):
                     print(json.dumps(result, ensure_ascii=False))
             finally:
                 secret = ''
+        elif args.command == 'background-imap':
+            if store.meta('demo', False) or not store.meta('emails'):
+                raise ValueError(t('Background IMAP requires an initialized personal local profile'))
+            service = BackgroundScanService(store, KeyringCredentialStore())
+            if args.action == 'status':
+                print(json.dumps(service.snapshot(), ensure_ascii=False, indent=2))
+            elif args.action == 'disable':
+                service.stop()
+                print(t('Scheduled IMAP scans are disabled. The app password remains only in your OS keyring until you revoke it.'))
+            elif args.action == 'revoke':
+                service.revoke()
+                print(t('Scheduled IMAP scans are disabled and the IMAP authorization was removed from your OS keyring.'))
+            else:
+                if not MIN_INTERVAL_SECONDS <= args.interval_minutes * 60 <= MAX_INTERVAL_SECONDS:
+                    raise ValueError(t('Scheduled scan interval must be between 15 minutes and 7 days'))
+                if not 1 <= args.limit <= MAX_LIMIT:
+                    raise ValueError(t('Scheduled scan limit must be between 1 and 10000'))
+                # Load and validate the existing credential-free configuration before
+                # asking for the secret. This command never opens an IMAP socket.
+                load_config(store.data_dir / 'imap.json')
+                if not sys.stdin.isatty():
+                    raise MailboxError(t('Enter credentials only in an interactive terminal; no pipes or command-line passwords'))
+                schedule = service.schedule()
+                secret = getpass.getpass(t('Separate IMAP app password / OAuth2 token for OS keyring: '))
+                try:
+                    selector = service.credentials.save(secret, schedule.credential_id)
+                finally:
+                    secret = ''
+                service.start(credential_id=selector, interval_seconds=args.interval_minutes * 60, limit=args.limit)
+                print(t('Scheduled read-only IMAP scans are enabled. They run only while the local ARGUS dashboard is running.'))
         elif args.command == 'bitwarden-export':
             count = export_file(store, args.path, args.id, language=language)
             print(t('Saved {p0} metadata items privately; password fields are empty. Import the file into Bitwarden yourself, only once.', p0=count))
@@ -134,7 +181,7 @@ def main(argv=None):
             from .licensing import read_document
             print(json.dumps(store.activate_license(read_document(args.path)), ensure_ascii=False, indent=2))
         return 0
-    except (MailboxError, DNSError) as exc:
+    except (MailboxError, DNSError, CredentialError) as exc:
         print(t(str(exc)), file=sys.stderr)
         return 2
     except FileExistsError:

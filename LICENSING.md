@@ -1,28 +1,40 @@
-# Licensing status / Lizenzstatus
+# Licensing / Lizenzierung
 
-Account Compass is being prepared as a Freemium product: a public Free edition
-and a future commercial Pro edition. No final software license has been selected
-yet. Until the repository owner adds a `LICENSE` file, copyright remains with the
-owner and GitHub's terms do not grant permission to copy, redistribute or reuse
-the project beyond those terms.
+## English
 
-Before public commercial distribution, the owner should select and add the exact
-license text, copyright holder and commercial terms. See
-[docs/FREEMIUM.md](docs/FREEMIUM.md),
+The source code in this repository is licensed under the
+[Mozilla Public License, version 2.0](LICENSE) (MPL-2.0).
+
+Account Compass Free is the local, privacy-preserving edition published in this
+repository. MPL-2.0 permits use, redistribution and modification under its
+terms. Modified MPL-covered source files must remain available under MPL-2.0.
+
+A future Account Compass Pro edition may be distributed separately under
+additional commercial terms. It is not included in this repository, and this
+license does not grant a right to future paid features, licenses, payment
+services, support plans or publisher signing keys.
+
+See [docs/FREEMIUM.md](docs/FREEMIUM.md),
 [docs/COMMERCIAL_RELEASE.md](docs/COMMERCIAL_RELEASE.md) and
-[docs/PUBLISHING.md](docs/PUBLISHING.md).
+[docs/PUBLISHING.md](docs/PUBLISHING.md) for product and release guidance.
 
----
+## Deutsch
 
-Account Compass wird als Freemium-Produkt vorbereitet: eine öffentliche
-Free-Edition und eine spätere kommerzielle Pro-Edition. Es wurde noch keine
-endgültige Softwarelizenz ausgewählt. Bis der Repository-Inhaber eine Datei
-`LICENSE` ergänzt, verbleibt das Urheberrecht beim Inhaber. Die GitHub-
-Nutzungsbedingungen erlauben dann keine weitergehende Vervielfältigung,
-Weitergabe oder Nutzung des Projekts.
+Der Quellcode in diesem Repository steht unter der
+[Mozilla Public License, Version 2.0](LICENSE) (MPL-2.0).
 
-Vor einer öffentlichen kommerziellen Verbreitung muss der Inhaber den genauen
-Lizenztext, Rechteinhaber und kommerzielle Bedingungen festlegen. Siehe
+Account Compass Free ist die lokale, datenschutzfreundliche Edition in diesem
+Repository. MPL-2.0 erlaubt Nutzung, Weitergabe und Änderungen nach ihren
+Bedingungen. Geänderte MPL-abgedeckte Quellcodedateien müssen weiterhin unter
+MPL-2.0 verfügbar bleiben.
+
+Eine spätere Account-Compass-Pro-Edition kann getrennt und unter zusätzlichen
+kommerziellen Bedingungen angeboten werden. Sie ist nicht Teil dieses
+Repositorys. Diese Lizenz gewährt keinen Anspruch auf spätere kostenpflichtige
+Funktionen, Lizenzen, Zahlungsdienste, Supportpläne oder Herausgeber-
+Signaturschlüssel.
+
+Hinweise zum Produkt und zur Veröffentlichung stehen in
 [docs/FREEMIUM_DE.md](docs/FREEMIUM_DE.md),
 [docs/COMMERCIAL_RELEASE.md](docs/COMMERCIAL_RELEASE.md) und
 [docs/PUBLISHING.md](docs/PUBLISHING.md).

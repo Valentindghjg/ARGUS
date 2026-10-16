@@ -3,8 +3,10 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 
-from account_finder.bitwarden import make_export, export_file
+from account_finder.bitwarden import BitwardenCliError, add_to_unlocked_cli, audit_unlocked_cli, make_export, export_file
 from account_finder.registry import Registry
 from account_finder.scan import file_messages, load_demo, scan_messages, synthetic_mail
 from account_finder.store import Store, CHECKLIST
@@ -45,6 +47,14 @@ class StoreTests(unittest.TestCase):
         content = self.store.path.read_bytes()
         self.assertNotIn(b"SECRET-CONTENT", content)
         self.assertNotIn(b"Your account has been created", content)
+
+    def test_imap_cursor_updates_merge_independent_folders(self):
+        self.store.set_imap_cursor("folder-a", {"validity": "1", "uid": 10})
+        self.store.set_imap_cursor("folder-b", {"validity": "2", "uid": 20})
+        self.assertEqual(self.store.meta("imap_cursors"), {
+            "folder-a": {"validity": "1", "uid": 10},
+            "folder-b": {"validity": "2", "uid": 20},
+        })
 
     def test_completion_requires_checklist_and_can_reopen(self):
         with self.assertRaises(ValueError):
@@ -97,6 +107,58 @@ class StoreTests(unittest.TestCase):
         self.store.update_account("github", {"checklist":{"saved_in_bitwarden":True}})
         with self.assertRaises(ValueError):
             make_export(self.store, ["github"])
+
+    def test_cli_transfer_creates_password_free_items_without_reading_vault(self):
+        self.scan()
+        calls = []
+        def runner(arguments, **kwargs):
+            calls.append((arguments, kwargs))
+            if arguments[1:] == ["status"]:
+                return SimpleNamespace(returncode=0, stdout='{"status":"unlocked"}')
+            self.assertEqual(arguments[1:3], ["create", "item"])
+            return SimpleNamespace(returncode=0, stdout='{"id":"46caf902-0e99-4bc1-bb92-6075b813233c"}')
+        with patch("account_finder.bitwarden.shutil.which", return_value="/usr/bin/bw"):
+            result = add_to_unlocked_cli(self.store, ["github"], runner=runner, environment={"BW_SESSION":"not-stored"})
+        self.assertEqual(result, {"items": 1, "providers": ["github"], "status": "completed"})
+        self.assertTrue(self.account()["checklist"]["saved_in_bitwarden"])
+        self.assertEqual(len(calls), 2)
+        created = calls[1][0][-1]
+        import base64
+        payload = json.loads(base64.b64decode(created))
+        self.assertIsNone(payload["login"]["password"])
+        self.assertNotIn("SECRET-CONTENT", json.dumps(payload))
+        self.assertEqual(calls[1][1]["env"]["BW_SESSION"], "not-stored")
+
+    def test_cli_transfer_requires_preunlocked_session(self):
+        self.scan()
+        with self.assertRaises(BitwardenCliError):
+            add_to_unlocked_cli(self.store, ["github"], environment={})
+
+    def test_cli_audit_returns_only_match_summary_and_never_persists_vault_fields(self):
+        self.scan()
+        vault_password = "VAULT-PASSWORD-MUST-NOT-BE-STORED"
+        calls = []
+
+        def runner(arguments, **kwargs):
+            calls.append((arguments, kwargs))
+            if arguments[1:] == ["status"]:
+                return SimpleNamespace(returncode=0, stdout='{"status":"unlocked"}')
+            self.assertEqual(arguments[1:3], ["list", "items"])
+            return SimpleNamespace(returncode=0, stdout=json.dumps([{
+                "name": "GitHub personal",
+                "fields": [{"name": "Account-Finder-ID", "value": "github"}],
+                "login": {"username": "demo@example.invalid", "password": vault_password,
+                          "uris": [{"uri": "https://github.com/"}]},
+            }]))
+
+        with patch("account_finder.bitwarden.shutil.which", return_value="/usr/bin/bw"):
+            result = audit_unlocked_cli(self.store, ["github"], runner=runner,
+                                        environment={"BW_SESSION": "not-stored"})
+        self.assertEqual(result, {"accounts": [{"account_id": "github", "match": "found", "count": 1}]})
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[1][0][1:3], ["list", "items"])
+        self.assertNotIn(vault_password.encode(), self.store.path.read_bytes())
+        self.assertNotIn(b"not-stored", self.store.path.read_bytes())
 
     def test_export_exclusive_no_overwrite(self):
         self.scan()

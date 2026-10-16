@@ -10,6 +10,7 @@ können sich ändern. Die drei Passwortlinks haben separate Quellenbelege.
 |---|---|---|
 | Bitwarden-Import | [Import to your Vault or Collections](https://bitwarden.com/help/import-data/) | Import über Apps/CLI; keine Duplikatprüfung, wiederholter Import erzeugt zusätzliche Einträge |
 | Bitwarden-JSON | [Import from a Custom File](https://bitwarden.com/help/condition-bitwarden-import/) | Ordner-, Item- und Login-Struktur; Format „Bitwarden (json)“ |
+| Bitwarden-CLI | [Bitwarden CLI](https://bitwarden.com/help/cli/) | Optionale lokale Erstellung ausdrücklich ausgewählter passwortfreier Einträge nach dem Entsperren durch den Nutzer |
 | Passwortgenerierung | [Username & Password Generator](https://bitwarden.com/help/generator/) | Neue Passwörter werden im Bitwarden-Client erzeugt |
 | Google-Passwort | [Change or reset your password](https://support.google.com/accounts/answer/41078) | Passwortverwaltung im offiziellen Google-Konto; keine Reset-Automatisierung |
 | GitHub-Passwort | [Updating your GitHub access credentials](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/updating-your-github-access-credentials) | Vorhandenes Passwort in „Password and authentication“ ändern |

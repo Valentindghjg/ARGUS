@@ -27,9 +27,33 @@ files or logs. A failed mailbox authentication aborts instead of trying a passwo
 list. IMAP debug output is disabled; server error text is replaced with fixed,
 non-sensitive messages.
 
-The app never requests your Bitwarden master password, signs into Bitwarden or
-reads your vault. The Bitwarden account address is independent of individual
-service sign-in addresses.
+Scheduled IMAP scanning is disabled by default. It can be enabled only from an
+interactive terminal after an IMAP configuration exists; it runs only while the
+local dashboard process is open. Its app password or externally obtained OAuth2
+token is stored only in the operating-system keyring through the optional
+`keyring` package. ARGUS has no plaintext file fallback and rejects known
+plaintext keyring backends. SQLite stores only an opaque UUID selector, interval
+and safe status metadata. `disable` stops future runs; `revoke` stops them first
+and removes the keyring entry. Each run uses the existing incremental TLS/IMAP
+path and fixed safe failure text, never a password retry list.
+An atomic SQLite lease ensures that only one scheduled runner per profile may
+open the mailbox at a time; a stale worker cannot overwrite a later result or
+reactivate a disabled schedule. Folder checkpoints merge atomically.
+
+The app never requests your Bitwarden master password or signs into Bitwarden.
+Its optional direct transfer requires an already-unlocked official Bitwarden CLI
+and creates only explicitly selected, password-free items; it never changes or
+reads existing vault items. A separate optional audit requires a second explicit
+browser confirmation and uses `bw list items --search` for each selected local
+account. The CLI response can contain decrypted vault fields in process memory;
+ARGUS immediately derives only **found / possible / none** plus a count and does
+not persist, log or return item names, usernames or passwords. The Bitwarden
+account address is independent of individual service sign-in addresses.
+
+The guided **Secure next account** view only ranks locally stored account state.
+Starting it adds or resumes one local worklist item. Its Bitwarden action accepts
+only the current account ID and requires a second explicit browser confirmation;
+opening a verified provider link never completes a checklist step.
 
 Python cannot reliably erase immutable strings from memory. Authorized-session
 secrets exist in process memory; guaranteed zeroing is not claimed. Local malware
@@ -88,6 +112,14 @@ Origin checks, no CORS permission, CSP, frame protection and `no-store` limit
 browser attacks. Dynamic content uses `textContent`; provider links come from the
 validated catalog rather than emails.
 
+The optional Chromium browser companion is an unpacked Manifest V3 extension
+with only the `activeTab` permission. When the user opens its popup it reads the
+active tab URL locally, matches its hostname against a bundled public catalog,
+and may copy/open an already verified settings URL. It has no host permissions,
+content scripts, background worker, native messaging, network access or access to
+page content, forms, cookies, passwords, history, tokens, email or Bitwarden.
+A visited site is never evidence of an account.
+
 Other local processes can retrieve the page too. This is a single-user app, not
 protection against untrusted users sharing the same computer. Do not expose it as
 a public web service or forward its port without access controls.
@@ -104,8 +136,15 @@ Newsletters, guest orders and reset requests do not establish an account. Accoun
 without emails, deleted messages, phone registration, other mailboxes or aliases,
 and SSO can be missed. Shared product families can send through their central
 identity-provider domain; Xbox activity may appear only as Microsoft evidence.
-Multiple accounts for one provider are grouped into one row with known addresses;
-the checklist applies to that provider row as a whole.
+Accounts at one provider have separate stable IDs, checklists and transfer
+journals. Only current strong evidence to one configured own address is grouped
+with a corresponding identity. Ambiguous, forwarded and weak clues remain
+provider-wide. Different addresses can still refer to aliases or changed
+addresses; only user review can establish that entries represent separate
+accounts. Manually labeled accounts sharing an address never automatically
+inherit the recipient's evidence. Legacy progress is assigned conservatively
+and is never copied to every new identity; unresolved legacy entries require
+review before exports or completion. See [the account guide](ACCOUNTS.md).
 
 The catalog is curated and uses a bounded set of English/German rules. Sender
 domains and services change; extend them using official sources, not an email's

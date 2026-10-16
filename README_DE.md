@@ -1,4 +1,4 @@
-# Account Compass 1.5 – lokaler Account-Finder
+# Account Compass 1.16.0 – lokaler Account-Finder
 
 Deutsch · [English](README.md)
 
@@ -12,9 +12,10 @@ Künstliche Demo und persönliche Ergebnisse bleiben getrennt.
 
 ## Lizenzstatus
 
-Es wurde noch keine Open-Source-Lizenz ausgewählt. Vor der Veröffentlichung muss
-der Repository-Inhaber eine Lizenz hinzufügen, damit andere die erlaubte Nutzung
-kennen. Details stehen in [LICENSING.md](LICENSING.md) und in der
+Account Compass Free steht unter der
+[Mozilla Public License 2.0](LICENSE) (MPL-2.0). Eine spätere kommerzielle
+Pro-Edition wird getrennt unter eigenen Bedingungen angeboten und ist nicht Teil
+dieses Repositorys. Details stehen in [LICENSING.md](LICENSING.md) und in der
 [Veröffentlichungs-Checkliste](docs/PUBLISHING.md).
 
 ## Account Compass Free und Pro
@@ -22,7 +23,7 @@ kennen. Details stehen in [LICENSING.md](LICENSING.md) und in der
 Diese Version ist **Account Compass Free**: Account-Inventur, lokaler Mailimport,
 Sicherheitschecklisten und passwortfreie Bitwarden-Metadaten stehen ohne
 Online-Konto, Zahlungsdaten oder Telemetrie bereit. Das Dashboard erläutert
-zusätzlich eine künftige **Pro-Vorschau**. Pro ist noch nicht implementiert,
+zusätzlich eine **Pro-Edition in Entwicklung**. Sie ist noch nicht implementiert,
 kauf- oder aktivierbar; Free wird daher nicht durch ein künstliches Testlimit
 eingeschränkt. Details stehen im [Freemium-Plan](docs/FREEMIUM_DE.md).
 
@@ -51,8 +52,8 @@ Mit `--port 8766` lässt sich ein bereits belegter Port umgehen.
 Alternativ das GitHub-Repository klonen:
 
 ```bash
-git clone https://github.com/Valentindghjg/account-compass.git
-cd account-compass
+git clone https://github.com/Valentindghjg/ARGUS.git
+cd ARGUS
 python -m pip install .
 python -m account_finder --data-dir .local/demo demo --serve --open
 ```
@@ -268,6 +269,41 @@ Hinweis auf Lücken. Eine während des Scans geänderte Adressauswahl führt zu 
 unterbrochenen Scan und erfordert einen Neustart; vorhandene Hinweise bleiben
 erhalten.
 
+### Optionale geplante Scans
+
+Nachdem du `imap.json` mit einem manuellen schreibgeschützten Scan geprüft hast,
+kannst du inkrementelle Scans aktivieren, solange das lokale ARGUS-Dashboard läuft.
+Installiere dafür zuerst einen unterstützten, **vom Betriebssystem geschützten**
+Python-Schlüsselbund. ARGUS lehnt Klartext-Schlüsselbund-Backends ab und besitzt
+keinen Datei-Fallback:
+
+```bash
+python -m pip install keyring
+python -m account_finder background-imap enable --interval-minutes 1440 --limit 500
+python -m account_finder serve --open
+```
+
+Der Befehl fragt das separate App-Passwort oder ein extern bezogenes OAuth2-Token
+nur verdeckt im Terminal ab. Das Geheimnis wird ausschließlich im Schlüsselbund
+des Betriebssystems gespeichert; die lokale SQLite-Datenbank enthält nur einen
+undurchsichtigen Verweis und Zeitplan-Metadaten. Der erste Scan ist beim Start des
+Dashboards fällig und setzt danach an den normalen IMAP-UID-Checkpoints fort. Er
+läuft nicht, wenn ARGUS geschlossen ist, führt keinen Vollscan aus, verändert keine
+Mails und wartet nach einem festen sicheren Fehler bis zum nächsten Intervall.
+
+Status, Pause und Widerruf:
+
+```bash
+python -m account_finder background-imap status
+python -m account_finder background-imap disable
+python -m account_finder background-imap revoke
+```
+
+`disable` pausiert künftige Scans und behält den Schlüsselbund-Eintrag. `revoke`
+deaktiviert zuerst die Scans und entfernt anschließend den Eintrag aus dem
+Schlüsselbund. Das Dashboard zeigt nur den Status und fragt niemals nach Passwort
+oder Token.
+
 ### OAuth2, Microsoft, Google und Proton
 
 Exchange Online unterstützt kein IMAP mit deaktivierter Basic Authentication;
@@ -286,7 +322,50 @@ Proton Mail stellt keinen gewöhnlichen direkten IMAP-Zugang bereit. Der lokale
 Bridge-Zugang wird hier nicht automatisch eingerichtet. Nutze offizielle
 Proton-Exportwerkzeuge und den EML-/mbox-Import.
 
+## Optionaler Browser-Begleiter
+
+`browser-companion/` enthält einen entpackten Chromium-Erweiterungsprototyp. Wenn
+du sein Popup öffnest, prüft er ausschließlich den Hostnamen des aktiven Tabs
+gegen den gebündelten öffentlichen ARGUS-Katalog. Wo vorhanden, kann er einen
+verifizierten Passwortverwaltungslink kopieren oder öffnen. Er liest weder
+Seiteninhalt noch Formulare, Cookies, Passwörter, Verlauf, Tokens, E-Mails oder
+Bitwarden-Daten. Ein Webseitenbesuch erstellt oder bestätigt nie einen Account.
+
+```bash
+python browser-companion/scripts/build.py
+python browser-companion/tests/validate.py
+```
+
+Lade das erzeugte `browser-companion/dist/` über **Entpackte Erweiterung laden**
+in einem Chromium-Browser. Details stehen in der
+[Begleiter-Anleitung](browser-companion/README.md).
+
+## Sicherheits-Arbeitsliste fortsetzen
+
+Öffne **Sicherheits-Arbeitsliste** und wähle **Nächsten Account absichern**. ARGUS
+nimmt dann einen einzelnen unvollständigen lokalen Account mit höchster Priorität
+in die Arbeitsliste auf. Liste, Pausenstatus und Checklisten bleiben nach
+Neustarts lokal erhalten. Jeder Dialog zeigt den nächsten offenen Schritt. Die
+geführte Bitwarden-Schaltfläche verlangt eine zweite Bestätigung und erstellt nur
+einen passwortfreien Eintrag für den aktuellen Account. SSO und Passkeys
+überspringen einen separaten Passwortwechsel. Es wird nichts automatisch beim
+Anbieter abgeschickt. Siehe die [Arbeitslisten-Anleitung](docs/WORKLIST.md) und
+[Hinweise zu unterbrochenen Übertragungen](docs/BITWARDEN_CLI.md).
+
+Bei Prüfung, Passwortwechsel, Anmeldetest sowie MFA/Wiederherstellung speichert
+**Ich habe diesen Schritt erledigt** deine ausdrückliche lokale Bestätigung und
+führt danach direkt mit dem nächsten Schritt weiter.
+
 ## Accounts prüfen und mit Bitwarden absichern
+
+Jede Anmeldezuordnung erhält einen eigenen Eintrag, eine eigene Checkliste,
+Arbeitsliste und Bitwarden-Übertragung. Starke direkte Belege an unterschiedliche
+eigene Adressen ergeben separate wahrscheinliche Einträge. Prüfe diese, da
+Aliase oder Adressänderungen weiterhin denselben Account betreffen können. Über
+**Weiteren Account bei diesem Dienst hinzufügen** in den Account-Details kannst
+du bekannte lokale Einträge ergänzen, auch bezeichnete Accounts mit derselben
+E-Mail-Adresse. Beim Anbieter wird nichts erstellt. Details und Hinweise für
+ältere Profile stehen in der [Mehrkonto-Anleitung](docs/ACCOUNTS.md).
 
 Für jeden Katalogdienst gibt es Kategorie, offizielle Website, bekannte eigene
 Anmeldeadressen, Hinweisart, Stärke des Belegs, Status und Priorität. Verifizierte
@@ -312,21 +391,34 @@ manuell bestätigt werden.
 
 Unter „Bitwarden vorbereiten“:
 
-1. Vorhandene Tresoreinträge zuerst zuordnen. Diese Accounts werden vom Download
+1. Optional **Ausgewählte Accounts im entsperrten Bitwarden prüfen** wählen.
+   Nach einer separaten Bestätigung durchsucht ARGUS über die bereits entsperrte
+   offizielle CLI nur die ausgewählten Accounts und zeigt ausschließlich
+   **gefunden / möglich / nichts gefunden** mit Anzahl. Die CLI-Antwort kann beim
+   Verarbeiten Tresorfelder enthalten; ARGUS speichert oder zeigt jedoch keine
+   Namen, Benutzernamen oder Passwörter. Mögliche Treffer selbst prüfen.
+2. Vorhandene Tresoreinträge zuerst zuordnen. Diese Accounts werden vom Download
    ausgeschlossen.
-2. Ausschließlich tatsächlich fehlende Einträge auswählen. Wahrscheinliche
+3. Ausschließlich tatsächlich fehlende Einträge auswählen. Wahrscheinliche
    Accounts werden nicht automatisch angehakt.
-3. **Metadaten-JSON** herunterladen. Jeder Eintrag enthält Anbieter, offizielle
+4. **Metadaten-JSON** herunterladen. Jeder Eintrag enthält Anbieter, offizielle
    URI, ermittelte Adresse und Hinweise; Passwort ist leer, TOTP ist null.
-4. In deiner offiziellen Bitwarden-App „Importieren“ → **Bitwarden (json)**
+5. In deiner offiziellen Bitwarden-App „Importieren“ → **Bitwarden (json)**
    wählen und die Datei selbst importieren. Dazu nutzt du deinen bestehenden
    Tresor, unabhängig von dessen Konto-Adresse.
-5. Datei nur **einmal** importieren, kontrollieren und danach löschen. Bitwarden
-   ergänzt beim Import Einträge, prüft jedoch keine Duplikate. Das Programm liest
-   oder überschreibt bestehende Tresoreinträge nicht. Ein leerer Importeintrag
-   bedeutet noch keine erfolgreiche Passwortänderung.
+6. Datei nur **einmal** importieren, kontrollieren und danach löschen. Bitwarden
+   ergänzt beim Import Einträge, prüft jedoch keine Duplikate. Dieser JSON-Import
+   liest oder überschreibt bestehende Tresoreinträge nicht. Ein leerer
+   Importeintrag bedeutet noch keine erfolgreiche Passwortänderung.
 
-Auch über CLI ist eine ausdrückliche Auswahl möglich:
+Alternativ kann das Dashboard nach dem Entsperren der offiziellen Bitwarden-CLI
+in deinem eigenen Terminal die ausdrücklich ausgewählten passwortfreien Einträge
+direkt erstellen. Die getrennte optionale Prüfung ist nur lesend; die Erstellung
+liest oder überschreibt keine bestehenden Einträge. Keine Aktion erhält dein
+Hauptpasswort. Folge der
+[Bitwarden-CLI-Übergabeanleitung](docs/BITWARDEN_CLI.md).
+
+Auch ein Metadaten-Export über die Kommandozeile ist möglich:
 
 ```bash
 python -m account_finder bitwarden-export /lokaler/geschützter/pfad/account-finder.json --id github --id steam
@@ -358,6 +450,20 @@ Quelle. Danach lokal neu importieren bzw. `scan-imap --allow-imap --full-scan`
 ausführen und den Server mit dem gleichen Katalog neu starten.
 
 ## Bestehende Profile aktualisieren
+
+Version 1.9 übernimmt den bisherigen Anbieterstand in getrennte
+Account-Zuordnungen. Beende die App und sichere dein geschütztes Profil vor dem
+Update. Fortschritte folgen einer eindeutigen oder ausdrücklich zugewiesenen
+Adresse. Nicht eindeutig zuordenbare bisherige Fortschritte bleiben zur Prüfung
+sichtbar und werden niemals auf alle anderen Accounts kopiert. Verwende das
+migrierte Profil mit Version 1.9 oder neuer. Siehe die
+[Migrationshinweise](docs/ACCOUNTS.md).
+
+Version 1.7 ergänzt eine dauerhafte Sicherheits-Arbeitsliste und ein lokales
+Bitwarden-Vorgangsprotokoll. Unklare Übertragungen werden vor einem erneuten
+Versuch geprüft. Zwei lokale Tabellen werden automatisch ergänzt; Belege und
+Checklisten bleiben erhalten. Sichere dein geschütztes Datenverzeichnis vor dem
+Update.
 
 Version 1.6 ergänzt signierte Offline-Prüfung und lokale Aktivierung einer
 Pro-Lizenz. Der Standard-Build enthält keinen Herausgeber-Öffentlichkeitsschlüssel;
@@ -395,6 +501,7 @@ Laufzeitabhängigkeiten:
 
 ```bash
 python scripts/browser_smoke.py --browser /usr/bin/chromium
+python scripts/browser_multi_account.py --browser /usr/bin/chromium
 ```
 
 Der Test erzeugt ein temporäres Demo-Profil, sperrt ausgehende Browseranfragen
@@ -407,13 +514,16 @@ Spracherkennung und mobile Ansichten.
 | `account_finder/data/providers.json` | Erweiterbarer Katalog |
 | `account_finder/i18n.py`, `data/translations.json` | Lokale Deutsch/Englisch-Texte |
 | `account_finder/store.py` | SQLite und Statuspersistenz |
+| `account_finder/instances.py` | Stabile Account-Zuordnungen und vorsichtige Profilübernahme |
 | `account_finder/imap_client.py` | TLS-IMAP, PEEK, Wiederaufnahme |
+| `account_finder/background.py` | Ausdrücklich aktivierter Keyring-gestützter inkrementeller IMAP-Zeitplan |
 | `account_finder/discovery.py` | Ausdrücklich aktivierte MX-Hinweise |
 | `account_finder/bitwarden.py` | Offizielles Metadaten-Importformat |
 | `account_finder/server.py`, `web/` | Lokales Dashboard |
 | `tests/` | Automatisierte Regressionstests |
+| `browser-companion/` | Minimaler entpackter Chromium-Begleiter für Domain- und Einstellungslinks |
 | [Katalogrichtlinie](docs/KATALOG.md) | Umfang, Qualitätsmaßstäbe und neue Dienste vorschlagen |
-| [Freemium-Plan](docs/FREEMIUM_DE.md) | Verfügbare Free-Funktionen, transparente Pro-Vorschau und Produktgrenzen |
+| [Freemium-Plan](docs/FREEMIUM_DE.md) | Verfügbare Free-Funktionen, Pro-Status in Entwicklung und Produktgrenzen |
 | [Checkliste für die kommerzielle Veröffentlichung](docs/COMMERCIAL_RELEASE.md) | Entscheidungen des Inhabers vor dem ersten Pro-Kauf |
 | [Lizenztechnik](docs/LICENSE_IMPLEMENTATION.md) | Signierte Offline-Pro-Lizenzen und Umgang mit Herausgeber-Schlüsseln |
 | [Veröffentlichungs-Checkliste](docs/PUBLISHING.md) | Schritte, die der Inhaber vor der Veröffentlichung selbst prüft |

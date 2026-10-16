@@ -1,5 +1,148 @@
 # Change log
 
+## 1.16.0 — Read-only vault audit and guided MFA recovery
+
+- Added an explicitly confirmed, read-only audit for selected accounts through
+  an already-unlocked official Bitwarden CLI. It returns only a local
+  **found / possible / none** match summary and count; vault names, usernames,
+  passwords, CLI output and sessions are never persisted, logged or displayed.
+- The guided local worklist now includes an explicit MFA and recovery review
+  after sign-in testing. It records only the user's confirmation and never
+  contacts a provider or changes a setting.
+- Added narrow loopback API, fake-CLI and workflow regression coverage, plus
+  English/German dashboard and safety documentation.
+
+## 1.15.0 — Calendar worklist scheduling
+
+- Added a local calendar date picker and **Schedule date** for worklist snoozes
+  beyond the preset tomorrow/week choices.
+- The strict local action accepts ISO calendar dates from tomorrow through the
+  next 365 days and records the resulting UTC resume time without any network
+  connection.
+- Added unit and browser coverage for the bounded date input and accessible
+  calendar control.
+
+## 1.14.0 — Local worklist snoozes
+
+- Added **Tomorrow** and **In one week** to defer a local worklist item until a
+  stored resume date. Due items become ready again while ARGUS is open; no
+  notification, provider, mailbox or Bitwarden connection is made.
+- Added additive SQLite migration for existing worklists and strict local API
+  validation for the bounded 1–365 day snooze period.
+- Added workflow, migration, loopback API and bilingual browser coverage for
+  snoozes and due-item resumption.
+
+## 1.13.0 — Reviewable priority planning
+
+- Added an English/German local preview of the exact accounts that **Build
+  priority worklist** would append, including each candidate's next security step.
+- The preview uses the same deterministic ranking and ten-account limit as the
+  atomic builder, writes no state and never contacts a provider or Bitwarden.
+- Added workflow and browser regression coverage for preview contents and the
+  translated, no-external-request dashboard flow.
+
+## 1.12.0 — Priority worklist builder
+
+- Added **Build priority worklist**, an explicitly confirmed local action that
+  appends up to ten incomplete discovered accounts in deterministic security
+  order while preserving existing queue positions.
+- The new action has a narrow exact request shape and an atomic SQLite update.
+  It never changes account checklists, passwords, providers or Bitwarden items.
+- Added English/German UI copy plus workflow and loopback API regression tests
+  for ranking, the ten-account limit and progress isolation.
+
+## 1.11.0 — Explicit guided step completion
+
+- Added a guided **I completed this step** action for reviewed accounts,
+  password changes and sign-in tests. It records only the user's local
+  confirmation for the current account and then advances the displayed step.
+- Added browser regression coverage for the confirmation and resulting guided
+  transition; no provider page, password, account sibling or vault item changes.
+
+## 1.10.0 — Guided security sessions
+
+- Added **Secure next account**, a local deterministic recommendation that resumes
+  ready work or adds one highest-priority incomplete account without changing any
+  provider, checklist or vault item.
+- Added a step-specific guided card, verified password-settings action and a
+  current-account-only Bitwarden CLI handoff with a second explicit confirmation.
+- Kept browser companion account isolation intact: a website visit still cannot
+  select, confirm or change an ARGUS account.
+
+## 1.9.0 — Separate accounts at one service
+
+- Added stable local account identities with independent checklists, sign-in
+  methods, priorities, worklist entries and Bitwarden transfer journals.
+- Strong direct evidence is grouped by provider and configured own address;
+  forwarded, ambiguous, outdated and weak clues remain unassigned service clues.
+  Address changes and aliases still require the user's review.
+- Added explicitly confirmed local entries with labels for separate profiles
+  that share an address. Bound addresses cannot be reassigned along with their
+  completed work. Each selected account prepares one password-free vault item.
+- Added transactional profile migration. Legacy progress follows one unambiguous
+  or explicitly assigned identity, or remains preserved for review; sibling
+  accounts never inherit it. Existing queue positions and interrupted transfers
+  retain their account and transfer IDs.
+- Dashboard, search, worklist, export and mobile details distinguish identities
+  in English and German. `list-accounts` exposes IDs for precise CLI selections.
+- Added migration rollback/restart, identity isolation, labeled duplicate and
+  per-account CLI handoff regression coverage, plus five new browser check groups.
+  Existing profile backups should be kept before upgrading; use version 1.9 or
+  newer to work with migrated per-account state.
+
+## 1.8.1 — Concurrent-scan safety fix
+
+- Added an atomic SQLite lease around scheduled IMAP runs. A second dashboard
+  using the same profile observes an active run instead of opening another
+  mailbox connection; expired leases recover safely after interruption.
+- Completion compares the lease ID, so an older worker cannot reactivate a
+  schedule after disable/revocation or overwrite a newer worker's result.
+- IMAP UID checkpoints now merge individual folder updates atomically instead
+  of replacing the full cursor map.
+
+## 1.8.0 — Opt-in background scans and browser companion
+
+- Added an explicitly enabled, in-process scheduler for incremental read-only
+  IMAP scans. It runs only while the local dashboard is open and uses the
+  existing UID checkpoints, TLS, `EXAMINE` and `BODY.PEEK` path.
+- IMAP authorization for scheduled scans is prompted only in a terminal and
+  stored only in an OS-protected keyring. ARGUS has no file fallback, rejects
+  known plaintext keyring backends, and supports status, pause and revocation.
+- Added the dashboard's safe schedule-status display; it never accepts mailbox
+  credentials. A missing or failing keyring produces only fixed local errors.
+- Added a separate unpacked Chromium Manifest V3 browser companion. It requests
+  only `activeTab`, never treats a visit as account evidence, and exposes only
+  already verified password-management links from the bundled public catalog.
+- Added scheduler, keyring, CLI, dashboard shape and browser-companion static
+  regression coverage using synthetic data. No automatic password changes,
+  mailbox changes or provider logins were added.
+
+## 1.7.0 — Resumable security worklist and reliable Bitwarden handoff
+
+- Added a persistent, bilingual security worklist with selection, pause/resume,
+  deferral, manual completion and guided next steps for passwords, SSO and passkeys.
+- Added a durable per-address Bitwarden creation journal and atomic reservations.
+  CLI failures and timeouts require explicit vault review before another attempt.
+  Successful addresses are excluded from later handoffs and metadata exports.
+- Added explicit reconciliation of uncertain transfers, preservation of partial
+  successes and protection against simultaneous creation attempts.
+- Disabled real Bitwarden CLI transfers in the synthetic demo.
+- Added migration, restart, concurrency, timeout, partial-batch, authorization and
+  browser coverage using synthetic data and a fake CLI. No automatic provider
+  password changes or scheduled background scans are included.
+
+## 1.6.1 — Optional Bitwarden CLI handoff, 14 October 2026
+
+- Added an opt-in dashboard handoff to an already-unlocked official Bitwarden CLI.
+  It creates only explicitly selected, password-free metadata items and never
+  reads, changes or overwrites existing vault items.
+- Added German and English guidance for the local CLI handoff and a secure
+  provider-change workflow. Passwords stay in Bitwarden; provider password
+  changes still require the user to complete each service’s authentication, MFA
+  and confirmation flow.
+- Added regression coverage for the password-free CLI payload, required unlocked
+  session and dashboard endpoint.
+
 ## 1.6.0 — Offline Pro licensing foundation, 14 October 2026
 
 - Added Ed25519-signed, privacy-minimized Pro entitlement verification and local

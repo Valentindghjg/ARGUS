@@ -11,10 +11,10 @@ local edition; it does not require an account, payment details or telemetry.
 - Account review, security checklists and password-free Bitwarden metadata export.
 - German and English interface.
 
-## Pro preview
+## Pro edition in development
 
-The dashboard lists three planned Pro capabilities: encrypted local backup and
-recovery workflow, scheduled local review reminders, and advanced personal
+The dashboard lists three Pro capabilities in development: encrypted local backup
+and recovery workflow, scheduled local review reminders, and advanced personal
 security reports. They are not implemented or purchasable in this release. The
 application has a signed offline licensing foundation, but this default build
 does not include a publisher public key and cannot activate Pro. Free
@@ -24,7 +24,8 @@ functionality is not disabled by an artificial trial limit.
 
 - Passwords are generated and stored in Bitwarden, never in Account Compass.
 - Mail content, IMAP secrets, payment data and Bitwarden vault data are not sent
-  to a product service.
+  to a product service. An optional already-unlocked Bitwarden CLI can create
+  explicitly selected password-free items locally without reading existing items.
 - A future purchase flow must be a separate publisher-controlled checkout. It
   must not embed payment keys in the desktop application or this repository.
 - A future Pro entitlement needs independently reviewed, signed offline

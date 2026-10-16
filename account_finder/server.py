@@ -10,6 +10,9 @@ import time
 from urllib.parse import urlsplit, unquote
 
 from .analysis import MAX_MESSAGE_BYTES
+from .bitwarden import BitwardenCliError
+from .background import BackgroundScanService, KeyringCredentialStore
+from .handoffs import HandoffError
 from .licensing import LicenseError
 from .scan import ScanSession, scan_messages
 from .store import Store
@@ -30,6 +33,9 @@ class DashboardServer(ThreadingHTTPServer):
         self.token = secrets.token_urlsafe(32)
         self.import_lock = threading.RLock()
         self.import_job = None
+        self.background_service = BackgroundScanService(store, KeyringCredentialStore())
+        self.background_stop = threading.Event()
+        self.background_thread = None
         super().__init__(("127.0.0.1", port), Handler)
         self.origins = {f"http://127.0.0.1:{self.server_port}", f"http://localhost:{self.server_port}"}
         self.hosts = {f"127.0.0.1:{self.server_port}", f"localhost:{self.server_port}"}
@@ -52,7 +58,37 @@ class DashboardServer(ThreadingHTTPServer):
             raise ValueError("Unknown import session")
         return self.import_job
 
+    def background_snapshot(self):
+        try:
+            return self.background_service.snapshot()
+        except ValueError:
+            # A damaged local schedule must not stop the dashboard or reveal
+            # untrusted stored values. It will require a fresh terminal setup.
+            return {"enabled": False, "authorized": False, "last_error": "Background IMAP schedule needs local setup"}
+
+    def start_background_scans(self):
+        """Start the opt-in in-process scheduler only for an enabled profile."""
+        if self.background_thread or not self.background_snapshot().get("enabled"):
+            return
+        self.background_thread = threading.Thread(target=self._background_loop,
+                                                  name="argus-imap-scheduler", daemon=True)
+        self.background_thread.start()
+
+    def _background_loop(self):
+        while not self.background_stop.is_set():
+            # Never overlap a browser EML import with an automatic mailbox run.
+            # The next pass will see the same persistent IMAP checkpoint.
+            if not self.active_import():
+                self.background_service.run_due(allow_network=True)
+            status = self.background_snapshot()
+            due = status.get("next_run_at")
+            seconds = 60
+            if isinstance(due, (int, float)):
+                seconds = max(1, min(60, due - time.time()))
+            self.background_stop.wait(seconds)
+
     def server_close(self):
+        self.background_stop.set()
         with self.import_lock:
             if self.import_job and self.import_job.stats["running"]:
                 self.import_job.finish("partial")
@@ -156,6 +192,7 @@ class Handler(BaseHTTPRequestHandler):
                 job = self.server.active_import()
                 snapshot = self.server.store.snapshot()
                 snapshot["active_import"] = dict(job.stats) if job else None
+                snapshot["background_scan"] = self.server.background_snapshot()
             self._send(200, snapshot)
         else:
             self._error(404, "Not found")
@@ -180,7 +217,10 @@ class Handler(BaseHTTPRequestHandler):
             return
         path = urlsplit(self.path).path
         try:
-            if path == "/api/import":
+            if path == "/api/accounts":
+                account_id = self.server.store.create_account(self._json())
+                self._send(201, {"id": account_id})
+            elif path == "/api/import":
                 if self.headers.get_content_type() not in {"message/rfc822", "application/octet-stream"}:
                     raise ValueError("EML is required")
                 raw = self._read(MAX_MESSAGE_BYTES)
@@ -230,6 +270,36 @@ class Handler(BaseHTTPRequestHandler):
                 data = self._json()
                 result = make_export(self.server.store, data.get("ids"), data.get("language", "en"))
                 self._send(200, result, attachment="account-finder-bitwarden.json")
+            elif path == "/api/bitwarden/cli":
+                from .bitwarden import add_to_unlocked_cli
+                data = self._json()
+                if set(data) != {"ids", "language"}:
+                    raise ValueError("Specify the selected accounts and language")
+                result = add_to_unlocked_cli(self.server.store, data["ids"], data["language"])
+                self._send(200, result)
+            elif path == "/api/bitwarden/audit":
+                from .bitwarden import audit_unlocked_cli
+                data = self._json()
+                if set(data) != {"ids", "language", "confirmed"} or data["confirmed"] is not True:
+                    raise ValueError("Confirm the local Bitwarden check")
+                self._send(200, audit_unlocked_cli(self.server.store, data["ids"], data["language"]))
+            elif path == "/api/secure-next/bitwarden":
+                from .bitwarden import add_to_unlocked_cli
+                data = self._json()
+                if set(data) != {"account_id", "language", "confirmed"} or data["confirmed"] is not True:
+                    raise ValueError("Confirm the guided Bitwarden preparation")
+                snapshot = self.server.store.snapshot(data["language"])
+                current = snapshot["workflow"]["current"]
+                if not isinstance(data["account_id"], str) or data["account_id"] != current:
+                    raise ValueError("Choose the current guided account")
+                result = add_to_unlocked_cli(self.server.store, [current], data["language"])
+                self._send(200, result)
+            elif path == "/api/bitwarden/resolve":
+                from .handoffs import resolve
+                self._send(200, resolve(self.server.store, self._json()))
+            elif path == "/api/workflow":
+                from .workflow import change_worklist
+                self._send(200, change_worklist(self.server.store, self._json()))
             elif path == "/api/license/activate":
                 data = self._json()
                 if set(data) != {"license"} or not isinstance(data["license"], dict):
@@ -240,6 +310,8 @@ class Handler(BaseHTTPRequestHandler):
         except ImportBusy:
             self._error(409, "An EML import is already running. Finish or cancel it first.")
         except LicenseError as exc:
+            self._error(400, str(exc))
+        except (BitwardenCliError, HandoffError) as exc:
             self._error(400, str(exc))
         except (ValueError, TypeError, UnicodeError, json.JSONDecodeError):
             self._error(400, "Request failed; check format, selection and size limits")
@@ -253,6 +325,7 @@ class Handler(BaseHTTPRequestHandler):
 def serve(store: Store, port=8765, open_browser=False, language="en"):
     from .i18n import translate
     with DashboardServer(store, port) as server:
+        server.start_background_scans()
         print(translate("Local dashboard: ", language) + server.url, flush=True)
         print(translate("Press Ctrl+C to stop the server. No mailbox connection is active.", language), flush=True)
         if open_browser:

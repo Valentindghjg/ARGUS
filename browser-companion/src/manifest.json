@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "ARGUS Browser Companion",
+  "description": "Locally checks whether the active tab is an official ARGUS provider domain.",
+  "version": "0.1.0",
+  "action": {
+    "default_title": "ARGUS Browser Companion",
+    "default_popup": "popup.html"
+  },
+  "permissions": ["activeTab"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; base-uri 'none'"
+  }
+}

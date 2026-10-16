@@ -14,9 +14,9 @@ Telemetrie.
   Metadatenexport.
 - Deutsche und englische Oberfläche.
 
-## Pro-Vorschau
+## Pro-Edition in Entwicklung
 
-Das Dashboard nennt drei geplante Pro-Funktionen: lokalen verschlüsselten
+Das Dashboard nennt drei Pro-Funktionen in Entwicklung: lokalen verschlüsselten
 Sicherungs- und Wiederherstellungsablauf, geplante lokale Prüferinnerungen und
 erweiterte persönliche Sicherheitsberichte. Sie sind in dieser Version weder
 implementiert noch kaufbar. Die Anwendung enthält eine signierte Offline-
@@ -29,7 +29,9 @@ künstliche Testlimits eingeschränkt.
 - Passwörter werden in Bitwarden erzeugt und gespeichert, niemals in Account
   Compass.
 - Mailinhalte, IMAP-Geheimnisse, Zahlungsdaten und Bitwarden-Tresordaten werden
-  nicht an einen Produktdienst gesendet.
+  nicht an einen Produktdienst gesendet. Eine optionale bereits entsperrte
+  Bitwarden-CLI kann ausdrücklich ausgewählte passwortfreie Einträge lokal
+  erstellen, ohne bestehende Einträge zu lesen.
 - Ein späterer Kauf muss über einen getrennten Checkout des Herausgebers laufen.
   Zahlungsgeheimnisse gehören nicht in die Desktop-App oder dieses Repository.
 - Eine spätere Pro-Lizenz benötigt unabhängig geprüfte, signierte Offline-

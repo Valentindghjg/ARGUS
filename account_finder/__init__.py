@@ -1,3 +1,3 @@
 """Offline-first account inventory. No import-time network operations."""
 
-__version__ = "1.6.0"
+__version__ = "1.16.0"

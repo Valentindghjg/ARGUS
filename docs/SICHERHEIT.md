@@ -31,9 +31,40 @@ Postfach durch; fehlgeschlagene Anmeldung führt zum Abbruch, nicht zu einer
 Versuchsschleife. IMAP-Debug-Ausgabe ist deaktiviert und serverseitige
 Fehlermeldungen werden durch feste, nicht-sensitive Meldungen ersetzt.
 
+Zeitgesteuerte IMAP-Scans sind standardmäßig deaktiviert. Sie lassen sich erst
+nach bestehender IMAP-Konfiguration über ein interaktives Terminal aktivieren und
+laufen nur, während der lokale Dashboard-Prozess geöffnet ist. Das App-Passwort
+oder extern erhaltene OAuth2-Token liegt ausschließlich über das optionale Paket
+`keyring` im Schlüsselbund des Betriebssystems. ARGUS besitzt keinen
+Klartext-Datei-Fallback und lehnt bekannte Klartext-Keyring-Backends ab. SQLite
+speichert nur einen undurchsichtigen UUID-Verweis, Intervall und sichere
+Statusmetadaten. `disable` stoppt künftige Läufe; `revoke` stoppt sie zuerst und
+entfernt den Schlüsselbund-Eintrag. Jeder Lauf nutzt den vorhandenen
+inkrementellen TLS-/IMAP-Pfad und feste sichere Fehlermeldungen, niemals eine
+Passwort-Versuchsliste.
+Eine atomare SQLite-Lease stellt sicher, dass nur ein geplanter Lauf pro Profil
+gleichzeitig das Postfach öffnet. Ein veralteter Worker kann weder ein neueres
+Ergebnis überschreiben noch einen deaktivierten Zeitplan wieder aktivieren.
+Ordner-Checkpoints werden atomar zusammengeführt.
+
 Das Bitwarden-Hauptpasswort wird niemals abgefragt. Die Anwendung meldet sich
-nicht bei Bitwarden an und liest keinen Tresor. Die Bitwarden-Konto-Adresse ist
-unabhängig von den Anmeldeadressen der einzelnen Dienste.
+nicht bei Bitwarden an. Die optionale direkte Übertragung benötigt eine bereits
+entsperrte offizielle Bitwarden-CLI und erstellt nur
+ausdrücklich ausgewählte, passwortfreie Einträge; bestehende Tresoreinträge werden
+weder gelesen noch geändert. Eine getrennte optionale Prüfung verlangt eine
+zweite ausdrückliche Browserbestätigung und verwendet für jeden ausgewählten
+lokalen Account `bw list items --search`. Die CLI-Antwort kann entschlüsselte
+Tresorfelder im Arbeitsspeicher enthalten; ARGUS leitet sofort nur
+**gefunden / möglich / nichts gefunden** mit Anzahl ab und speichert, protokolliert
+oder gibt keine Eintragsnamen, Benutzernamen oder Passwörter zurück. Die
+Bitwarden-Konto-Adresse ist unabhängig von den Anmeldeadressen der einzelnen
+Dienste.
+
+Die geführte Ansicht **Nächsten Account absichern** bewertet nur lokal gespeicherte
+Accountdaten. Ein Start ergänzt oder setzt genau einen lokalen Arbeitslisten-Eintrag
+fort. Die Bitwarden-Aktion akzeptiert nur die Kennung des aktuellen Accounts und
+fordert eine zweite ausdrückliche Browserbestätigung; das Öffnen eines geprüften
+Anbieterlinks schließt niemals einen Checklistenpunkt ab.
 
 Python kann unveränderliche Strings im Arbeitsspeicher nicht zuverlässig löschen.
 Zugangsdaten sind daher während der autorisierten Sitzung im Prozessspeicher;
@@ -103,6 +134,15 @@ Frame-Schutz und `no-store` begrenzen browserbasierte Angriffe. Dynamische Daten
 werden mit `textContent` eingefügt. Passwortlinks stammen ausschließlich aus dem
 validierten Katalog, nie aus Mails.
 
+Der optionale Chromium-Browser-Begleiter ist eine entpackte Manifest-V3-Erweiterung
+mit ausschließlich der Berechtigung `activeTab`. Beim Öffnen des Popups liest sie
+die URL des aktiven Tabs lokal, gleicht nur den Hostnamen mit einem gebündelten
+öffentlichen Katalog ab und kann einen bereits verifizierten Einstellungslink
+kopieren oder öffnen. Sie hat keine Host-Berechtigungen, Content-Skripte,
+Hintergrund-Worker, Native Messaging, Netzwerkzugriffe oder Zugriff auf
+Seiteninhalt, Formulare, Cookies, Passwörter, Verlauf, Tokens, E-Mails oder
+Bitwarden. Ein Webseitenbesuch ist niemals ein Account-Beleg.
+
 Andere lokale Prozesse können wie dein Browser die Startseite abrufen. Dieses
 Programm ist eine Einzelbenutzer-Anwendung und schützt nicht vor anderen
 unvertrauenswürdigen Nutzern auf demselben Rechner. Stelle es nicht als öffentlichen
@@ -121,9 +161,17 @@ Gastbestellungen, Newsletter und Reset-Anforderungen bleiben unbekannt. Konten
 ohne Mails, gelöschte Nachrichten, Telefonnummer-Registrierungen, andere Aliase,
 andere Postfächer und SSO können fehlen. Gemeinsame Produktfamilien können Mails
 über die Domain des zentralen Identitätsanbieters versenden; ein Xbox-Konto kann
-beispielsweise ausschließlich Microsoft-Hinweise hinterlassen. Mehrere Accounts
-bei demselben Anbieter sind in einer Anbieterzeile mit bekannten Adressen
-zusammengefasst; die Checkliste gilt für die gesamte Anbieterzeile.
+beispielsweise ausschließlich Microsoft-Hinweise hinterlassen. Accounts beim
+selben Anbieter erhalten getrennte stabile Kennungen, Checklisten und
+Übertragungsprotokolle. Nur aktuelle starke Belege an genau eine konfigurierte
+eigene Adresse werden einer entsprechenden Zuordnung zugeteilt. Mehrdeutige,
+weitergeleitete und schwache Hinweise bleiben beim Dienst. Unterschiedliche
+Adressen können Aliase oder geänderte Adressen betreffen; separate Accounts
+erfordern weiterhin deine Prüfung. Manuell bezeichnete Accounts mit derselben
+Adresse erben keine automatischen Empfängerbelege. Alte Fortschritte werden
+vorsichtig zugeordnet und nie auf alle neuen Zuordnungen kopiert. Ungeklärte
+Alteinträge benötigen vor Export und Abschluss eine Prüfung. Siehe die
+[Account-Anleitung](ACCOUNTS.md).
 
 Der automatische Katalogabgleich arbeitet mit kuratierten Domains und einem
 begrenzten Satz deutscher/englischer Regeln. Weitere Versanddomains und eigene

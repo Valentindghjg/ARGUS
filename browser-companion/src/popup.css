@@ -1,0 +1,15 @@
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { margin: 0; min-width: 330px; background: #101827; color: #f5f8ff; }
+main { padding: 18px; }
+.eyebrow { color: #87b5ff; font-size: 11px; font-weight: 700; letter-spacing: .08em; margin: 0 0 5px; }
+h1 { font-size: 19px; margin: 0 0 16px; }
+.state { background: #1d2b40; border-radius: 8px; line-height: 1.35; margin: 0; padding: 11px; }
+dl { margin: 14px 0; }
+dl div { display: grid; gap: 3px; margin: 8px 0; }
+dt { color: #b5c2d9; font-size: 12px; }
+dd { font-weight: 600; margin: 0; overflow-wrap: anywhere; }
+#password-note { color: #bdebc8; line-height: 1.35; }
+.actions { display: grid; gap: 8px; margin-top: 12px; }
+button { background: #8dc0ff; border: 0; border-radius: 7px; color: #07111f; cursor: pointer; font: inherit; font-weight: 700; padding: 9px; }
+button:hover, button:focus-visible { background: #b8d8ff; outline: 2px solid #fff; outline-offset: 2px; }
+.notice { border-top: 1px solid #31415a; color: #c8d3e8; font-size: 12px; line-height: 1.35; margin: 17px 0 0; padding-top: 12px; }
