@@ -1,4 +1,4 @@
-# Test report — unreleased security review (2026-10)
+# Test report — Version 2.0.0 (package A, not yet tagged)
 
 The security-review changes passed **208 Python tests** (previously 166) and
 **24 Chromium browser check groups**, with zero page errors and zero external
@@ -43,6 +43,12 @@ confirms, rejects with a reason and undoes from the toast and from the history,
 walks the guided decision and sign-in steps, completes an account only after
 every step is answered (MFA marked not used), sets a review date and checks
 both languages.
+
+Step S7: **253 Python tests** and **28 browser check groups**. The next task
+follows the documented order (import, unfinished import, identities, unclear
+transfer, due review, worklist, decide, secure, done); the summary counts unclear
+items and gaps; a new profile shows three ways in; a test requires a German
+translation for every dashboard text.
 
 New simulations combine a real local store with a fake IMAP server, a fake
 keyring and a simulated clock. They cover lease renewal during long scheduled

@@ -1,4 +1,4 @@
-# ARGUS 1.16.0
+# ARGUS 2.0.0
 
 [Deutsch](README_DE.md) · English
 
@@ -21,7 +21,7 @@ The screenshots below use only the bundled synthetic demo data.
 
 | Dashboard | Security worklist |
 | --- | --- |
-| [![ARGUS dashboard](https://github.com/Valentindghjg/ARGUS/releases/download/v1.16.0/argus-dashboard-demo.png)](https://github.com/Valentindghjg/ARGUS/releases/tag/v1.16.0) | [![ARGUS security worklist](https://github.com/Valentindghjg/ARGUS/releases/download/v1.16.0/argus-worklist-demo.png)](https://github.com/Valentindghjg/ARGUS/releases/tag/v1.16.0) |
+| [![ARGUS dashboard](docs/preview/dashboard.png)](docs/preview/dashboard.png) | [![ARGUS security worklist](docs/preview/worklist.png)](docs/preview/worklist.png) |
 
 The app finds **evidence in your own messages**. It does not probe accounts on
 provider websites. Missing evidence leaves a service “Unknown”; it does not prove

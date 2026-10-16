@@ -1,4 +1,4 @@
-# ARGUS 1.16.0 – lokales Account-Inventar
+# ARGUS 2.0.0 – lokales Account-Inventar
 
 Deutsch · [English](README.md)
 
@@ -21,7 +21,7 @@ Die Bilder zeigen ausschließlich die mitgelieferten künstlichen Demodaten.
 
 | Dashboard | Sicherheits-Arbeitsliste |
 | --- | --- |
-| [![ARGUS-Dashboard](https://github.com/Valentindghjg/ARGUS/releases/download/v1.16.0/argus-dashboard-demo.png)](https://github.com/Valentindghjg/ARGUS/releases/tag/v1.16.0) | [![ARGUS-Sicherheits-Arbeitsliste](https://github.com/Valentindghjg/ARGUS/releases/download/v1.16.0/argus-worklist-demo.png)](https://github.com/Valentindghjg/ARGUS/releases/tag/v1.16.0) |
+| [![ARGUS-Dashboard](docs/preview/dashboard-de.png)](docs/preview/dashboard-de.png) | [![ARGUS-Sicherheits-Arbeitsliste](docs/preview/worklist.png)](docs/preview/worklist.png) |
 
 Die Anwendung findet **Hinweise in deinen eigenen Nachrichten**. Ein fehlender
 Hinweis bedeutet „Unbekannt“ und beweist nicht, dass kein Account existiert.

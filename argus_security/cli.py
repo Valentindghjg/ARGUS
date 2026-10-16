@@ -144,7 +144,9 @@ def main(argv=None):
             result = scan_messages(store, file_messages(args.path, args.format), args.format, lambda s: print(t('Processed locally: {p0}; new clues: {p1}', p0=s['processed'], p1=s['evidence']), flush=True))
             report_scan(result, t)
         elif args.command == 'report':
-            print(json.dumps(store.snapshot()['summary'], ensure_ascii=False, indent=2))
+            snapshot = store.snapshot()
+            print(json.dumps({**snapshot['summary'], 'result': snapshot['result'], 'next_task': snapshot['next_task']},
+                             ensure_ascii=False, indent=2))
         elif args.command == 'list-accounts':
             fields = ('id', 'provider_id', 'name', 'identity_email', 'label',
                       'classification', 'status', 'identity_review_required')

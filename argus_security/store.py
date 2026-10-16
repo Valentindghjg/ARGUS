@@ -393,6 +393,7 @@ class Store:
                         "services_found": len({a["provider_id"] for a in found}), "instances_found": len(found),
                         "confirmed": sum(a["classification"] == "confirmed" for a in accounts),
                         "rejected": sum(a["decision"] == "rejected" for a in accounts),
+                        "clues": len(evidences),
                         "probable": sum(a["classification"] == "probable" for a in accounts), "unknown": len(accounts) - len(found),
                         "done": done, "high_priority": sum(a["priority"] in {"high", "critical"} and
                             (a["status"] != "done" or a["identity_review_required"]) for a in found),
@@ -407,6 +408,9 @@ class Store:
             account["next_step"] = next_step(account)
         snapshot["workflow"] = worklist_snapshot(self, accounts)
         snapshot["bitwarden_handoffs"] = handoff_snapshot(self)
+        from .summary import next_task, result_summary
+        snapshot["result"] = result_summary(snapshot)
+        snapshot["next_task"] = next_task(snapshot)
         from .i18n import localize_snapshot
         return localize_snapshot(snapshot, language)
 

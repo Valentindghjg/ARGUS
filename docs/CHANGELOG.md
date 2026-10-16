@@ -1,6 +1,6 @@
 # Change log
 
-## Unreleased — Security review 2026-10
+## 2.0.0 — Package A: clear states and a controllable core (not yet tagged)
 
 See [the security review](SECURITY_REVIEW_2026-10.md) and
 [the master plan status](strategy/README.md).
@@ -124,6 +124,19 @@ See [the security review](SECURITY_REVIEW_2026-10.md) and
 - Filters now separate evidence and decision (confirmed by you, evidence only,
   no evidence, rejected) and progress (not started, in progress, complete,
   deferred). “Defer” plans the account in the worklist.
+
+### Three ways in, an honest summary and one next task (F2, F3, D1)
+
+- A new profile shows three separate ways in: the demo, a local import and
+  the optional read-only mailbox connection. The first two never use the
+  network.
+- The overview summarises what ARGUS knows: messages processed, clues, accounts
+  with evidence, your decisions, unclear items (identities, clues without a clear
+  account, unknown domains) and gaps. It states that this is not a complete list.
+- One reasoned next task leads the overview: import, an unfinished import,
+  identities to assign, an unclear transfer, a due review, the worklist, accounts
+  to decide on or the next account to secure. `argus report` includes both.
+- The screenshots in the READMEs now come from this version's demo.
 
 ### Security and robustness
 

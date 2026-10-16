@@ -158,6 +158,49 @@ function renderState() {
   $("alias-email").disabled=state.demo;$("alias-owned").disabled=state.demo;
   if(state.demo)setMessage("alias-message","Add real own addresses in a personal profile on your computer. The demo profile stays separate.");
   renderRows();renderCandidates();renderExport();renderBitwardenAudit();renderWorklist();renderGuided();renderHandoffs();renderHistory();
+  renderStart();renderResult();renderNextTask();
+}
+// Plan F2: three separate ways in, shown until the profile has its first evidence.
+function renderStart(){
+  $("start-paths").classList.toggle("hidden",Boolean(state.demo||state.result.clues||state.last_scan));
+}
+// Plan F3: counts, unclear items and gaps; never a claim of completeness.
+function renderResult(){
+  const r=state.result,lines=[];
+  if(r.messages_processed!==null&&state.last_scan)lines.push(t("{count} messages processed in the latest import or scan.",{count:r.messages_processed}));
+  lines.push(t("{clues} clues from your emails point to {accounts} accounts.",{clues:r.clues,accounts:r.accounts_with_evidence}));
+  lines.push(t("{confirmed} confirmed by you · {rejected} rejected · {open} with evidence still to decide · {complete} complete.",{confirmed:r.confirmed,rejected:r.rejected,open:r.to_decide,complete:r.complete}));
+  const unclear=r.unclear;
+  if(unclear.identity_reviews||unclear.unassigned_clues||unclear.unknown_domains)lines.push(t("Unclear: {reviews} sign-in addresses to identify · {clues} clues without a clear account · {domains} sender domains outside the catalog.",{reviews:unclear.identity_reviews,clues:unclear.unassigned_clues,domains:unclear.unknown_domains}));
+  const gaps=r.gaps;
+  if(gaps.skipped||gaps.errors||gaps.headers_only||gaps.older_clues||gaps.unfinished)lines.push(t("Gaps: {skipped} skipped · {errors} unreadable · {headers} headers only · {older} clues from older rules{unfinished}.",{skipped:gaps.skipped,errors:gaps.errors,headers:gaps.headers_only,older:gaps.older_clues,unfinished:gaps.unfinished?" · "+t("the latest import stopped early"):""}));
+  $("result-lines").replaceChildren(...lines.map(line=>node("li",line)));
+}
+// Plan D1: one next task with its reason; ARGUS never acts at a provider.
+const nextTaskTexts={
+  import:["Import your first emails","ARGUS has no email evidence yet. Start with a local import; nothing is sent anywhere.","Open import"],
+  scan_gaps:["Finish the interrupted import","The latest import or scan stopped early, so some messages are not analyzed yet.","Open import"],
+  identify:["Identify {count} sign-in address(es)","These accounts kept progress from an older version without a clear address. Nothing else is offered for them until you choose one.","Open {account}"],
+  handoff:["Check an unclear Bitwarden transfer","A transfer may have created an item without a reply. Check Bitwarden before any other transfer.","Open Prepare Bitwarden"],
+  review_due:["Review {account} again","You asked to be reminded to check a step of this account again.","Open {account}"],
+  continue:["Continue with {account}","This account is next in your worklist.","Continue"],
+  decide:["Decide on {count} account(s) with evidence","Your emails point to these accounts, but only you can confirm or reject them. Start with {account}.","Open {account}"],
+  secure:["Secure {account} next","It has the highest priority among your open accounts.","Secure next account"],
+  done:["No open task","Every account you decided on is complete. ARGUS cannot find accounts without emails; import other sources if you have them.",""]
+};
+function renderNextTask(){
+  const task=state.next_task,account=state.accounts.find(a=>a.id===task.account_id),values={count:task.count,account:account?accountTitle(account):""};
+  const [title,reason,action]=nextTaskTexts[task.kind];
+  $("next-task-title").textContent=t(title,values);$("next-task-reason").textContent=t(reason,values);
+  $("next-task-action").textContent=action?t(action,values)+" →":"";
+  $("next-task-action").classList.toggle("hidden",!action);$("next-task-action").disabled=workflowBusy;
+}
+async function runNextTask(){
+  const task=state.next_task;
+  if(task.kind==="import"||task.kind==="scan_gaps")navigate("setup");
+  else if(task.kind==="handoff")navigate("bitwarden");
+  else if(task.kind==="continue"||task.kind==="secure")await startGuided();
+  else if(task.account_id)openDetail(task.account_id);
 }
 function describeChange(change){
   const account=state.accounts.find(a=>a.id===change.account_id),name=account?accountTitle(account):t("Account no longer available");
@@ -487,9 +530,6 @@ function renderGuided(){
     return item;
   }));
   if(!account){
-    $("guided-dashboard-title").textContent=t("Your current security work is complete.");
-    $("guided-dashboard-copy").textContent=t("No incomplete discovered account is ready for a guided session.");
-    $("guided-dashboard-start").disabled=true;
     $("guided-current-card").classList.add("guided-current-blocked");
     $("guided-status").textContent=t("Ready");
     $("guided-current-copy").textContent=t("No incomplete discovered account is ready for a guided session.");
@@ -497,10 +537,6 @@ function renderGuided(){
     return;
   }
   const step=accountStep(account), actionLabel=current?t("Continue to next account"):t("Secure next account");
-  $("guided-dashboard-title").textContent=t("Secure {p0} next",{p0:accountTitle(account)});
-  $("guided-dashboard-copy").textContent=guidedStepCopy(account,step);
-  $("guided-dashboard-start").textContent=actionLabel+" →";
-  $("guided-dashboard-start").disabled=workflowBusy;
   $("guided-current-card").classList.toggle("guided-current-blocked",!current||workflow.paused||account.identity_review_required);
   $("guided-status").textContent=t(account.identity_review_required?"Blocked: identify the sign-in address":workflow.paused?"Paused":current?"Action required":"Ready");
   $("guided-current-copy").textContent=`${accountTitle(account)} · ${guidedStepCopy(account,step)}`;
@@ -727,7 +763,8 @@ $("bitwarden-audit-button").onclick=auditUnlockedBitwarden;
 $("worklist-add").onclick=()=>{const ids=Array.from($("worklist-selection").querySelectorAll("input:checked")).map(input=>input.value);if(!ids.length){error(t("Select accounts for your worklist first."));return;}changeWorklist({action:"add",ids});};
 $("worklist-continue").onclick=()=>continueWorklist();
 $("worklist-pause").onclick=()=>changeWorklist({action:state.workflow.paused?"resume":"pause"});
-$("guided-dashboard-start").onclick=startGuided;
+$("next-task-action").onclick=runNextTask;
+$("start-import").onclick=()=>{navigate("setup");$("email-files").click();};
 $("guided-current-open").onclick=startGuided;
 $("guided-build-worklist").onclick=buildPriorityWorklist;
 $("guided-current-defer").onclick=()=>{const id=state.workflow.current;if(id)changeWorklist({action:"defer",id});};
