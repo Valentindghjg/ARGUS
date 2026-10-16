@@ -33,10 +33,9 @@ GitHub separately processes data when you use its repository, Issues or
 Discussions under GitHub's own policies. Do not post real emails, credentials,
 vault exports or account inventories there.
 
-Before offering a paid product or collecting customer details, the publisher must
-publish a legally appropriate privacy notice with the responsible party, contact
-details, retention periods and jurisdiction-specific information. See
-[the commercial-release checklist](docs/COMMERCIAL_RELEASE.md).
+ARGUS has no paid tier, customer account or checkout and collects no customer
+details. Anyone who later offers a hosted or paid service around it must publish
+their own legally appropriate privacy notice first.
 
 ## Deutsch
 
@@ -73,7 +72,7 @@ GitHub verarbeitet Daten separat, wenn du Repository, Issues oder Discussions
 nutzt, nach seinen eigenen Richtlinien. Veröffentliche dort keine echten Mails,
 Zugangsdaten, Tresorexporte oder Account-Listen.
 
-Vor einem kostenpflichtigen Produkt oder dem Erfassen von Kundendaten muss der
-Herausgeber eine rechtlich passende Datenschutzerklärung mit verantwortlicher
-Stelle, Kontakt, Aufbewahrungsfristen und Angaben für den jeweiligen Rechtsraum
-veröffentlichen. Siehe die [Checkliste für die kommerzielle Veröffentlichung](docs/COMMERCIAL_RELEASE.md).
+ARGUS hat keine Bezahlstufe, kein Kundenkonto und keinen Bezahlvorgang und
+erfasst keine Kundendaten. Wer später einen gehosteten oder bezahlten Dienst
+darum herum anbietet, muss vorher eine eigene, rechtlich passende
+Datenschutzerklärung veröffentlichen.

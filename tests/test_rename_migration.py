@@ -155,9 +155,7 @@ class RenamedIdentifiers(unittest.TestCase):
         self.assertIn('dynamic = ["version"]', pyproject)
         self.assertNotIn('\nversion = "', pyproject)
 
-    def test_license_product_is_argus_pro(self):
-        from argus_security.licensing import PRODUCT_ID
-        self.assertEqual(PRODUCT_ID, "argus-pro")
+    def test_translations_use_the_new_name(self):
         catalog = json.loads((REPOSITORY / "argus_security" / "data" / "translations.json").read_text(encoding="utf-8"))
         self.assertFalse([key for key in catalog["de"] if "Account Compass" in key or "Account-Finder" in key])
 

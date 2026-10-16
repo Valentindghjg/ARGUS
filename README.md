@@ -21,24 +21,15 @@ The app finds **evidence in your own messages**. It does not probe accounts on
 provider websites. Missing evidence leaves a service “Unknown”; it does not prove
 that no account exists. Synthetic demo data and personal profiles stay separate.
 
-## License status
+## License
 
-ARGUS Free is licensed under the
-[Mozilla Public License 2.0](LICENSE) (MPL-2.0). A future commercial Pro edition
-will be distributed separately under its own terms; it is not included in this
-repository. See [LICENSING.md](LICENSING.md) and the
-[publication checklist](docs/PUBLISHING.md).
+ARGUS is licensed under the
+[Mozilla Public License 2.0](LICENSE) (MPL-2.0). Every feature is free: there
+are no editions, license keys, online accounts, payment data or telemetry. See
+[LICENSING.md](LICENSING.md) and the [publication checklist](docs/PUBLISHING.md).
 
-## ARGUS Free and Pro
-
-This build is **ARGUS Free**: its account inventory, local mail import,
-security checklists and password-free Bitwarden metadata are available without an
-online account, payment data or telemetry. The dashboard also explains a future
-**Pro edition in development**. It is not implemented, purchasable or
-activatable yet, so Free is not limited by an artificial trial. See [the Freemium plan](docs/FREEMIUM.md).
-
-**Quick start:** Python 3.11 or newer and a modern browser. Install the one
-security dependency from the project metadata; npm and Docker are not required.
+**Quick start:** Python 3.11 or newer and a modern browser. ARGUS uses only the
+Python standard library; npm and Docker are not required.
 Extract the archive or clone the repository, open a terminal in its folder
 (`ARGUS` for a Git clone), then run:
 
@@ -466,9 +457,9 @@ journal that blocks retries after ambiguous writes. Existing inventories gain tw
 new local tables automatically; evidence and checklists are preserved. Back up
 your protected data directory before upgrading.
 
-Version 1.6 adds signed, offline Pro-license verification and local activation.
-The default build contains no publisher public key, so it cannot activate Pro or
-contact a payment service. Version 1.5 adds local Free/Pro product presentation.
+Versions 1.5 and 1.6 added a Free/Pro presentation and offline Pro licenses. The
+next major version removes both again because every feature stays free. A
+leftover `license.json` in an old profile is ignored and can be deleted.
 Detection, the database schema and account results remain compatible. Version 1.4
 expands the built-in catalog from 372 to 527 providers. Existing profiles and checklists remain compatible.
 Re-import local source emails or run a separately authorized
@@ -508,14 +499,10 @@ python scripts/browser_multi_account.py --browser /usr/bin/chromium
 | `argus_security/handoffs.py` | Durable Bitwarden transfer journal |
 | `argus_security/mailbox_lease.py` | One mailbox session per profile across processes |
 | `argus_security/errors.py` | Fixed, translatable messages that may reach the dashboard |
-| `argus_security/licensing.py`, `product.py` | Offline Pro-license verification and edition facts |
 | `account_finder/` | Deprecated alias for `python -m account_finder` and `account-finder` |
 | `tests/` | Automated regression tests |
 | `browser-companion/` | Minimal unpacked Chromium domain/settings-link companion |
 | [Catalog policy](docs/CATALOG.md) | Scope, review standards and how to propose providers |
-| [Freemium plan](docs/FREEMIUM.md) | Available Free functionality, Pro-in-development status and product boundaries |
-| [Commercial-release checklist](docs/COMMERCIAL_RELEASE.md) | Owner decisions before accepting a Pro payment |
-| [License implementation](docs/LICENSE_IMPLEMENTATION.md) | Signed offline Pro licenses and publisher key handling |
 | [Publishing checklist](docs/PUBLISHING.md) | Owner-controlled steps before making the repository public |
 | [Product strategy (German)](docs/strategy/README.md) | Master plan for features and safe automation, with implementation status |
 | [Technical plan](docs/PLAN.md) | Architecture and development sequence |

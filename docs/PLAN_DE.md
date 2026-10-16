@@ -1,7 +1,6 @@
 # Technischer Plan
 
-1. **Zuerst lokale Erkennung und Dashboard:** Python 3.11+, Standardbibliothek und
-   `cryptography` für die Offline-Lizenzprüfung,
+1. **Zuerst lokale Erkennung und Dashboard:** Python 3.11+ nur mit der Standardbibliothek,
    erweiterbarer JSON-Anbieterkatalog, regelbasierte EML-Auswertung, SQLite und eine
    responsive deutsche Oberfläche. Künstliche Beispieldaten in einer getrennten Demo.
 2. **Danach Postfachzugriff:** EML/Maildir/mbox-Import; IMAP über TLS mit geprüften

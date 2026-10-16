@@ -53,8 +53,7 @@ const titles = {
   security:["Secure the most important accounts first.","Prioritize your mailbox, finance and central services.","Security priorities"],
   bitwarden:["A secure password for every account.","Prepare new vault items and make the changes yourself.","Prepare Bitwarden"],
   workflow:["Secure your accounts, one at a time.","A local worklist that remembers your progress.","Security worklist"],
-  setup:["Start with your mailbox.","Import existing messages or set up read-only IMAP access.","Mailbox & Import"],
-  plans:["Choose your local edition.","ARGUS Free is available now; Pro is a transparent preview.","Plans"]
+  setup:["Start with your mailbox.","Import existing messages or set up read-only IMAP access.","Mailbox & Import"]
 };
 function node(tag, text, className) { const e=document.createElement(tag); if(text!==undefined)e.textContent=text; if(className)e.className=className; return e; }
 function accountEmail(account){return account.identity_email||account.manual_email||account.registered_emails[0]||"";}
@@ -109,18 +108,7 @@ function renderState() {
   $("add-alias-button").disabled=state.demo||addingAlias||Boolean(activeBatch||state.active_import);
   $("alias-email").disabled=state.demo;$("alias-owned").disabled=state.demo;
   if(state.demo)setMessage("alias-message","Add real own addresses in a personal profile on your computer. The demo profile stays separate.");
-  renderRows();renderCandidates();renderExport();renderBitwardenAudit();renderPlans();renderWorklist();renderGuided();renderHandoffs();
-}
-function renderPlans(){
-  const product=state.product;
-  $("free-plan-name").textContent=product.name;
-  $("free-plan-features").replaceChildren(...product.free_features.map(feature=>node("li",t(feature))));
-  $("pro-plan-features").replaceChildren(...product.pro_preview.map(feature=>node("li",t(feature))));
-  const license=product.license;
-  $("license-activation").classList.toggle("hidden",!license.activation_enabled);
-  $("license-status").textContent=t(license.message);
-  setMessage("pro-preview-note",license.state==="active"?"ARGUS Pro is active.":"Pro is in development and not for sale. This app does not collect payment details, create an online account or send telemetry.");
-  $("activate-license").disabled=!license.activation_enabled;
+  renderRows();renderCandidates();renderExport();renderBitwardenAudit();renderWorklist();renderGuided();renderHandoffs();
 }
 function scanDescription(scan){
   if(!scan)return t("No scan started yet.");
@@ -149,7 +137,6 @@ function navigate(next,clearError=true){
   $("inventory-view").classList.toggle("hidden",!["dashboard","accounts","security"].includes(next));
   $("bitwarden-view").classList.toggle("hidden",next!=="bitwarden");
   $("setup-view").classList.toggle("hidden",next!=="setup");
-  $("plans-view").classList.toggle("hidden",next!=="plans");
   $("workflow-view").classList.toggle("hidden",next!=="workflow");
   $("list-title").textContent=next==="security"?t("High-priority accounts"):t("Your account inventory");
   if(state)renderRows();
@@ -493,17 +480,6 @@ async function completeGuidedStep(){
   if(!window.confirm(t(message)))return;
   await update(change);
 }
-async function activateLicense(){
-  const file=$("license-file").files[0];
-  if(!file){error(t("Choose a license file first."));return;}
-  $("activate-license").disabled=true;
-  try{
-    const license=JSON.parse(await file.text());
-    const result=await api("/api/license/activate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({license})});
-    await refresh();toast(t(result.message));
-  }catch(e){error(e instanceof SyntaxError?t("Invalid license file."):e.message);}
-  finally{if(state)$('activate-license').disabled=!state.product.license.activation_enabled;}
-}
 async function importFiles(){
   const files=Array.from($("email-files").files);if(!files.length)return;
   $("import-progress").classList.remove("hidden");$("import-button").disabled=true;$("email-files").disabled=true;
@@ -570,7 +546,6 @@ $("detail-worklist").onclick=()=>changeWorklist({action:"add",ids:[selected]});
 $("detail-bitwarden").onclick=()=>{const account=state.accounts.find(a=>a.id===selected);if(!account||account.identity_review_required)return;exportChoices.clear();exportChoices.set(selected,true);for(const a of state.accounts)if(a.id!==selected)exportChoices.set(a.id,false);$("account-dialog").close();navigate("bitwarden");renderExport();};
 $("guided-prepare-bitwarden").onclick=prepareGuidedBitwarden;
 $("guided-complete-step").onclick=completeGuidedStep;
-$("activate-license").onclick=activateLicense;
 $("import-button").onclick=()=>{navigate("setup");$("email-files").click();};
 $("email-files").onchange=importFiles;
 $("cancel-import").onclick=cancelImport;

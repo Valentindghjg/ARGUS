@@ -1,6 +1,19 @@
 # Änderungen – unveröffentlicht (Sicherheitsreview 2026-10)
 
-Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md).
+Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md) und
+[Umsetzungsstand des Masterplans](strategy/README.md).
+
+## Inkompatibel: eine kostenlose Ausgabe, nur Standardbibliothek
+
+- Alle Funktionen sind kostenlos (Entscheidung des Owners, Masterplan-Schritt S1).
+  Entfernt sind die Seite „Editionen“, `license-status`, `activate-license`,
+  `POST /api/license/activate`, das Snapshot-Feld `product` und die
+  Herausgeber-Skripte für Lizenzen.
+- ARGUS hängt nicht mehr von `cryptography` ab und läuft mit der
+  Python-Standardbibliothek. `keyring` bleibt für geplante Scans optional. Ein
+  Test lehnt neue Laufzeitabhängigkeiten ab.
+- Eine übrig gebliebene `license.json` in einem alten Profil wird ignoriert und
+  kann gelöscht werden.
 
 ## Inkompatibel: Das Projekt heißt jetzt überall ARGUS
 
@@ -12,8 +25,6 @@ Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md).
   nach `~/.local/share/argus` verschoben, mit allen Dateien und Rechten. Ein
   ausdrückliches `--data-dir` wird nie verschoben. Schlüsselbund-Einträge müssen
   nicht migriert werden.
-- Die Editionen heißen **ARGUS Free/Pro**; die Produkt-ID für Pro-Lizenzen ist
-  `argus-pro`. Unter der alten ID wurde keine Lizenz ausgestellt.
 - Neue Bitwarden-Einträge tragen das Feld `ARGUS-Account-ID`; die nur lesende
   Prüfung erkennt weiterhin `Account-Finder-ID`. Die Sprachwahl im Dashboard
   wechselt beim ersten Aufruf auf einen neuen Browser-Speicherschlüssel.

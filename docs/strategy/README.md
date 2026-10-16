@@ -40,11 +40,11 @@ Hauptnutzen kommt ohne sie aus.
 
 ## Umsetzungsstand der 15 Prioritäten
 
-Stand: 16.10.2026, nach der Sicherheitsreview und der Zielbindung.
+Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S1.
 
 | Nr. | Priorität | Stand | Im Code |
 | --- | --- | --- | --- |
-| 01 | Zustände sauber trennen | Entwurf | [ADR-0001](../architecture/ADR-0001-zustands-und-freigabemodell.md) wartet auf Freigabe |
+| 01 | Zustände sauber trennen | entworfen | [ADR-0001](../architecture/ADR-0001-zustands-und-freigabemodell.md) angenommen; Umsetzung in S5/S6 |
 | 02 | Importergebnisse und Grenzen erklären | teilweise | Scanstatistik mit Lücken, Header-only, Limit; noch keine Abdeckungsansicht (D4) |
 | 03 | Erkennungsbegründungen | teilweise | Hinweisart, Stärke und Einschränkung pro Beleg; nach einer Bestätigung verdeckt (ADR-0001) |
 | 04 | Mehrdeutigkeiten gesammelt prüfen | teilweise | Identitätsprüfung und nicht zugeordnete Belege je Account; keine Sammelliste |
@@ -58,7 +58,7 @@ Stand: 16.10.2026, nach der Sicherheitsreview und der Zielbindung.
 | 12 | Unklare Schreibausgänge blockieren | umgesetzt | Status `uncertain`, keine blinde Wiederholung, manuelle Klärung |
 | 13 | Wiederkehrende lokale Importe vereinfachen | offen | – |
 | 14 | Begrenzte Ordnerüberwachung | offen | – |
-| 15 | Belegten Pro-Komfortbedarf bedienen | offen | nur Grundlage: signierte Offline-Lizenz |
+| 15 | Belegten Pro-Komfortbedarf bedienen | entschieden | Alles wird als Free umgesetzt; die Lizenzgrundlage ist entfernt (S1) |
 
 Außerdem ist F1 (einheitlicher Produktname) mit der Umbenennung auf ARGUS
 umgesetzt, inklusive Migration.
@@ -73,7 +73,7 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 | Schritt | Inhalt | Plan-Punkte | Stand |
 | --- | --- | --- | --- |
 | S0 | Entscheidungen, ADR-0001 angenommen, Arbeitsplan | – | ✅ |
-| S1 | Pro-Grundlage entfernen; Laufzeit nur mit Standardbibliothek | Entscheidung | offen |
+| S1 | Pro-Grundlage entfernen; Laufzeit nur mit Standardbibliothek | Entscheidung | ✅ |
 | S2 | CI auf Linux, Windows und macOS | Installation und Plattformen | offen |
 | S3 | Fehler mit nächstem Schritt, Exportvorschau, präzises Produktversprechen | F4, F6, B2, G1 | offen |
 | S4 | Profil-Sicherung und Wiederherstellung | Installation, Migration und Sicherung | offen |

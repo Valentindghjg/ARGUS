@@ -45,12 +45,10 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(status,200)
         snapshot = json.loads(data)
         self.assertGreaterEqual(snapshot["summary"]["providers"],500)
-        self.assertEqual(snapshot["product"]["id"], "free")
-        self.assertEqual(snapshot["product"]["billing"], "not_configured")
-        self.assertEqual(snapshot["product"]["commercial_status"], "pro_in_development")
-        self.assertFalse(snapshot["product"]["telemetry"])
-        self.assertTrue(snapshot["product"]["free_features"])
-        self.assertTrue(snapshot["product"]["pro_preview"])
+        self.assertNotIn("product", snapshot)
+        # Every feature is free; there is no license route to call.
+        self.assertEqual(self.request("/api/license/activate", "POST", "{}",
+                                      headers={"Content-Type": "application/json"})[0], 404)
         self.assertEqual(snapshot["background_scan"], {"enabled": False, "authorized": False,
                                                         "interval_seconds": 86400, "limit": 500,
                                                         "next_run_at": None, "last_started_at": None,

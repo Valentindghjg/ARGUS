@@ -1,7 +1,6 @@
 # Technical plan
 
-1. **Local detection and dashboard first:** Python 3.11+, standard library plus
-   `cryptography` for offline license verification,
+1. **Local detection and dashboard first:** Python 3.11+ with the standard library only,
    extensible provider JSON, deterministic MIME analysis, SQLite, responsive local
    dashboard and a separate synthetic demo.
 2. **Then mailbox ingestion:** EML/Maildir/mbox import and TLS IMAP with certificate

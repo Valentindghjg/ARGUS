@@ -316,17 +316,12 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/workflow":
                 from .workflow import change_worklist
                 self._send(200, change_worklist(self.server.store, self._json()))
-            elif path == "/api/license/activate":
-                data = self._json()
-                if set(data) != {"license"} or not isinstance(data["license"], dict):
-                    raise ValueError("Invalid license activation")
-                self._send(200, self.server.store.activate_license(data["license"]))
             else:
                 self._error(404, "Not found")
         except ImportBusy:
             self._error(409, "An EML import is already running. Finish or cancel it first.")
         except UserFacingError as exc:
-            # Fixed, translatable texts only (license, Bitwarden, worklist and
+            # Fixed, translatable texts only (Bitwarden, worklist, mailbox and
             # account rules). Every other error stays generic.
             self._error(400, str(exc))
         except (ValueError, TypeError, UnicodeError, json.JSONDecodeError):

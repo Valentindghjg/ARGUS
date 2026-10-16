@@ -131,10 +131,8 @@ class LanguageTests(unittest.TestCase):
     def test_user_facing_errors_have_german_entries(self):
         """Typed errors reach the CLI or dashboard verbatim and are translated there."""
         import ast
-        typed = {"LicenseError", "CredentialError", "MailboxError", "BitwardenCliError", "HandoffError", "DNSError",
+        typed = {"CredentialError", "MailboxError", "BitwardenCliError", "HandoffError", "DNSError",
                  "UserFacingError", "MailboxBusy", "LeaseLost"}
-        # Raised only by the publisher's offline license-issuing script.
-        publisher_only = {"Invalid publisher private key", "Publisher private key must use Ed25519"}
         missing = []
         for path in sorted((Path(__file__).resolve().parents[1] / "argus_security").glob("*.py")):
             for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
@@ -145,7 +143,7 @@ class LanguageTests(unittest.TestCase):
                         missing.append(f"{path.name}:{node.lineno}: non-constant message")
                         continue
                     message = node.exc.args[0].value
-                    if message not in catalog()["de"] and message not in publisher_only:
+                    if message not in catalog()["de"]:
                         missing.append(f"{path.name}:{node.lineno}: {message}")
         self.assertEqual(missing, [])
 

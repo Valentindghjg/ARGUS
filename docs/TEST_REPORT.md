@@ -4,6 +4,11 @@ The security-review changes passed **208 Python tests** (previously 166) and
 **24 Chromium browser check groups**, with zero page errors and zero external
 browser requests.
 
+Master-plan step S1 removed the licensing code and its tests and the Plans
+page check. Since then: **206 Python tests** and **23 browser check groups**.
+New repository tests reject runtime dependencies outside the standard library
+and keep the source-header rule.
+
 New simulations combine a real local store with a fake IMAP server, a fake
 keyring and a simulated clock. They cover lease renewal during long scheduled
 scans, cancellation by `disable`/`revoke`, the absence of secrets in profile

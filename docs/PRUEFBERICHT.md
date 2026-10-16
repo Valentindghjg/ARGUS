@@ -4,6 +4,11 @@ Die Änderungen der Sicherheitsreview bestehen **208 Python-Tests** (vorher 166)
 und **24 Chromium-Prüfgruppen**, ohne Seitenfehler und ohne externe
 Browseranfragen.
 
+Masterplan-Schritt S1 hat den Lizenzcode samt Tests und die Prüfung der Seite
+„Editionen“ entfernt. Seitdem: **206 Python-Tests** und **23 Browser-Prüfgruppen**.
+Neue Repository-Tests lehnen Laufzeitabhängigkeiten außerhalb der
+Standardbibliothek ab und sichern die Regel für Quelldatei-Kopfzeilen.
+
 Neue Simulationen verbinden einen echten lokalen Store mit einem
 Fake-IMAP-Server, einem Fake-Schlüsselbund und einer simulierten Uhr. Sie prüfen:
 die Verlängerung der Lease bei langen geplanten Scans, den Abbruch durch
