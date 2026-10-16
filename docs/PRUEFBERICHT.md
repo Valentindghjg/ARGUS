@@ -1,3 +1,50 @@
+# Prüfbericht – unveröffentlichte Sicherheitsreview (2026-10)
+
+Die Änderungen der Sicherheitsreview bestehen **208 Python-Tests** (vorher 166)
+und **24 Chromium-Prüfgruppen**, ohne Seitenfehler und ohne externe
+Browseranfragen.
+
+Neue Simulationen verbinden einen echten lokalen Store mit einem
+Fake-IMAP-Server, einem Fake-Schlüsselbund und einer simulierten Uhr. Sie prüfen:
+die Verlängerung der Lease bei langen geplanten Scans, den Abbruch durch
+`disable` und `revoke`, dass keine Secrets in Profildateien landen, dass fehlerhafte
+Nachrichten keine Folgescans blockieren, dass mbox-Originale byte-identisch
+bleiben, die Robustheit des Schedulers und die Startmeldung.
+
+Weitere Prüfungen:
+
+- Die Mehrkonto-Browserprüfung deckt jetzt Abbruch und Bestätigung der dauerhaften
+  Adressbindung ab.
+- Der Begleiter-Validator prüft alle 527 Dienste und die Kennzeichnung nur für
+  HTTPS.
+- Das Wheel wurde gebaut und in einer sauberen virtuellen Umgebung getestet.
+- 30 000 mutierte MIME-Nachrichten lösten keinen unbehandelten Ausnahmetyp aus.
+- Weitere Simulationen prüfen die einmalige Profilverschiebung (auch bei
+  gleichzeitiger Verschiebung und bei einem Symlink als Altordner), den veralteten
+  Befehls-Alias, die gemeinsame Postfach-Lease von manuellen und geplanten Scans,
+  Bitwarden-Daten über die Standardeingabe, Regelmeldungen über die
+  Loopback-API, zurückgestellte Accounts im geführten Ablauf und das Fehlen der
+  Tabellen aus der Zeit vor 1.9 in neuen Profilen.
+- Die Browserprüfung deckt zusätzlich die Übernahme einer gespeicherten
+  Sprachwahl aus der Zeit vor der Umbenennung ab.
+- Der Begleiter-Validator führt `popup.js` mit simulierten Browser-APIs auf
+  Deutsch und Englisch gegen Lookalike-Domains, fremde Subdomains und
+  Nicht-HTTPS-Seiten aus.
+- Jede Quelldatei trägt die MPL-2.0-SPDX-Kopfzeile, und keine Übersetzung ist
+  ungenutzt.
+- Simulationen zur Zielbindung (Masterplan, Priorität 10) ändern jedes
+  freigegebene Feld (Host, Port, Benutzername, Anmeldeart, Ordner). Danach liest
+  ein geplanter Lauf keinen Schlüsselbund-Eintrag und öffnet keine Verbindung.
+  Zeitpläne aus der Zeit vor der Bindung und die erneute Freigabe sind
+  abgedeckt. Eine Gegenprobe am vorherigen `main` zeigte, dass das gespeicherte
+  Geheimnis einen geänderten Host erreichte.
+
+Lokal lief nur Python 3.13; GitHub Actions deckt 3.11–3.14 ab. Es wurden keine
+echten Postfächer, Anbieter, Passwörter, Schlüsselbünde oder Bitwarden-Tresore
+verwendet.
+
+---
+
 # Prüfbericht – Version 1.16.0
 
 Die Version mit nur lesender Bitwarden-Prüfung und geführter MFA-Prüfung besteht

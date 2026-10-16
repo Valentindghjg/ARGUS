@@ -1,12 +1,14 @@
 # Technischer Plan
 
-1. **Zuerst lokale Erkennung und Dashboard:** Python 3.11+, Standardbibliothek,
+1. **Zuerst lokale Erkennung und Dashboard:** Python 3.11+, Standardbibliothek und
+   `cryptography` für die Offline-Lizenzprüfung,
    erweiterbarer JSON-Anbieterkatalog, regelbasierte EML-Auswertung, SQLite und eine
    responsive deutsche Oberfläche. Künstliche Beispieldaten in einer getrennten Demo.
 2. **Danach Postfachzugriff:** EML/Maildir/mbox-Import; IMAP über TLS mit geprüften
    Zertifikaten, EXAMINE/read-only und BODY.PEEK. App-Passwort per verdeckter
    Terminaleingabe oder kurzlebiges OAuth2-Token. Keine Zugangsdaten in Konfiguration,
-   HTTP-API, Logs oder Ergebnissen. Kein STORE, DELETE, EXPUNGE oder Passwort-Reset.
+   HTTP-API, Logs oder Ergebnissen; nur ein ausdrücklich aktivierter geplanter Scan
+   legt die Freigabe im Schlüsselbund des Betriebssystems ab (ab Version 1.8). Kein STORE, DELETE, EXPUNGE oder Passwort-Reset.
 3. **Einrichtung:** optionale, ausdrücklich aktivierte MX-Abfrage ausschließlich
    für die Maildomain. MX beschreibt den Empfangsweg, nicht zwingend den IMAP-Host.
    Vorschläge müssen mit der Dokumentation des tatsächlichen Mailanbieters geprüft
@@ -18,8 +20,10 @@
    E-Mail-Belege ergeben höchstens „Wahrscheinlich“. „Bestätigt“ erfordert die
    ausdrückliche lokale Prüfung durch den Nutzer. Scores sind Heuristiken.
 5. **Bitwarden:** offizielles JSON-Importformat mit ausschließlich Metadaten und
-   leerem Passwortfeld; Auswahl pro Account, separate Mappe, keine Tresoränderung
-   durch das Programm. Bereits zugeordnete Einträge ausschließen. Der Nutzer erzeugt
+   leerem Passwortfeld; Auswahl pro Account, separate Mappe, keine Änderung
+   bestehender Tresoreinträge durch das Programm. Ab 1.6.1 kann eine entsperrte
+   offizielle CLI ausgewählte passwortfreie Einträge anlegen, ab 1.16 erzeugt eine
+   ausdrücklich bestätigte, nur lesende Prüfung eine Trefferübersicht. Bereits zugeordnete Einträge ausschließen. Der Nutzer erzeugt
    und speichert Passwörter ausschließlich in Bitwarden. Wiederholter Import kann
    Duplikate erzeugen; Bitwarden ersetzt bestehende Einträge dabei nicht.
 6. **Schutz:** standardmäßig kein ausgehendes Netzwerk; Dashboard nur auf

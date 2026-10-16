@@ -1,5 +1,74 @@
 # Change log
 
+## Unreleased — Security review 2026-10
+
+See [the security review](SECURITY_REVIEW_2026-10.md).
+
+### Breaking: the project is now ARGUS everywhere
+
+- Package `argus_security` (`python -m argus_security`), distribution
+  `argus-account-security` and command `argus`. `python -m account_finder` and
+  `account-finder` still work but print a deprecation notice.
+- The default profile moves once, atomically, from `~/.local/share/account-finder`
+  to `~/.local/share/argus`, with all files and permissions. An explicit
+  `--data-dir` is never moved. Keyring entries need no migration.
+- Editions are **ARGUS Free/Pro**; the Pro license product ID is `argus-pro`.
+  No license had been issued under the old ID.
+- New Bitwarden items carry the field `ARGUS-Account-ID`; the read-only audit
+  still recognizes the older `Account-Finder-ID`. The dashboard language
+  preference moves to a new browser storage key on first use.
+- The internal header-only marker keeps its old name, because it is part of
+  message fingerprints.
+
+### Security and robustness
+
+- **Approvals are bound to their target (master plan priority 10).** Scheduled
+  IMAP scans record a fingerprint of host, port, username, sign-in method and
+  folders at `enable`. If `imap.json` differs, a run stops before touching the
+  keyring or the network and waits for a new `enable`. Previously a changed host
+  received the stored authorization. Schedules from earlier versions need one
+  new approval.
+- Scheduled IMAP scans renew their lease between messages, so a long scan keeps
+  exclusive mailbox access. `disable`, `revoke` or a replacement lease now stops
+  a running scan before its next message fetch.
+- The dashboard scheduler thread survives database locks and damaged schedules.
+  It no longer starts a scan while a browser import is running.
+- The dashboard start message now discloses enabled scheduled IMAP scans.
+- The dashboard asks for confirmation before permanently binding a sign-in
+  address. The direct Bitwarden transfer API requires an explicit
+  `confirmed: true`.
+- The browser companion labels only HTTPS catalogue domains and their `www.`
+  hosts as official. It warns on other subdomains.
+- Added 24 missing German messages (license, keyring and scheduler errors) and
+  German text for the 4 new messages from this review. A regression test now requires German text for every typed
+  user-facing error.
+- Added a warning when enabling a schedule with an expiring OAuth2 token.
+- `.gitignore` now excludes private key files. Only the public license key is
+  packaged, and the key generator refuses to write a private key inside the
+  repository.
+- Package metadata now declares `MPL-2.0` (PEP 639) and points to the ARGUS
+  repository. Dependabot also monitors pip dependencies.
+- Corrected documentation that contradicted current behavior, and removed dead
+  code.
+- Manual `scan-imap` runs and scheduled scans share one cross-process mailbox
+  lease; a manual scan is refused before its password prompt while a scheduled
+  scan runs.
+- Bitwarden item metadata reaches `bw create item` through stdin instead of the
+  process list.
+- The dashboard now shows specific, fixed rule messages (for example an address
+  that already belongs to another account) instead of a generic error; other
+  errors stay generic.
+- Deferred accounts are no longer suggested by the guided next step.
+- The browser companion has a German interface, builds its catalogue through
+  the application's validation and is behavior-tested under simulated APIs.
+- New profiles no longer create the pre-1.9 tables; older profiles still migrate.
+- Every source file carries an MPL-2.0 SPDX header; LICENSING.md covers data,
+  documentation and images. Security reports use GitHub private reporting only.
+- 22 unused translations removed, with a regression test; German README and
+  change log brought to parity; CI tool versions pinned.
+- Added end-to-end simulations with a fake IMAP server, fake keyring and
+  simulated clock.
+
 ## 1.16.0 — Read-only vault audit and guided MFA recovery
 
 - Added an explicitly confirmed, read-only audit for selected accounts through
@@ -153,6 +222,8 @@
 - Added license status and activation commands, a dashboard activation path for a
   future signed build, tests for valid, expired and tampered licenses, and
   commercial integration documentation.
+- Licensed the Free edition source code under MPL-2.0 (`LICENSE`, `LICENSING.md`);
+  earlier versions were published without a selected license.
 
 ## 1.5.0 — Freemium foundation, 14 October 2026
 

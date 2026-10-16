@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 import tempfile
 import threading
 import unittest
@@ -6,12 +8,12 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
-from account_finder.background import (BackgroundScanService, CredentialError, KeyringCredentialStore,
+from argus_security.background import (BackgroundScanService, CredentialError, KeyringCredentialStore,
                                        RUN_LEASE_SECONDS, SCHEDULE_META_KEY)
-from account_finder.cli import main
-from account_finder.imap_client import IMAPConfig, save_config
-from account_finder.registry import Registry
-from account_finder.store import Store
+from argus_security.cli import main
+from argus_security.imap_client import IMAPConfig, save_config
+from argus_security.registry import Registry
+from argus_security.store import Store
 
 
 class MemoryStore:
@@ -67,7 +69,7 @@ class BackgroundScanTests(unittest.TestCase):
         secret = "APP-PASSWORD-DO-NOT-STORE"
         selector = self.credentials.save(secret)
         service = self.service()
-        service.configure(credential_id=selector)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint())
         saved = self.store.values[SCHEDULE_META_KEY]
         self.assertNotIn(secret, repr(saved))
         self.assertEqual(service.run_due(), {"status": "authorization_required"})
@@ -76,11 +78,12 @@ class BackgroundScanTests(unittest.TestCase):
     def test_due_run_is_incremental_and_uses_only_injected_runner(self):
         selector = self.credentials.save("APP-PASSWORD-DO-NOT-STORE")
         received = []
-        def runner(store, config, secret, *, limit):
+        def runner(store, config, secret, *, limit, keep_alive):
+            keep_alive()
             received.append((store, config, secret, limit))
             return {"result": "completed", "processed": 3, "evidence": 1}
         service = self.service(runner)
-        service.configure(credential_id=selector, interval_seconds=900, limit=10)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint(), interval_seconds=900, limit=10)
         self.assertEqual(service.run_due(allow_network=True),
                          {"status": "completed", "result": "completed", "processed": 3, "evidence": 1})
         self.assertEqual(received, [(self.store, self.config, "APP-PASSWORD-DO-NOT-STORE", 10)])
@@ -92,7 +95,7 @@ class BackgroundScanTests(unittest.TestCase):
         def broken(*args, **kwargs):
             raise OSError("server rejected " + secret)
         service = self.service(broken)
-        service.configure(credential_id=selector, interval_seconds=900)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint(), interval_seconds=900)
         result = service.run_due(allow_network=True)
         self.assertEqual(result["status"], "failed")
         self.assertNotIn(secret, result["error"])
@@ -109,7 +112,7 @@ class BackgroundScanTests(unittest.TestCase):
     def test_disable_preserves_selector_but_stops_runs(self):
         selector = self.credentials.save("APP-PASSWORD")
         service = self.service()
-        service.configure(credential_id=selector)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint())
         service.disable()
         self.assertEqual(service.schedule().credential_id, selector)
         self.assertEqual(service.run_due(allow_network=True), {"status": "disabled"})
@@ -117,7 +120,7 @@ class BackgroundScanTests(unittest.TestCase):
     def test_revoke_stops_scans_and_removes_the_keyring_secret(self):
         selector = self.credentials.save("APP-PASSWORD")
         service = self.service()
-        service.start(credential_id=selector)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint())
         result = service.revoke()
         self.assertFalse(result.enabled)
         self.assertIsNone(result.credential_id)
@@ -127,7 +130,7 @@ class BackgroundScanTests(unittest.TestCase):
     def test_expired_lease_replaces_stale_worker_without_old_completion_winning(self):
         selector = self.credentials.save("APP-PASSWORD")
         service = self.service()
-        service.start(credential_id=selector)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint())
         first = service._claim_due()
         self.assertEqual(first["status"], "claimed")
         self.assertEqual(service._claim_due(), {"status": "running"})
@@ -152,7 +155,7 @@ class BackgroundScanTests(unittest.TestCase):
                                           config_loader=lambda: self.config, scan_runner=runner)
             second = BackgroundScanService(store, self.credentials,
                                            config_loader=lambda: self.config, scan_runner=runner)
-            first.start(credential_id=selector)
+            first.configure(credential_id=selector, target=self.config.target_fingerprint())
             result = []
             worker = threading.Thread(target=lambda: result.append(first.run_due(allow_network=True)))
             worker.start()
@@ -166,9 +169,9 @@ class BackgroundScanTests(unittest.TestCase):
     def test_disable_while_running_prevents_late_completion_from_reenabling(self):
         selector = self.credentials.save("APP-PASSWORD")
         service = self.service()
-        service.start(credential_id=selector)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint())
         claim = service._claim_due()
-        service.stop()
+        service.disable()
         self.assertFalse(service._finish_claim(claim["run_id"], outcome="completed"))
         self.assertFalse(service.snapshot()["enabled"])
 
@@ -188,16 +191,16 @@ class BackgroundCliTests(unittest.TestCase):
         secret = "APP-PASSWORD-NOT-IN-ARGUS"
         argv = ["--data-dir", str(self.data_dir), "background-imap", "enable", "--interval-minutes", "15", "--limit", "11"]
         output = StringIO()
-        with patch("account_finder.cli.KeyringCredentialStore", return_value=credentials), \
-             patch("account_finder.cli.sys.stdin.isatty", return_value=True), \
-             patch("account_finder.cli.getpass.getpass", return_value=secret), redirect_stdout(output):
+        with patch("argus_security.cli.KeyringCredentialStore", return_value=credentials), \
+             patch("argus_security.cli.sys.stdin.isatty", return_value=True), \
+             patch("argus_security.cli.getpass.getpass", return_value=secret), redirect_stdout(output):
             self.assertEqual(main(argv), 0)
         saved = Store(self.data_dir, Registry()).meta(SCHEDULE_META_KEY)
         self.assertTrue(saved["enabled"])
         self.assertEqual(saved["interval_seconds"], 900)
         self.assertNotIn(secret, repr(saved))
         self.assertNotIn(secret, output.getvalue())
-        with patch("account_finder.cli.KeyringCredentialStore", return_value=credentials), redirect_stdout(output):
+        with patch("argus_security.cli.KeyringCredentialStore", return_value=credentials), redirect_stdout(output):
             self.assertEqual(main(["--data-dir", str(self.data_dir), "background-imap", "revoke"]), 0)
         saved = Store(self.data_dir, Registry()).meta(SCHEDULE_META_KEY)
         self.assertFalse(saved["enabled"])
@@ -208,12 +211,15 @@ class BackgroundCliTests(unittest.TestCase):
         credentials = KeyringCredentialStore(self.keyring)
         selector = credentials.save("APP-PASSWORD")
         service = BackgroundScanService(Store(self.data_dir, Registry()), credentials)
-        service.start(credential_id=selector)
+        target = IMAPConfig("imap.example.invalid", "person@example.invalid").target_fingerprint()
+        service.configure(credential_id=selector, target=target)
         snapshot = service.snapshot()
         self.assertTrue(snapshot["enabled"])
         self.assertTrue(snapshot["authorized"])
+        self.assertTrue(snapshot["target_confirmed"])
+        self.assertNotIn("target", snapshot)
         self.assertNotIn("credential_id", snapshot)
-        service.stop()
+        service.disable()
         self.assertFalse(service.snapshot()["enabled"])
 
 

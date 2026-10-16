@@ -1,6 +1,6 @@
 # Pro-license implementation
 
-Account Compass 1.6 verifies Pro entitlements locally with Ed25519 signatures.
+ARGUS (since 1.6) verifies Pro entitlements locally with Ed25519 signatures.
 The desktop application contains only a public key; it never contains a payment
 secret or publisher private key. A license contains no purchaser name, email,
 mailbox information or Bitwarden data.
@@ -23,31 +23,31 @@ setting or a placeholder key as a payment control.
 
    ```bash
    python scripts/generate_license_keys.py \
-     --private-key /secure/offline/account-compass-ed25519-private.pem \
-     --public-key /secure/release/account-compass-ed25519-public.pem
+     --private-key /secure/offline/argus-ed25519-private.pem \
+     --public-key /secure/release/argus-ed25519-public.pem
    ```
 
 2. Keep the private key offline, backed up securely and outside Git. Copy only
-   the public key into `account_finder/data/license_public_key.pem` for the
+   the public key into `argus_security/data/license_public_key.pem` for the
    release build. Review it, run the tests, build and distribute that version.
 3. After a payment provider has independently verified a completed purchase,
    issue a license with the private key:
 
    ```bash
    python scripts/issue_license.py \
-     --private-key /secure/offline/account-compass-ed25519-private.pem \
-     --output /secure/delivery/account-compass-pro.json
+     --private-key /secure/offline/argus-ed25519-private.pem \
+     --output /secure/delivery/argus-pro.json
    ```
 
 4. Deliver that JSON file to the buyer through the chosen commercial system. The
    buyer activates it in **Plans** or runs:
 
    ```bash
-   account-finder activate-license /path/to/account-compass-pro.json
+   argus activate-license /path/to/argus-pro.json
    ```
 
 The app stores the verified local file as `license.json` with private permissions.
-It is ignored by Git. `account-finder license-status` shows only the local status.
+It is ignored by Git. `argus license-status` shows only the local status.
 
 ## Payment provider and webhook boundary
 

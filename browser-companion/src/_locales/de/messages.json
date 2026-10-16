@@ -1,0 +1,68 @@
+{
+  "extName": {
+    "message": "ARGUS Browser-Begleiter"
+  },
+  "extDescription": {
+    "message": "Prüft lokal, ob der aktive Tab zu einer offiziellen ARGUS-Anbieterdomain gehört."
+  },
+  "eyebrow": {
+    "message": "ARGUS · LOKALE PRÜFUNG"
+  },
+  "heading": {
+    "message": "Browser-Begleiter"
+  },
+  "checking": {
+    "message": "Aktiver Tab wird geprüft …"
+  },
+  "providerLabel": {
+    "message": "Anbieter"
+  },
+  "domainLabel": {
+    "message": "Katalogdomain"
+  },
+  "copyLink": {
+    "message": "Link zur Passwortverwaltung kopieren"
+  },
+  "openLink": {
+    "message": "Verifizierten Link öffnen"
+  },
+  "notice": {
+    "message": "Der Besuch einer Website bestätigt nie, dass du dort einen Account hast."
+  },
+  "tabUnreadable": {
+    "message": "ARGUS konnte die Adresse des aktiven Tabs nicht lesen."
+  },
+  "noUrl": {
+    "message": "Für den aktiven Tab ist keine Adresse verfügbar."
+  },
+  "notHttps": {
+    "message": "Dieser Tab verwendet keine HTTPS-Websiteadresse. ARGUS kennzeichnet nur HTTPS-Seiten."
+  },
+  "notWebsite": {
+    "message": "Dieser Tab verwendet keine Websiteadresse."
+  },
+  "notInCatalogue": {
+    "message": "Diese Domain ist nicht im mitgelieferten ARGUS-Anbieterkatalog. Das sagt nichts darüber aus, ob ein Account existiert."
+  },
+  "official": {
+    "message": "Offizielle ARGUS-Anbieterdomain"
+  },
+  "subdomain": {
+    "message": "Subdomain einer ARGUS-Katalogdomain. Hier können auch andere Personen Seiten veröffentlichen; prüfe die Adresse selbst."
+  },
+  "noPasswordLink": {
+    "message": "ARGUS hat für diesen Anbieter keinen verifizierten Link zur Passwortverwaltung. Rate keinen."
+  },
+  "passwordLinkAvailable": {
+    "message": "Ein dokumentierter Link zur Passwortverwaltung ist verfügbar. Das Öffnen ändert nichts automatisch."
+  },
+  "copied": {
+    "message": "Kopiert"
+  },
+  "copyBlocked": {
+    "message": "Der Browser hat das Kopieren blockiert. Du kannst stattdessen den verifizierten Link öffnen."
+  },
+  "catalogueUnreadable": {
+    "message": "Der lokale Katalog konnte nicht gelesen werden."
+  }
+}

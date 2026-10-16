@@ -42,10 +42,25 @@ Statusmetadaten. `disable` stoppt künftige Läufe; `revoke` stoppt sie zuerst u
 entfernt den Schlüsselbund-Eintrag. Jeder Lauf nutzt den vorhandenen
 inkrementellen TLS-/IMAP-Pfad und feste sichere Fehlermeldungen, niemals eine
 Passwort-Versuchsliste.
+Die Freigabe ist an ihr Ziel gebunden: `enable` zeigt einen Fingerabdruck aus
+Host, Port, Benutzername, Anmeldeart und Ordnern und speichert ihn. Vor jedem
+Zugriff auf den Schlüsselbund und jeder Verbindung vergleicht ein Lauf ihn mit
+der aktuellen `imap.json`. Bei einer Abweichung, oder bei einem Zeitplan aus der
+Zeit vor dieser Bindung, stoppen geplante Scans, bis `enable` die aktuellen
+Einstellungen freigibt; die gespeicherte Freigabe geht nie an einen geänderten Host.
 Eine atomare SQLite-Lease stellt sicher, dass nur ein geplanter Lauf pro Profil
 gleichzeitig das Postfach öffnet. Ein veralteter Worker kann weder ein neueres
-Ergebnis überschreiben noch einen deaktivierten Zeitplan wieder aktivieren.
-Ordner-Checkpoints werden atomar zusammengeführt.
+Ergebnis überschreiben noch einen deaktivierten Zeitplan wieder aktivieren. Ein
+laufender Scan verlängert seine Lease zwischen zwei Nachrichten höchstens alle
+15 Sekunden, sodass auch lange Läufe exklusiv bleiben. Wurde der Zeitplan
+inzwischen deaktiviert, widerrufen oder ersetzt, endet der Lauf vor dem nächsten
+Nachrichtenabruf, meldet sich ab und behält bereits gespeicherte Belege.
+Ordner-Checkpoints werden atomar zusammengeführt. Solange Zeitpläne aktiv sind,
+weist die Startmeldung des Dashboards auf mögliche Postfachverbindungen hin.
+Manuelle `scan-imap`-Läufe und geplante Scans teilen sich zusätzlich eine
+prozessübergreifende Postfach-Lease. So öffnet ein Profil nie zwei IMAP-Sitzungen
+gleichzeitig: Ein manueller Scan wird während eines geplanten Laufs noch vor der
+Passwortabfrage abgelehnt, und ein geplanter Lauf wartet auf einen manuellen.
 
 Das Bitwarden-Hauptpasswort wird niemals abgefragt. Die Anwendung meldet sich
 nicht bei Bitwarden an. Die optionale direkte Übertragung benötigt eine bereits
@@ -132,7 +147,10 @@ nicht in URLs, Local Storage oder Logs geschrieben. Die lokale Startseite
 Host-/Origin-Prüfung, fehlende CORS-Freigabe, Content Security Policy,
 Frame-Schutz und `no-store` begrenzen browserbasierte Angriffe. Dynamische Daten
 werden mit `textContent` eingefügt. Passwortlinks stammen ausschließlich aus dem
-validierten Katalog, nie aus Mails.
+validierten Katalog, nie aus Mails. Fehlerantworten enthalten nur feste,
+übersetzbare Regelmeldungen (etwa eine Anmeldeadresse, die bereits zu einem
+anderen Account gehört); Ausnahme-, Server-, Pfad- und Tresordetails bleiben
+allgemein.
 
 Der optionale Chromium-Browser-Begleiter ist eine entpackte Manifest-V3-Erweiterung
 mit ausschließlich der Berechtigung `activeTab`. Beim Öffnen des Popups liest sie

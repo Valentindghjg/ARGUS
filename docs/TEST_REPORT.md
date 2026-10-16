@@ -1,3 +1,42 @@
+# Test report — unreleased security review (2026-10)
+
+The security-review changes passed **208 Python tests** (previously 166) and
+**24 Chromium browser check groups**, with zero page errors and zero external
+browser requests.
+
+New simulations combine a real local store with a fake IMAP server, a fake
+keyring and a simulated clock. They cover lease renewal during long scheduled
+scans, cancellation by `disable`/`revoke`, the absence of secrets in profile
+files, malformed messages that must not block later incremental scans,
+byte-identical mbox originals, scheduler resilience and the startup notice.
+
+Further checks:
+
+- The multi-account browser check now covers both cancelling and confirming a
+  permanent sign-in-address binding.
+- The companion validator checks all 527 providers and the HTTPS-only labelling.
+- The wheel was built and smoke-tested in a clean virtual environment.
+- 30,000 mutated MIME messages raised no unhandled exception type.
+- Follow-up simulations cover the one-time profile move (including a concurrent
+  move and a symlinked old folder), the deprecated command alias, the shared
+  mailbox lease between manual and scheduled scans, Bitwarden payloads via
+  stdin, user-facing rule messages over the loopback API, deferred accounts in
+  the guided step and the absence of pre-1.9 tables in new profiles.
+- The browser check also covers moving a pre-rename language preference.
+- The companion validator runs `popup.js` with simulated browser APIs in English
+  and German against lookalike domains, third-party subdomains and non-HTTPS pages.
+- Every source file carries the MPL-2.0 SPDX header, and no translation is unused.
+- Target-binding simulations (master plan priority 10) change each approved
+  field (host, port, username, sign-in method, folders) and check that a
+  scheduled run then reads no keyring entry and opens no connection. They also
+  cover schedules from before the binding and re-approval. A counter-check
+  against the previous `main` showed the stored secret reaching a changed host.
+
+Only Python 3.13 ran locally; GitHub Actions covers 3.11–3.14. No real mailbox,
+provider, password, keyring or Bitwarden vault was used.
+
+---
+
 # Test report — Version 1.16.0
 
 The read-only Bitwarden-audit and guided-MFA release passed **166 Python tests**
@@ -295,5 +334,7 @@ unsupported-language fallback, blocked preference storage and switching during
 an active import without losing progress or releasing import locks. The unknown
 provider count is derived from the catalog at test time, so the browser suite also
 covers the expanded catalog without a hard-coded provider total. **14 browser
-groups passed, zero page errors and zero external browser requests.** German previews:
+groups passed, zero page errors and zero external browser requests.** (This
+count was carried over from the 1.3 language report; the 1.6 run above counted
+15 groups, as the German report also states. Note added in the 2026-10 review.) German previews:
 [desktop](preview/dashboard-de.png) and [mobile](preview/mobile-de.png).

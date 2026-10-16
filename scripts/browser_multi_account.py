@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Optional browser regression for local identities; synthetic addresses and mail only."""
 import argparse
 import json
@@ -8,10 +10,10 @@ import tempfile
 import threading
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from account_finder.registry import Registry
-from account_finder.scan import scan_messages, synthetic_mail
-from account_finder.server import DashboardServer
-from account_finder.store import Store, now
+from argus_security.registry import Registry
+from argus_security.scan import scan_messages, synthetic_mail
+from argus_security.server import DashboardServer
+from argus_security.store import LEGACY_SCHEMA, Store, now
 
 
 def main():
@@ -33,6 +35,7 @@ def main():
         store.configure([first, second])
         # Recreate an earlier version's reviewed row with no identified address.
         with store.connect() as db:
+            db.executescript(LEGACY_SCHEMA)
             db.execute("INSERT INTO accounts(provider_id,confirmed,status,checklist,updated) VALUES (?,?,?,?,?)",
                        ("steam", 1, "in_progress", json.dumps({"reviewed": True}), now()))
             db.execute("DELETE FROM meta WHERE key='account_instances_migrated'")
@@ -130,12 +133,19 @@ def main():
                 expect(page.locator("#identity-review-note")).to_be_visible()
                 expect(page.locator("#detail-bitwarden")).to_be_disabled()
                 expect(page.locator("#registered-email")).to_be_enabled()
+                # Binding is permanent: cancelling the confirmation changes nothing.
+                page.once("dialog", lambda dialog: dialog.dismiss())
+                page.locator("#registered-email").select_option(first)
+                expect(page.locator("#registered-email")).to_have_value("")
+                expect(page.locator("#registered-email")).to_be_enabled()
+                expect(page.locator("#identity-review-note")).to_be_visible()
+                page.once("dialog", lambda dialog: dialog.accept())
                 page.locator("#registered-email").select_option(first)
                 expect(page.locator("#registered-email")).to_be_disabled()
                 expect(page.locator("#identity-review-note")).to_be_hidden()
                 expect(page.locator("#checklist input").first).to_be_checked()
                 expect(page.locator("#detail-bitwarden")).to_be_enabled()
-                checks.append("Legacy progress stays blocked from Bitwarden until the user assigns its identity")
+                checks.append("Legacy progress stays blocked from Bitwarden until the user explicitly confirms its identity")
 
                 page.locator("#close-dialog").click()
                 page.reload(wait_until="networkidle")

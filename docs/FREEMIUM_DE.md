@@ -1,7 +1,7 @@
-# Account Compass Free und Pro
+# ARGUS Free und Pro
 
-Account Compass wird als datenschutzfreundliches Freemium-Produkt vorbereitet.
-Dieses Repository enthält aktuell **Account Compass Free**. Diese Edition ist
+ARGUS wird als datenschutzfreundliches Freemium-Produkt vorbereitet.
+Dieses Repository enthält aktuell **ARGUS Free**. Diese Edition ist
 vollständig nutzbar und lokal; sie benötigt weder Online-Konto, Zahlungsdaten noch
 Telemetrie.
 
@@ -31,7 +31,8 @@ künstliche Testlimits eingeschränkt.
 - Mailinhalte, IMAP-Geheimnisse, Zahlungsdaten und Bitwarden-Tresordaten werden
   nicht an einen Produktdienst gesendet. Eine optionale bereits entsperrte
   Bitwarden-CLI kann ausdrücklich ausgewählte passwortfreie Einträge lokal
-  erstellen, ohne bestehende Einträge zu lesen.
+  erstellen, ohne bestehende Einträge zu ändern. Eine getrennt bestätigte, nur
+  lesende Prüfung erzeugt nur eine lokale Trefferübersicht.
 - Ein späterer Kauf muss über einen getrennten Checkout des Herausgebers laufen.
   Zahlungsgeheimnisse gehören nicht in die Desktop-App oder dieses Repository.
 - Eine spätere Pro-Lizenz benötigt unabhängig geprüfte, signierte Offline-

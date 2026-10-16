@@ -1,7 +1,7 @@
-# Account Compass Free and Pro
+# ARGUS Free and Pro
 
-Account Compass is being prepared as a privacy-preserving Freemium product.
-This repository currently ships **Account Compass Free**. It is a fully usable,
+ARGUS is being prepared as a privacy-preserving Freemium product.
+This repository currently ships **ARGUS Free**. It is a fully usable,
 local edition; it does not require an account, payment details or telemetry.
 
 ## Available now: Free
@@ -22,10 +22,11 @@ functionality is not disabled by an artificial trial limit.
 
 ## Product boundaries
 
-- Passwords are generated and stored in Bitwarden, never in Account Compass.
+- Passwords are generated and stored in Bitwarden, never in ARGUS.
 - Mail content, IMAP secrets, payment data and Bitwarden vault data are not sent
   to a product service. An optional already-unlocked Bitwarden CLI can create
-  explicitly selected password-free items locally without reading existing items.
+  explicitly selected password-free items locally without changing existing items.
+  A separately confirmed read-only audit derives only a local match summary.
 - A future purchase flow must be a separate publisher-controlled checkout. It
   must not embed payment keys in the desktop application or this repository.
 - A future Pro entitlement needs independently reviewed, signed offline

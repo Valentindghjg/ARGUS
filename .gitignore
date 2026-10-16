@@ -1,4 +1,7 @@
 __pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 *.py[cod]
 .venv/
 *.egg-info/
@@ -17,3 +20,7 @@ license.json
 *.mbox
 *bitwarden*.json
 !examples/*.eml
+# Publisher signing keys never belong in Git; only the public key may ship.
+*.pem
+*.key
+!argus_security/data/license_public_key.pem
