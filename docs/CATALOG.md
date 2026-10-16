@@ -35,14 +35,29 @@ The bundled catalog is curated but not a live availability check. Services,
 senders, domains and password settings can change. See [official sources](SOURCES.md)
 for the separate verification basis of the built-in password links.
 
+## Shared sending services
+
+Bulk-mail platforms such as `sendgrid.net`, `amazonses.com`, `mailgun.org` or
+`mcsv.net` send mail for many companies. Their domains never identify a
+provider. The registry rejects them in every catalog (built-in, `--providers`
+file and the profile's own additions), and the dashboard marks clues from them as
+coming from a shared sending service. The list lives in
+`argus_security/registry.py` (`SHARED_SENDERS`); extend it in its own pull
+request with an official source for each domain.
+
 ## Proposing a provider
 
-Open an issue or pull request using synthetic examples only. State the provider’s
+Use the **Provider proposal** issue form. It asks for the official HTTPS
+website, the category, each domain root with a reason, public sources with the
+date you checked them and four review criteria. Or open a pull request using
+synthetic examples only. State the provider’s
 official homepage, proposed domain roots, category and why each root is specific
 to the service. Do not attach real emails, headers with personal addresses or
 account lists. Keep unrelated catalog changes out of the same pull request.
 
-For a personal extension, create a separate JSON file and start the app with
-`--providers path/to/providers-extra.json`. The built-in catalog does not need to
+For a personal extension, use **Add to my catalog** in the dashboard's “Unclear
+items”; the entry is validated like this catalog and stays in your profile
+(`my-providers.json`). Alternatively, create a separate JSON file and start the
+app with `--providers path/to/providers-extra.json`. The built-in catalog does not need to
 be edited for private additions. The example file uses only a synthetic `.example`
 domain.

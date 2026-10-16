@@ -1,4 +1,4 @@
-# ARGUS 2.0.0 – lokales Account-Inventar
+# ARGUS 2.1.0 – lokales Account-Inventar
 
 Deutsch · [English](README.md)
 
@@ -616,6 +616,18 @@ Der Test erzeugt ein temporäres Demo-Profil, sperrt ausgehende Browseranfragen
 und prüft beide Sprachen, Sprachwechsel, Filter, Checklisten, Export, EML-Import,
 Spracherkennung und mobile Ansichten.
 
+### Synthetischer Erkennungs-Benchmark
+
+`python scripts/benchmark.py` schickt erfundene Nachrichten aus
+`benchmarks/detection-cases.json` durch dieselbe Auswertung wie ein Import. Jeder
+Fall nennt, was die Nachricht tatsächlich zeigt und was ARGUS daraus macht; wo
+beides abweicht, beschreibt der Fall die Grenze (etwa gefälschte Absender, andere
+Sprachen, ungewöhnliche Formulierungen). Der Bericht zählt Treffer, zur Prüfung
+behaltene Nachrichten, Verfehlte und Fehlalarme. **Die Fälle sind künstlich; die
+Zahlen beweisen keine Genauigkeit bei echten Postfächern.** Ein Unit-Test schlägt
+fehl, wenn sich ein Ergebnis ändert, sodass eine Regeländerung Fall und
+Begründung mitziehen muss. `--json` gibt den vollständigen Bericht aus.
+
 | Datei | Zweck |
 |---|---|
 | `argus_security/analysis.py` | Lokale MIME-Auswertung und Erkennungsregeln |
@@ -630,13 +642,19 @@ Spracherkennung und mobile Ansichten.
 | `argus_security/server.py`, `web/` | Lokales Dashboard |
 | `argus_security/cli.py` | Befehlszeile (`argus`), Standardprofil und dessen einmalige Verschiebung |
 | `argus_security/scan.py` | EML-, mbox- und Maildir-Importe sowie die künstliche Demo |
-| `argus_security/registry.py` | Strenge Katalogprüfung und Domainabgleich |
+| `argus_security/registry.py` | Strenge Katalogprüfung, Domainabgleich und gemeinsam genutzte Versanddienste |
+| `argus_security/catalog.py` | Eigene Katalogergänzungen des Profils |
+| `argus_security/states.py`, `changes.py` | Getrennte Account-Zustände (ADR-0001), Änderungsprotokoll und Rückgängig |
+| `argus_security/review.py` | Unklares, ausgeblendete Absenderdomains und Adressnotizen |
+| `argus_security/summary.py`, `guidance.py` | Ergebniszusammenfassung, nächste Aufgabe und Hinweise zum nächsten Schritt |
+| `argus_security/backup.py` | Lokale Profilsicherungen und Wiederherstellung |
 | `argus_security/workflow.py` | Lokale Sicherheits-Arbeitsliste und geführter nächster Schritt |
 | `argus_security/handoffs.py` | Dauerhaftes Journal für Bitwarden-Übertragungen |
 | `argus_security/mailbox_lease.py` | Eine Postfachsitzung pro Profil über Prozesse hinweg |
 | `argus_security/errors.py` | Feste, übersetzbare Meldungen, die das Dashboard zeigen darf |
 | `account_finder/` | Veralteter Alias für `python -m account_finder` und `account-finder` |
 | `tests/` | Automatisierte Regressionstests |
+| `scripts/benchmark.py`, `benchmarks/` | Synthetischer Erkennungs-Benchmark |
 | `browser-companion/` | Minimaler entpackter Chromium-Begleiter für Domain- und Einstellungslinks |
 | [Katalogrichtlinie](docs/KATALOG.md) | Umfang, Qualitätsmaßstäbe und neue Dienste vorschlagen |
 | [Veröffentlichungs-Checkliste](docs/PUBLISHING.md) | Schritte, die der Inhaber vor der Veröffentlichung selbst prüft |

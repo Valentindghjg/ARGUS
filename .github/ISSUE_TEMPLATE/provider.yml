@@ -1,0 +1,87 @@
+name: Provider proposal / Dienst vorschlagen
+description: Propose a provider for the shared catalog, in English or German.
+title: "Provider: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please read the [catalog policy](https://github.com/Valentindghjg/ARGUS/blob/main/docs/CATALOG.md) first.
+        **Do not attach real emails, headers, screenshots of your inbox or account lists.** Public sources only.
+        For yourself alone, use "Add to my catalog" in the dashboard instead; it never leaves your profile.
+
+        Bitte zuerst die [Katalogrichtlinie](https://github.com/Valentindghjg/ARGUS/blob/main/docs/KATALOG.md) lesen.
+        **Keine echten E-Mails, Header, Postfach-Screenshots oder Account-Listen anhängen.** Nur öffentliche Quellen.
+        Nur für dich selbst reicht „Zu meinem Katalog hinzufügen“ im Dashboard; das bleibt in deinem Profil.
+  - type: input
+    id: name
+    attributes:
+      label: Provider name / Name des Dienstes
+    validations:
+      required: true
+  - type: input
+    id: website
+    attributes:
+      label: Official website (HTTPS) / Offizielle Website (HTTPS)
+      placeholder: https://
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category / Kategorie
+      options:
+        - Communication
+        - Dating
+        - Education
+        - Finance
+        - Food & Delivery
+        - Gaming
+        - Health & Fitness
+        - Media & Community
+        - Productivity
+        - Shopping
+        - Social Media
+        - Streaming
+        - Technology
+        - Travel & Mobility
+    validations:
+      required: true
+  - type: textarea
+    id: domains
+    attributes:
+      label: Sender domain roots / Absenderdomain-Wurzeln
+      description: |
+        One per line, the smallest root the provider controls. For each, say why it belongs to this provider.
+        Eine pro Zeile, die kleinste vom Dienst kontrollierte Wurzel, jeweils mit Begründung.
+      placeholder: example.org — named as the sender domain on the provider's official help page
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Public sources / Öffentliche Quellen
+      description: |
+        Official pages (help center, security or privacy page) that name the website and sender domains, with the date you checked them.
+        Offizielle Seiten (Hilfe, Sicherheit, Datenschutz), die Website und Absenderdomains nennen, mit Prüfdatum.
+    validations:
+      required: true
+  - type: checkboxes
+    id: criteria
+    attributes:
+      label: Review criteria / Prüfkriterien
+      options:
+        - label: Each domain is controlled by the provider itself, not a shared sending, analytics, hosting or payment service (for example sendgrid.net or amazonses.com). / Jede Domain gehört dem Dienst selbst, nicht einem gemeinsam genutzten Versand-, Analyse-, Hosting- oder Zahlungsdienst.
+          required: true
+        - label: The domains come from official sources, not from a brand name or an email display name. / Die Domains stammen aus offiziellen Quellen, nicht aus Markenname oder Absenderanzeige.
+          required: true
+        - label: The website uses HTTPS and lies on one of the proposed domains. / Die Website nutzt HTTPS und liegt auf einer der vorgeschlagenen Domains.
+          required: true
+        - label: I attached no real emails, headers, addresses or account lists. / Ich habe keine echten E-Mails, Header, Adressen oder Account-Listen angehängt.
+          required: true
+  - type: textarea
+    id: password
+    attributes:
+      label: Password-change page (optional) / Seite zur Passwortänderung (optional)
+      description: |
+        Only an official HTTPS page, with the official source that names it and the date you checked it. Leave empty if unsure.
+        Nur eine offizielle HTTPS-Seite mit offizieller Quelle und Prüfdatum. Im Zweifel leer lassen.

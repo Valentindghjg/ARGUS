@@ -1,4 +1,4 @@
-# ARGUS 2.0.0
+# ARGUS 2.1.0
 
 [Deutsch](README_DE.md) · English
 
@@ -570,6 +570,18 @@ python scripts/browser_smoke.py --browser /usr/bin/chromium --screenshots-dir do
 python scripts/browser_multi_account.py --browser /usr/bin/chromium
 ```
 
+### Synthetic detection benchmark
+
+`python scripts/benchmark.py` runs invented messages from
+`benchmarks/detection-cases.json` through the same analysis as an import. Each
+case states what the message really shows and what ARGUS does with it; where the
+two differ, the case documents the limit (for example forged senders, other
+languages, unusual wording). The report counts hits, messages kept for review,
+misses and false alarms. **The cases are synthetic, so the numbers are not proof
+of accuracy on real mailboxes.** A unit test fails when an outcome changes, so a
+rule change has to update the case and its explanation. `--json` prints the full
+report.
+
 | File | Purpose |
 |---|---|
 | `argus_security/analysis.py` | Local MIME parsing and bilingual detection rules |
@@ -584,13 +596,19 @@ python scripts/browser_multi_account.py --browser /usr/bin/chromium
 | `argus_security/server.py`, `web/` | Local dashboard |
 | `argus_security/cli.py` | Command line (`argus`), default profile and its one-time move |
 | `argus_security/scan.py` | EML, mbox and Maildir import sessions and the synthetic demo |
-| `argus_security/registry.py` | Strict provider-catalog validation and domain matching |
+| `argus_security/registry.py` | Strict provider-catalog validation, domain matching and shared senders |
+| `argus_security/catalog.py` | The profile's own catalog additions |
+| `argus_security/states.py`, `changes.py` | Separate account states (ADR-0001), change log and undo |
+| `argus_security/review.py` | Unclear items, hidden sender domains and address notes |
+| `argus_security/summary.py`, `guidance.py` | Result summary, next task and next-step hints |
+| `argus_security/backup.py` | Local profile backups and restore |
 | `argus_security/workflow.py` | Local security worklist and guided next step |
 | `argus_security/handoffs.py` | Durable Bitwarden transfer journal |
 | `argus_security/mailbox_lease.py` | One mailbox session per profile across processes |
 | `argus_security/errors.py` | Fixed, translatable messages that may reach the dashboard |
 | `account_finder/` | Deprecated alias for `python -m account_finder` and `account-finder` |
 | `tests/` | Automated regression tests |
+| `scripts/benchmark.py`, `benchmarks/` | Synthetic detection benchmark |
 | `browser-companion/` | Minimal unpacked Chromium domain/settings-link companion |
 | [Catalog policy](docs/CATALOG.md) | Scope, review standards and how to propose providers |
 | [Publishing checklist](docs/PUBLISHING.md) | Owner-controlled steps before making the repository public |

@@ -2,4 +2,4 @@
 # Copyright (c) 2026 ARGUS contributors
 """ARGUS: offline-first account inventory. No import-time network operations."""
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
