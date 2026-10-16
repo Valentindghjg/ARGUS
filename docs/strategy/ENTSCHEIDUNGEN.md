@@ -35,6 +35,13 @@ Wird während der Umsetzung fortgeschrieben.
   ganze Profilordner verloren, sind sie mit weg; dafür gibt es
   `backup --output`. Automatische Sicherungen werden auf die neuesten fünf
   begrenzt, eigene nie gelöscht.
+- **S5, Abbildung der 1.x-Zustände:** Abweichend vom Wortlaut der
+  ADR-Migrationstabelle gilt der Identitätsschritt für jeden bisher geprüften
+  Account als erledigt, weil die 1.x-Prüfung die Anmeldung einschloss. MFA und
+  Wiederherstellung sind Pflicht mit „nicht zutreffend“ als erlaubter Antwort;
+  in 1.x ohne MFA abgeschlossene Accounts erhalten „nicht zutreffend“, damit kein
+  abgeschlossener Account zurückgestuft und keine Prüfung erfunden wird. Details
+  in ADR-0001, Abschnitt 8.
 - **S4, Wiederherstellen nur über die CLI:** Das Dashboard nimmt keine
   Sicherungsdateien an. Wiederherstellen ersetzt die Datenbank, was bei
   laufendem Dashboard nicht sicher wäre; die Oberfläche nennt nur die Befehle.

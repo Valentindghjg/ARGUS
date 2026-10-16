@@ -40,6 +40,11 @@ class ProfileFixture:
 
 
 class WorkflowTests(ProfileFixture, unittest.TestCase):
+    @staticmethod
+    def without_planning(account):
+        """Worklist actions change only planning (ADR-0001, axis D), never decision or steps."""
+        return {key: value for key, value in account.items() if key not in {"in_worklist", "deferred", "status"}}
+
     def test_existing_worklist_schema_gains_snooze_column_without_losing_rows(self):
         with self.store.connect() as db:
             db.execute('ALTER TABLE instance_work_queue RENAME TO prior_instance_work_queue')
@@ -55,7 +60,8 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
 
     def test_priority_ranking_is_deterministic_and_limited(self):
         accounts = [{"id": f"service-{index}", "name": f"Service {index}",
-                     "classification": "confirmed", "status": "pending",
+                     "classification": "confirmed", "decision": "confirmed", "progress": "in_progress",
+                     "deferred": False,
                      "priority": "critical" if index == 10 else "normal", "score": index}
                     for index in range(12)]
         ranked = recommended_accounts(accounts, limit=MAX_PRIORITY_WORKLIST)
@@ -95,7 +101,7 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
         change_worklist(self.store, {'action':'restore', 'id':'github'})
         self.assertEqual(self.queue()['current'], 'github')
         change_worklist(self.store, {'action':'remove', 'id':'github'})
-        self.assertEqual(self.account(), before)
+        self.assertEqual(self.without_planning(self.account()), self.without_planning(before))
         self.assertEqual(self.queue()['current'], 'discord')
 
     def test_snooze_becomes_ready_locally_after_its_due_time(self):
@@ -115,7 +121,7 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
             self.assertFalse(github['deferred'])
             self.assertIsNone(github['snoozed_until'])
             self.assertEqual(snapshot['current'], 'github')
-        self.assertEqual(self.account('github'), before)
+        self.assertEqual(self.without_planning(self.account('github')), self.without_planning(before))
 
     def test_custom_snooze_date_is_bounded_and_stored_at_utc_midnight(self):
         change_worklist(self.store, {'action':'add', 'ids':['github']})
@@ -132,10 +138,12 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
 
     def test_completion_advances_and_reopening_restores_pending_work(self):
         change_worklist(self.store, {'action':'add', 'ids':['github', 'discord']})
-        self.store.update_account('github', {'checklist': {k: True for k in CHECKLIST}})
-        self.assertEqual(self.queue()['items'][0]['step'], 'finish')
+        self.store.update_account('github', {'checklist': {k: True for k in CHECKLIST if k != 'mfa_checked'}})
+        self.assertEqual(self.queue()['items'][0]['step'], 'mfa')
         self.assertEqual(self.queue()['done'], 0)
+        # Finishing without the MFA box (as 1.x allowed) records MFA as not applicable.
         self.store.update_account('github', {'status':'done'})
+        self.assertEqual(self.account()['steps']['mfa_recovery']['state'], 'not_applicable')
         self.assertEqual(self.queue()['done'], 1)
         self.assertEqual(self.queue()['current'], 'discord')
         self.store.update_account('github', {'checklist': {'login_tested':False}})
@@ -157,7 +165,9 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
         }})
         self.assertEqual(next_step(self.account()), 'mfa')
         self.store.update_account('github', {'checklist': {'mfa_checked': True}})
-        self.assertEqual(next_step(self.account()), 'finish')
+        # Completion is derived from the steps; there is no separate finish step.
+        self.assertEqual(next_step(self.account()), 'done')
+        self.assertEqual(self.account()['progress'], 'complete')
 
     def test_guided_start_selects_priority_without_changing_checklists(self):
         self.store.update_account('github', {'priority': 'normal'})
@@ -255,7 +265,7 @@ class HandoffTests(ProfileFixture, unittest.TestCase):
         finish(self.store, attempt, 'uncertain')
         self.review(True)
         checks = self.account()['checklist']
-        self.assertTrue(checks['saved_in_bitwarden'])
+        self.assertEqual(self.account()['steps']['vault']['state'], 'prepared')
         self.assertFalse(checks['password_changed'])
         self.assertFalse(checks['login_tested'])
         with self.assertRaises(ValueError):
@@ -307,16 +317,16 @@ class HandoffTests(ProfileFixture, unittest.TestCase):
             if len(payloads) == 2: raise subprocess.TimeoutExpired(arguments,20)
             return self.success(arguments, **kwargs)
         self.assertEqual(self.transfer(ids=[first['id'], second['id']], runner=fail_second)['items'], 1)
-        self.assertTrue(self.account(first['id'])['checklist']['saved_in_bitwarden'])
-        self.assertFalse(self.account(second['id'])['checklist']['saved_in_bitwarden'])
+        self.assertEqual(self.account(first['id'])['steps']['vault']['state'], 'prepared')
+        self.assertEqual(self.account(second['id'])['steps']['vault']['state'], 'open')
         self.review(False)
         exported = make_export(self.store, [second['id']])
         self.assertEqual(len(exported['items']), 1)
         created_email = payloads[0]['login']['username']
         self.assertNotEqual(exported['items'][0]['login']['username'], created_email)
         self.assertEqual(self.transfer(ids=[second['id']])['items'], 1)
-        self.assertTrue(self.account()['checklist']['saved_in_bitwarden'])
-        self.assertTrue(self.account(second['id'])['checklist']['saved_in_bitwarden'])
+        self.assertEqual(self.account()['steps']['vault']['state'], 'prepared')
+        self.assertEqual(self.account(second['id'])['steps']['vault']['state'], 'prepared')
         self.assertTrue(all(item['state'] == 'created' for item in handoff_snapshot(self.store)))
 
     def test_invalid_selection_locked_vault_and_demo_never_create(self):

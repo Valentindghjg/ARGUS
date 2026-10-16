@@ -123,7 +123,9 @@ class StoreTests(unittest.TestCase):
         with patch("argus_security.bitwarden.shutil.which", return_value="/usr/bin/bw"):
             result = add_to_unlocked_cli(self.store, ["github"], runner=runner, environment={"BW_SESSION":"not-stored"})
         self.assertEqual(result, {"items": 1, "providers": ["github"], "status": "completed"})
-        self.assertTrue(self.account()["checklist"]["saved_in_bitwarden"])
+        # The item has no password yet: prepared, never done (ADR-0001, B4).
+        self.assertEqual(self.account()["steps"]["vault"]["state"], "prepared")
+        self.assertFalse(self.account()["checklist"]["saved_in_bitwarden"])
         self.assertEqual(len(calls), 2)
         self.assertEqual(calls[1][0], ["bw", "create", "item"])
         self.assertNotIn("stdin", calls[1][1])

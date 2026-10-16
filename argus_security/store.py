@@ -10,16 +10,21 @@ import sqlite3
 
 from .errors import UserFacingError
 from .analysis import ANALYSIS_VERSION, Evidence, LABELS, english_caveat, normalize_email
-from .instances import (SCHEMA as INSTANCE_SCHEMA, direct_identity, insert_instance,
-                        migrate_instances, owned_emails, synchronize_instances)
+from .instances import (SCHEMA as INSTANCE_SCHEMA, defer_in_queue, direct_identity, insert_instance, migrate_instances,
+                        owned_emails, read_steps, rebuild_from_v1, synchronize_instances, write_step)
 from .registry import Registry
+from .changes import ChangeBatch, planning
+from .states import (LEGACY_CHECKLIST, LEGACY_STEPS, default_steps, evidence_level,
+                     legacy_checklist, legacy_classification, legacy_status, progress)
 
-CHECKLIST = ("reviewed", "saved_in_bitwarden", "password_changed", "login_tested", "mfa_checked")
+# The 1.x checklist keys; the API and snapshot keep them for one major version.
+CHECKLIST = LEGACY_CHECKLIST
 
 # Bump with every change to stored data. Opening an older profile first saves
 # an automatic backup; a profile from a newer ARGUS is never opened.
 #   1: account identities, rule versions, unique fingerprints, snoozes (1.9-1.16)
-SCHEMA_VERSION = 1
+#   2: ADR-0001 axes: decision, dated steps, planning only in the worklist, change log
+SCHEMA_VERSION = 2
 
 
 def now():
@@ -156,7 +161,10 @@ class Store:
             queue_columns = {row["name"] for row in db.execute("PRAGMA table_info(instance_work_queue)")}
             if "resume_after" not in queue_columns:
                 db.execute("ALTER TABLE instance_work_queue ADD COLUMN resume_after TEXT")
+            instance_columns = {row["name"] for row in db.execute("PRAGMA table_info(account_instances)")}
             db.execute("BEGIN IMMEDIATE")
+            if "checklist" in instance_columns:
+                rebuild_from_v1(db)
             migrate_instances(db, registry)
             db.execute("INSERT INTO meta VALUES ('schema_version',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
                        (json.dumps(SCHEMA_VERSION),))
@@ -282,8 +290,15 @@ class Store:
             states = {}
             for row in db.execute("SELECT * FROM account_instances ORDER BY rowid"):
                 states.setdefault(row["provider_id"], []).append(dict(row))
+            step_rows = {}
+            for row in db.execute("SELECT * FROM account_steps"):
+                step_rows.setdefault(row["account_id"], {})[row["step"]] = {
+                    "state": row["state"], "done_at": row["done_at"], "review_after": row["review_after"]}
+            queue = {row["account_id"]: dict(row) for row in db.execute("SELECT * FROM instance_work_queue")}
             evidences = [dict(r) for r in db.execute("SELECT * FROM evidence ORDER BY score DESC,id DESC")]
             own = owned_emails(db)
+        from .workflow import effectively_deferred, utcnow
+        moment = utcnow()
         grouped = {}
         unassigned = {}
         candidates = {}
@@ -317,9 +332,9 @@ class Store:
             provider_states = states.get(provider_id) or [{
                 "id": provider_id, "provider_id": provider_id, "identity_email": None,
                 "canonical": 1, "label": "", "identity_review_required": 0,
-                "confirmed": 0, "status": "pending", "checklist": "{}",
                 "priority_override": None, "login_method": "password", "manual_email": None,
-                "updated": None,
+                "decision": "undecided", "decision_reason": None, "decided_at": None,
+                "decided_evidence_id": None, "updated": None,
             }]
             provider_clues = sorted(unassigned.get(provider_id, []), key=lambda e: (e["outdated"], -e["score"], -e["id"]))
             for state in provider_states:
@@ -327,21 +342,39 @@ class Store:
                 found = grouped.get((provider_id, email), []) if state["canonical"] and email else []
                 found = sorted(found, key=lambda e: (e["outdated"], -e["score"], -e["id"]))
                 score = max((e["score"] for e in found), default=0)
-                classification = "confirmed" if state["confirmed"] else "probable" if score >= 60 else "unknown"
-                checklist = {key: bool(json.loads(state["checklist"]).get(key, False)) for key in CHECKLIST}
+                decision = state["decision"]
+                steps = default_steps(state["login_method"])
+                steps.update(step_rows.get(state["id"], {}))
+                review = bool(state["identity_review_required"])
+                level = evidence_level(found)
+                progress_value, completed_at = progress(decision, steps, review)
+                planned = queue.get(state["id"])
+                deferred = bool(planned) and effectively_deferred(planned, moment)
+                confirmed = decision == "confirmed"
+                evidence_reason = found[0]["reason"] if found else "No local evidence; account existence is unknown"
                 accounts.append({
                     **provider.public(), "id": state["id"], "provider_id": provider_id,
                     "identity_email": email, "label": state["label"],
                     "display_name": provider.name + (" · " + state["label"] if state["label"] else ""),
-                    "identity_review_required": bool(state["identity_review_required"]),
-                    "classification": classification, "score": score,
-                    "confidence": "manually confirmed" if state["confirmed"] else "high" if score >= 85 else "medium" if score >= 60 else "low" if found else "no evidence",
+                    "identity_review_required": review,
+                    # ADR-0001 axes: A evidence, B decision, C steps; progress is derived.
+                    "evidence_level": level, "evidence_reason": evidence_reason, "score": score,
+                    "decision": decision, "decision_reason": state["decision_reason"], "decided_at": state["decided_at"],
+                    "reconsider": decision == "rejected" and any(
+                        e["id"] > (state["decided_evidence_id"] or 0) and e["score"] >= 60 and not e["outdated"] for e in found),
+                    "steps": steps, "progress": progress_value, "completed_at": completed_at,
+                    "in_worklist": bool(planned), "deferred": deferred,
                     "registered_emails": [email] if email else [], "manual_email": state["manual_email"],
-                    "reason": "You confirmed that this account exists" if state["confirmed"] else found[0]["reason"] if found else "No local evidence; account existence is unknown",
                     "evidence": found[:30], "evidence_count": len(found),
                     "unassigned_evidence": provider_clues[:30], "unassigned_evidence_count": len(provider_clues),
-                    "status": state["status"], "priority": state["priority_override"] or provider.priority,
-                    "checklist": checklist, "login_method": state["login_method"], "updated": state["updated"],
+                    "priority": state["priority_override"] or provider.priority,
+                    "login_method": state["login_method"], "updated": state["updated"],
+                    # 1.x compatibility fields, derived from the axes above (ADR-0001, section 4).
+                    "classification": legacy_classification(decision, level),
+                    "status": legacy_status(progress_value, deferred),
+                    "checklist": legacy_checklist(decision, steps),
+                    "confidence": "manually confirmed" if confirmed else "high" if score >= 85 else "medium" if score >= 60 else "low" if found else "no evidence",
+                    "reason": "You confirmed that this account exists" if confirmed else evidence_reason,
                 })
         rank = {"critical": 0, "high": 1, "normal": 2}
         accounts.sort(key=lambda a: (a["classification"] == "unknown", a["status"] == "done", rank[a["priority"]], a["name"].casefold()))
@@ -355,6 +388,7 @@ class Store:
             "summary": {"providers": len(self.registry.providers), "found": len(found),
                         "services_found": len({a["provider_id"] for a in found}), "instances_found": len(found),
                         "confirmed": sum(a["classification"] == "confirmed" for a in accounts),
+                        "rejected": sum(a["decision"] == "rejected" for a in accounts),
                         "probable": sum(a["classification"] == "probable" for a in accounts), "unknown": len(accounts) - len(found),
                         "done": done, "high_priority": sum(a["priority"] in {"high", "critical"} and
                             (a["status"] != "done" or a["identity_review_required"]) for a in found),
@@ -378,6 +412,13 @@ class Store:
         return scan
 
     def update_account(self, account_id: str, change: dict):
+        """Apply one person's change; every decision, step and planning change is logged.
+
+        Accepts the 1.x keys: "checklist" maps to the decision and the steps
+        (states.LEGACY_STEPS); "status": "done" checks that every required step
+        is done (an unticked MFA box becomes not applicable, as 1.x allowed);
+        "status": "skipped" defers the account in the worklist.
+        """
         allowed = {"checklist", "status", "priority", "login_method", "registered_email", "label"}
         if not isinstance(account_id, str) or not isinstance(change, dict) or set(change) - allowed:
             raise UserFacingError("Invalid account update")
@@ -390,15 +431,44 @@ class Store:
                 insert_instance(db, account_id, ident=account_id)
                 row = db.execute("SELECT * FROM account_instances WHERE id=?", (account_id,)).fetchone()
             state = dict(row)
-            checklist = json.loads(state["checklist"])
+            moment = now()
+            steps = read_steps(db, account_id, state["login_method"])
+            new_steps = {step: dict(value) for step, value in steps.items()}
+            decision = {"decision": state["decision"], "reason": state["decision_reason"], "decided_at": state["decided_at"]}
+            new_decision = dict(decision)
+            review = state["identity_review_required"]
+
+            def set_step(step, done):
+                current = new_steps[step]
+                if done and current["state"] != "done":
+                    current.update(state="done", done_at=moment)
+                elif not done and current["state"] in {"done", "prepared"}:
+                    current.update(state="open", done_at=None)
+
             if "checklist" in change:
                 additions = change["checklist"]
                 if not isinstance(additions, dict) or set(additions) - set(CHECKLIST) or any(type(v) is not bool for v in additions.values()):
                     raise UserFacingError("Invalid checklist")
-                checklist.update(additions)
+                if "reviewed" in additions:
+                    if additions["reviewed"]:
+                        if new_decision["decision"] != "confirmed":
+                            new_decision = {"decision": "confirmed", "reason": None, "decided_at": moment}
+                    else:
+                        new_decision = {"decision": "undecided", "reason": None, "decided_at": None}
+                    set_step("identity", additions["reviewed"] and not review)
+                for key, step in LEGACY_STEPS.items():
+                    if key in additions and new_steps[step]["state"] != "not_applicable":
+                        set_step(step, additions[key])
             method = change.get("login_method", state["login_method"])
+            if method not in {"password", "sso", "passkey"}:
+                raise UserFacingError("Invalid sign-in method")
+            if method != state["login_method"]:
+                # Without a separate password, the password step does not apply.
+                if method == "password":
+                    new_steps["password"] = {"state": "open", "done_at": None, "review_after": new_steps["password"]["review_after"]}
+                else:
+                    new_steps["password"] = {"state": "not_applicable", "done_at": None, "review_after": new_steps["password"]["review_after"]}
             manual_email, identity_email = state["manual_email"], state["identity_email"]
-            review = state["identity_review_required"]
             if "registered_email" in change:
                 proposed = change["registered_email"]
                 if proposed is not None and not isinstance(proposed, str):
@@ -414,6 +484,8 @@ class Store:
                     if db.execute("SELECT 1 FROM account_instances WHERE provider_id=? AND identity_email=? AND canonical=1 AND id<>?", (state["provider_id"], proposed, account_id)).fetchone():
                         raise UserFacingError("That sign-in address already belongs to a separate account")
                     identity_email, review = proposed, 0
+                    # Choosing the address is the person's own identity check.
+                    set_step("identity", True)
                 manual_email = proposed
             label = change.get("label", state["label"])
             label = self._account_label(label)
@@ -423,29 +495,41 @@ class Store:
                                (state["provider_id"], identity_email, account_id)).fetchall()
             if label and any(peer["label"].casefold() == label.casefold() for peer in peers):
                 raise UserFacingError("Use a unique label for accounts with the same sign-in address")
-            if method not in {"password", "sso", "passkey"}:
-                raise UserFacingError("Invalid sign-in method")
             priority = change.get("priority", state["priority_override"])
             if priority not in {None, "normal", "high", "critical"}:
                 raise UserFacingError("Invalid priority")
-            status = change.get("status", state["status"])
-            if status not in {"pending", "in_progress", "done", "skipped"}:
+            status = change.get("status")
+            if status is not None and status not in {"pending", "in_progress", "done", "skipped"}:
                 raise UserFacingError("Invalid status")
-            if change.get("status") == "done" and review:
-                raise UserFacingError("Identify this account before marking it done")
-            required = ["reviewed", "saved_in_bitwarden", "login_tested"]
-            if method == "password":
-                required.append("password_changed")
-            if status == "done" and not all(checklist.get(k) for k in required):
-                if "status" in change:
+            if status == "done":
+                if review:
+                    raise UserFacingError("Identify this account before marking it done")
+                # 1.x let a person finish without the MFA box; that choice is
+                # recorded as "not applicable", never as reviewed.
+                if new_steps["mfa_recovery"]["state"] == "open":
+                    new_steps["mfa_recovery"] = {**new_steps["mfa_recovery"], "state": "not_applicable", "done_at": moment}
+                if progress(new_decision["decision"], new_steps, bool(review))[0] != "complete":
                     raise UserFacingError("Check the required steps before marking this account done")
-                status = "in_progress"
-            if status == "pending" and any(checklist.values()):
-                status = "in_progress"
-            db.execute("""UPDATE account_instances SET confirmed=?,status=?,checklist=?,priority_override=?,login_method=?,manual_email=?,
-                          identity_email=?,identity_review_required=?,label=?,updated=? WHERE id=?""",
-                       (int(checklist.get("reviewed", False)), status, json.dumps(checklist), priority,
-                        method, manual_email, identity_email, review, label, now(), account_id))
+            batch = ChangeBatch(db)
+            if new_decision != decision:
+                decided_evidence = db.execute("SELECT COALESCE(MAX(id),0) FROM evidence").fetchone()[0]
+                batch.record(account_id, "decision", decision, new_decision)
+            else:
+                decided_evidence = state["decided_evidence_id"]
+            for step, value in new_steps.items():
+                if value != steps[step]:
+                    write_step(db, account_id, step, value)
+                    batch.record(account_id, "step:" + step, steps[step], value)
+            if status == "skipped":
+                before = planning(db, account_id)
+                defer_in_queue(db, account_id)
+                batch.record(account_id, "planning", before, planning(db, account_id))
+            db.execute("""UPDATE account_instances SET priority_override=?,login_method=?,manual_email=?,identity_email=?,
+                          identity_review_required=?,label=?,decision=?,decision_reason=?,decided_at=?,
+                          decided_evidence_id=?,updated=? WHERE id=?""",
+                       (priority, method, manual_email, identity_email, review, label, new_decision["decision"],
+                        new_decision["reason"], new_decision["decided_at"], decided_evidence, moment, account_id))
+            batch.close()
 
     @staticmethod
     def _account_label(value):
@@ -469,8 +553,11 @@ class Store:
             if matches and (not label or any(row["label"].casefold() == label.casefold() for row in matches)):
                 raise UserFacingError("Use a unique label for accounts with the same sign-in address")
             canonical = not any(row["canonical"] for row in matches)
-            ident = insert_instance(db, provider_id, email, canonical=canonical, label=label,
-                                    manual=True, state={"confirmed": 1, "status": "in_progress",
-                                                        "checklist": json.dumps({"reviewed": True})})
+            # The person verified the account and its sign-in in the same step.
+            moment = now()
+            steps = default_steps()
+            steps["identity"].update(state="done", done_at=moment)
+            ident = insert_instance(db, provider_id, email, canonical=canonical, label=label, manual=True,
+                                    decision="confirmed", decided_at=moment, steps=steps)
         return ident
 

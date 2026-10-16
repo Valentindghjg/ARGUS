@@ -79,6 +79,23 @@ See [the security review](SECURITY_REVIEW_2026-10.md) and
   that backup fails, nothing is changed. A profile from a newer ARGUS is not
   opened.
 
+### Separate states for evidence, decision and steps (ADR-0001, schema version 2)
+
+- Each account now keeps the person's decision (confirmed, with a date) apart
+  from the security steps (identity, vault, password, sign-in test, MFA and
+  recovery, each dated). Progress is derived from the steps. Deferring exists
+  only in the worklist. New evidence never changes a decision or a step.
+- A vault item that ARGUS created without a password counts as "prepared", not
+  done; only you mark the vault step done (B4).
+- MFA and recovery must be done or marked not applicable before an account is
+  complete. Accounts completed in 1.x without the MFA box keep their completion
+  with MFA "not applicable".
+- Every change to decision, steps and planning is recorded locally (field, old
+  and new value, time; at most 1000 entries) as the basis for undo.
+- The profile is migrated once, in a single transaction, after an automatic
+  backup. The 1.x fields `classification`, `status` and `checklist` remain in
+  the API, derived from the new fields, until the next major version.
+
 ### Security and robustness
 
 - **Approvals are bound to their target (master plan priority 10).** Scheduled

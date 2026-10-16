@@ -84,6 +84,26 @@ Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md) und
   fünf bleiben). Scheitert sie, wird nichts geändert. Ein Profil einer neueren
   ARGUS-Version wird nicht geöffnet.
 
+## Getrennte Zustände für Belege, Entscheidung und Schritte (ADR-0001, Schemaversion 2)
+
+- Jeder Account speichert deine Entscheidung (bestätigt, mit Datum) getrennt von
+  den Sicherheitsschritten (Identität, Tresor, Passwort, Anmeldetest, MFA und
+  Wiederherstellung, jeweils datiert). Der Fortschritt wird aus den Schritten
+  abgeleitet. Zurückstellen gibt es nur noch in der Arbeitsliste. Neue Belege
+  ändern nie eine Entscheidung oder einen Schritt.
+- Ein von ARGUS ohne Passwort angelegter Tresoreintrag gilt als „vorbereitet“,
+  nicht als erledigt; erledigt markierst nur du den Tresor-Schritt (B4).
+- MFA und Wiederherstellung müssen erledigt oder als nicht zutreffend markiert
+  sein, bevor ein Account abgeschlossen ist. In 1.x ohne MFA-Häkchen
+  abgeschlossene Accounts bleiben abgeschlossen, mit MFA „nicht zutreffend“.
+- Jede Änderung an Entscheidung, Schritten und Planung wird lokal protokolliert
+  (Feld, alter und neuer Wert, Zeit; höchstens 1000 Einträge) als Grundlage für
+  Rückgängig.
+- Das Profil wird einmalig in einer Transaktion migriert, nach einer
+  automatischen Sicherung. Die 1.x-Felder `classification`, `status` und
+  `checklist` bleiben bis zur nächsten Hauptversion in der API, abgeleitet aus
+  den neuen Feldern.
+
 ## Sicherheit und Robustheit
 
 - **Freigaben sind an ihr Ziel gebunden (Masterplan, Priorität 10).** Geplante

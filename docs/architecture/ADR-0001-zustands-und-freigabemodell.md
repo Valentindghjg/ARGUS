@@ -167,9 +167,47 @@ Weitere Entscheidungen zum Gesamtplan stehen in
 ## 7. Umsetzungsschritte nach Freigabe
 
 1. Schema, Migration mit Sicherung, Kompatibilitätsfelder. Tests: Migration aller
-   Altstände, Abbruch während der Migration, Wiederherstellung.
+   Altstände, Abbruch während der Migration, Wiederherstellung. **Umgesetzt (S5a),
+   siehe Abschnitt 8.**
 2. Store/API: getrennte Felder, Änderungsprotokoll und Rückgängig für B, C und D.
 3. Dashboard: drei Marken, Verwerfen und Rückgängig, Bedeutungstabelle in der Hilfe.
 4. Jobmodell mit globaler Pause; Freigabe-Datensatz für alle externen Lesezugriffe.
 5. Fachliche Testfälle aus dem Plan: Newsletter, SSO, mehrere Identitäten,
    unklare Übergaben, Regeländerung gegen Bestätigung, dreifacher Import.
+
+## 8. Umsetzung
+
+### Schritt 1 (S5a, Schemaversion 2)
+
+- `argus_security/states.py` enthält das Modell an einer Stelle: Achsen, Werte,
+  Pflichtschritte, abgeleiteter Fortschritt und die Abbildung der 1.x-Zustände.
+- `account_instances` trägt Identität, Attribute und die Entscheidung (B) mit
+  `decided_at` und dem Belegstand zum Entscheidungszeitpunkt. `account_steps`
+  trägt die Schritte (C) mit `done_at` und `review_after`. Planung (D) bleibt in
+  `instance_work_queue`. `change_log` protokolliert B, C und D je Aktion.
+- Die Migration baut die 1.x-Tabelle in einer Transaktion um. Vorher entsteht die
+  automatische Sicherung aus S4 (`pre-migration-v1-to-v2`), statt einer
+  Einzeldatei `accounts.sqlite3.pre-adr1`. Ein Abbruch lässt das 1.x-Profil
+  unverändert; die Wiederherstellung der Sicherung ist getestet.
+- Der Snapshot liefert die Achsen (`evidence_level`, `decision`, `steps`,
+  `progress`, `completed_at`, `deferred`) und für Version 2.x die abgeleiteten
+  Felder `classification`, `status`, `checklist`, `confidence` und `reason`.
+- Die API nimmt die 1.x-Schlüssel weiter an: `checklist.reviewed` setzt
+  Entscheidung und Identitätsschritt, die übrigen Häkchen die Schritte,
+  `status: done` prüft nur die Vollständigkeit, `status: skipped` stellt in der
+  Arbeitsliste zurück.
+
+**Präzisierungen gegenüber Abschnitt 4** (auch in
+[ENTSCHEIDUNGEN.md](../strategy/ENTSCHEIDUNGEN.md)):
+
+- **Identität:** Das 1.x-Häkchen „geprüft“ schloss die Anmeldung ein. Deshalb wird
+  `identity` für jeden bisher geprüften Account `done`, auch ohne zugeordnete
+  Adresse. Nur eine offene Identitätsprüfung hält den Schritt offen.
+- **MFA und Wiederherstellung** sind ein Pflichtschritt, der `done` oder
+  `not_applicable` sein kann. „Abgeschlossen“ heißt damit immer, dass jede Frage
+  beantwortet ist. Ein in 1.x ohne MFA-Häkchen abgeschlossener Account bekommt
+  `not_applicable` statt einer erfundenen Prüfung; ebenso, wenn die alte
+  Oberfläche „Als erledigt markieren“ ohne MFA-Häkchen sendet.
+- **Kein eigener Abschlussschritt:** Der Fortschritt ist abgeleitet. Der frühere
+  Schritt „finish“ der geführten Arbeitsliste entfällt.
+

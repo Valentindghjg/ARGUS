@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 ARGUS contributors
-"""Persistent, secret-free worklist. Account checklists remain the source of truth."""
+"""Persistent, secret-free worklist: planning (ADR-0001, axis D). Account steps remain the source of truth."""
 from datetime import date, datetime, time, timedelta, timezone
 import json
 
@@ -58,18 +58,19 @@ def custom_snooze_date(value, current):
 
 
 def next_step(account):
+    """First open step (ADR-0001, 3.3), in the dashboard's step names."""
     if account.get("identity_review_required"):
         return "identify"
-    if account["status"] == "done":
+    if account["progress"] == "complete":
         return "done"
-    for key, step in (("reviewed", "review"), ("saved_in_bitwarden", "bitwarden"),
-                      ("password_changed", "change_password"), ("login_tested", "test_signin"),
-                      ("mfa_checked", "mfa")):
-        if key == "password_changed" and account["login_method"] != "password":
-            continue
-        if not account["checklist"][key]:
-            return step
-    return "finish"
+    steps = account["steps"]
+    if account["decision"] != "confirmed" or steps["identity"]["state"] != "done":
+        return "review"
+    for step, name in (("vault", "bitwarden"), ("password", "change_password"), ("signin_test", "test_signin"),
+                       ("mfa_recovery", "mfa")):
+        if steps[step]["state"] not in {"done", "not_applicable"}:
+            return name
+    return "done"
 
 
 def recommended_accounts(accounts, *, excluded=(), limit=None):
@@ -78,8 +79,9 @@ def recommended_accounts(accounts, *, excluded=(), limit=None):
     candidates = [account for account in accounts
                   if account["id"] not in excluded
                   and account["classification"] in CLASSIFICATION_RANK
-                  # "skipped" is shown as Deferred: the user chose to postpone it.
-                  and account["status"] not in {"done", "skipped"}]
+                  and account["decision"] != "rejected"
+                  # A deferral is the person's choice to postpone it.
+                  and account["progress"] != "complete" and not account["deferred"]]
     ranked = sorted(candidates, key=lambda account: (
         PRIORITY_RANK[account["priority"]],
         CLASSIFICATION_RANK[account["classification"]],

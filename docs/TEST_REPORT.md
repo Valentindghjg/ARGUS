@@ -26,6 +26,12 @@ older profiles are backed up once before migration, a failed backup stops it
 and newer profiles are refused. The CI package check backs up and restores on
 Linux, Windows and macOS.
 
+Step S5 (schema and migration): **236 Python tests**. Every 1.x account state
+is migrated and checked against the documented mapping; an interruption mid-way
+leaves the 1.x profile intact; the automatic backup restores the 1.x profile,
+which then migrates to the same result; new evidence changes only the evidence
+axis; every change is logged per action and the log keeps whole batches.
+
 New simulations combine a real local store with a fake IMAP server, a fake
 keyring and a simulated clock. They cover lease renewal during long scheduled
 scans, cancellation by `disable`/`revoke`, the absence of secrets in profile
