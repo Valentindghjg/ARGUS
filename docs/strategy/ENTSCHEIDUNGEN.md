@@ -60,3 +60,13 @@ Wird während der Umsetzung fortgeschrieben.
   und kein Schritt auf den Dienst verweist, damit nichts Bestätigtes verwaist.
   Gemeinsam genutzte Versanddienste stehen als feste Liste im Code; sie lassen
   sich weder ergänzen noch einem Dienst zuordnen.
+- **S11, „Neu seit…“ hängt an einer ausdrücklichen Durchsicht:** ARGUS merkt
+  sich keine Besuche, sondern nur, bis zu welcher Revision du Änderungen als
+  gesehen markiert hast. Das ist nachvollziehbar, funktioniert gleich in
+  Dashboard und CLI und entsteht nie durch bloßes Öffnen. Die Markierung geht
+  nur vorwärts (später eingetroffene Hinweise bleiben neu) und lässt sich einmal
+  zurücknehmen; sie gehört nicht ins Änderungsprotokoll, weil sie keine
+  Entscheidung ist. Werbung, Bestellungen und Rücksetz-Anfragen werden nur
+  gezählt, nicht einzeln vorgelegt. Bei vorhandenen Profilen gelten alle vor
+  Schemaversion 5 gespeicherten Hinweise als gesehen, damit nach dem Update
+  keine Flut alter Funde erscheint.

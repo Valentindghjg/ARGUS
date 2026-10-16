@@ -1,3 +1,13 @@
+# Test report — unreleased (package C)
+
+Step S11: **283 Python tests** and **32 browser check groups**. New tests cover
+new versus changed clues, quiet identical re-imports, grouping with unclear
+items first, counted-only advertising, orders and resets, the review mark
+(forward only, one undo, later clues stay new, decisions untouched), visible
+import gaps, the return summary order, older profiles, the CLI and strict API
+shapes. The browser opens the summary, marks changes reviewed, undoes it in
+both languages and checks that the overview summary disappears.
+
 # Test report — Version 2.1.0 (package B, not yet tagged)
 
 Step S8: **257 Python tests** and **28 browser check groups**. Rule features are

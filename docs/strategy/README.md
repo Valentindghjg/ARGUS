@@ -40,7 +40,7 @@ Hauptnutzen kommt ohne sie aus.
 
 ## Umsetzungsstand der 15 Prioritäten
 
-Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S10 (2.1.0).
+Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S11.
 
 | Nr. | Priorität | Stand | Im Code |
 | --- | --- | --- | --- |
@@ -48,8 +48,8 @@ Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S10 (2.1.0).
 | 02 | Importergebnisse und Grenzen erklären | weitgehend | Scanstatistik mit Lücken und nächsten Schritten (F4), ehrliche Ergebniszusammenfassung (F3); Abdeckungsansicht folgt (D4) |
 | 03 | Erkennungsbegründungen | **umgesetzt** | Regelmerkmale, Hinweisart, Alter, Stärke und Einschränkung je Beleg; Belegbegründung bleibt neben der Entscheidung sichtbar |
 | 04 | Mehrdeutigkeiten gesammelt prüfen | **umgesetzt** | Sammelliste „Unklares“: Identitäten, Hinweise ohne Account, neue Belege nach Verwerfen, unbekannte Domains |
-| 05 | Änderungen automatisch zusammenstellen | offen | – |
-| 06 | Unverändertes nicht erneut vorlegen | teilweise | Fingerabdruck-Deduplizierung und IMAP-Checkpoints; Oberfläche blendet noch nichts aus |
+| 05 | Änderungen automatisch zusammenstellen | **umgesetzt** | „Neu seit…“: neue und anders bewertete Hinweise nach Account gruppiert, Unklares zuerst; Zusammenfassung beim Wiederkommen (A1, A3, A4, A7, A28) |
+| 06 | Unverändertes nicht erneut vorlegen | **umgesetzt** | Revision je Hinweis und Durchsicht-Markierung; identische Neuimporte bleiben still, Importlücken bleiben sichtbar (A2) |
 | 07 | Jobs, Pause, Wiederaufnahme vereinheitlichen | teilweise | Importsitzungen, Leases, Abbruch zwischen Nachrichten; gemeinsames Jobmodell in ADR-0001 |
 | 08 | Korrekturen erhalten und rückgängig machen | **umgesetzt** | Entscheidungen überstehen Neuauswertung; Protokoll und Rückgängig für Entscheidung, Schritte und Planung in Dashboard, API und CLI |
 | 09 | Nächste Aufgabe begründet vorbereiten | **umgesetzt** | eine begründete nächste Aufgabe in der Übersicht (D1), geführter Ablauf, Arbeitsliste |
@@ -83,7 +83,7 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 | S8 | Erkennungsbegründungen, Hinweisarten und Alter | E1, E2, 03 | ✅ |
 | S9 | Mehrdeutigkeitsliste, Ausschlüsse, Alias-Beziehungen | E3, E4, A9, 04 | ✅ |
 | S10 | Unbekannte Domains, eigener Katalog, Regeländerungen, Benchmark → **2.1.0** | E5, E6, G3, G5 | ✅ (2.1.0) |
-| S11 | Änderungszentrale und Rückkehr-Zusammenfassung | A1–A4, A7, A28, 05, 06 | offen |
+| S11 | Änderungszentrale und Rückkehr-Zusammenfassung | A1–A4, A7, A28, 05, 06 | ✅ |
 | S12 | Passende Checkliste, Arbeitsliste, Sitzungen, Prioritäten, Identitätskonten, Bericht → **2.2.0** | A5, A6, A8, A10, A17, A18, A20, D3, B6 | offen |
 | S13 | Jobmodell, globale Pause, Freigaben, Aktivitätsprotokoll, Kontrollübersicht | A23–A27, D5, 07, 10 | offen |
 | S14 | Importeinstellungen, nur Geändertes, Ressourcenbudget, Fortsetzen, gezielte Fehler, große Archive | A11, A13–A16, P3, 13 | offen |

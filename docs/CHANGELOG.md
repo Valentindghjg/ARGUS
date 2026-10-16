@@ -1,5 +1,24 @@
 # Change log
 
+## Unreleased — Package C: local preparation
+
+### What's new since your last review (A1–A4, A7, A28, priorities 05 and 06)
+
+- A new “What's new” view lists only clues that are new or rated differently
+  since you last marked changes as reviewed, grouped by account; items that need
+  a decision come first, and advertising, orders and reset requests are only
+  counted. Importing the same email again brings nothing back. Gaps of the last
+  import stay visible until reviewed.
+- The overview shows one return summary: import gaps and unclear Bitwarden
+  transfers first, then new decisions, new clues and reached review dates. An
+  import ends with one message instead of several.
+- **Mark as reviewed** changes no decision or step and can be undone once. New
+  CLI command `whats-new [--mark-reviewed]`; API `POST /api/digest/seen` and
+  `POST /api/digest/seen/undo`; snapshot fields `changes` and `return_summary`.
+- Schema version 5 adds two revision columns to clues after the automatic
+  backup. Clues stored before count as already reviewed.
+- Notes in the account list and the unclear view now wrap on narrow screens.
+
 ## 2.1.0 — Package B: explainable, correctable detection (not yet tagged)
 
 ### Why a clue counts, what kind it is and how old (E1, E2, priority 03)

@@ -1,3 +1,15 @@
+# Prüfbericht – unveröffentlicht (Paket C)
+
+Schritt S11: **283 Python-Tests** und **32 Browser-Prüfgruppen**. Neue Tests
+prüfen neue gegenüber geänderten Hinweisen, stille identische Neuimporte, die
+Gruppierung mit Unklarem zuerst, nur gezählte Werbung, Bestellungen und
+Rücksetz-Anfragen, die Durchsicht-Markierung (nur vorwärts, einmal zurücknehmen,
+spätere Hinweise bleiben neu, Entscheidungen unberührt), sichtbare Importlücken,
+die Reihenfolge der Zusammenfassung, ältere Profile, die CLI und strenge
+API-Formen. Der Browser öffnet die Zusammenfassung, markiert Änderungen als
+gesehen, nimmt das in beiden Sprachen zurück und prüft, dass die Übersicht sie
+danach ausblendet.
+
 # Prüfbericht – Version 2.1.0 (Paket B, noch ohne Tag)
 
 Schritt S8: **257 Python-Tests** und **28 Browser-Prüfgruppen**. Geprüft werden

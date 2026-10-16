@@ -105,6 +105,9 @@ def parser(language="en"):
     export.add_argument('--id', action='append', required=True, help=t('Account ID from list-accounts; may be repeated'))
     export.add_argument('--preview', action='store_true', help=t('Show the items that would be written; create no file'))
     sub.add_parser('unclear', help=t('List everything ARGUS cannot decide for you, in one place'))
+    news = sub.add_parser('whats-new', help=t('Show new and changed clues since your last review'))
+    news.add_argument('--mark-reviewed', action='store_true',
+                      help=t('Mark the shown changes as reviewed; decisions and steps stay unchanged'))
     exclude = sub.add_parser('exclude', help=t('Hide clues of a sender domain outside the catalog; reversible'))
     exclude.add_argument('domain')
     exclude.add_argument('--reason', choices=['newsletter', 'spam', 'not_relevant'], default='not_relevant')
@@ -247,6 +250,13 @@ def main(argv=None):
                 print(t('Scheduled read-only IMAP scans are enabled. They run only while the local ARGUS dashboard is running.'))
                 if config.auth == 'oauth2':
                     print(t('Note: OAuth2 access tokens usually expire within hours. Scheduled scans fail safely once it expires; run enable again with a fresh token or use a provider-supported app password.'))
+        elif args.command == 'whats-new':
+            snapshot = store.snapshot()
+            print(json.dumps({'changes': snapshot['changes'], 'return_summary': snapshot['return_summary']},
+                             ensure_ascii=False, indent=2))
+            if args.mark_reviewed:
+                store.acknowledge_changes(snapshot['changes']['revision'])
+                print(t('Marked as reviewed. Your decisions and steps are unchanged.'), file=sys.stderr)
         elif args.command == 'unclear':
             snapshot = store.snapshot()
             print(json.dumps({'unclear': snapshot['unclear'], 'exclusions': snapshot['exclusions'],
