@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Explicit opt-in DNS MX discovery. Never sends the mailbox's local part."""
 import ipaddress
 from pathlib import Path

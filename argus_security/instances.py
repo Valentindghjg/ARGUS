@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Stable local account identities, with conservative migration of older inventories."""
 from datetime import datetime, timezone
 import json
@@ -136,12 +138,14 @@ def migrate_instances(db, registry):
     if db.execute("SELECT 1 FROM meta WHERE key='account_instances_migrated'").fetchone():
         return
     owned = owned_emails(db)
+    # New profiles have none of the pre-1.9 tables; older ones may lack some.
+    legacy = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
     evidence = {}
     for row in db.execute("SELECT * FROM evidence WHERE provider_id IS NOT NULL"):
         if email := direct_identity(row, owned):
             evidence.setdefault(row["provider_id"], set()).add(email)
-    queued = {row[0] for row in db.execute("SELECT provider_id FROM work_queue")}
-    for row in db.execute("SELECT * FROM accounts").fetchall():
+    queued = {row[0] for row in db.execute("SELECT provider_id FROM work_queue")} if "work_queue" in legacy else set()
+    for row in (db.execute("SELECT * FROM accounts").fetchall() if "accounts" in legacy else []):
         state = dict(row)
         provider_id = state["provider_id"]
         if provider_id not in registry.providers or (not has_progress(state) and provider_id not in queued):
@@ -160,14 +164,14 @@ def migrate_instances(db, registry):
         insert_instance(db, provider_id, email, state=state, ident=provider_id,
                         review=has_progress(state) and email is None)
     synchronize_instances(db, registry)
-    for row in db.execute("SELECT * FROM work_queue").fetchall():
+    for row in (db.execute("SELECT * FROM work_queue").fetchall() if "work_queue" in legacy else []):
         if row["provider_id"] not in registry.providers:
             continue
         if not db.execute("SELECT 1 FROM account_instances WHERE id=?", (row["provider_id"],)).fetchone():
             insert_instance(db, row["provider_id"], ident=row["provider_id"])
         db.execute("INSERT OR IGNORE INTO instance_work_queue(account_id,position,deferred) VALUES (?,?,?)",
                    (row["provider_id"], row["position"], row["deferred"]))
-    for row in db.execute("SELECT * FROM bitwarden_handoffs").fetchall():
+    for row in (db.execute("SELECT * FROM bitwarden_handoffs").fetchall() if "bitwarden_handoffs" in legacy else []):
         provider_id, email = row["provider_id"], row["email"]
         if provider_id not in registry.providers:
             continue

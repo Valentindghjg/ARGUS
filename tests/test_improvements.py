@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Regression tests for 1.1: real account clues, rescan, aliases and scan accounting."""
 from dataclasses import replace
 import http.client
@@ -9,12 +11,12 @@ import tempfile
 import threading
 import unittest
 
-from account_finder.analysis import analyze
-from account_finder.imap_client import IMAPConfig, imap_messages
-from account_finder.registry import Registry
-from account_finder.scan import ScanSession, scan_messages, synthetic_mail
-from account_finder.server import DashboardServer
-from account_finder.store import CHECKLIST, Store
+from argus_security.analysis import analyze
+from argus_security.imap_client import IMAPConfig, imap_messages
+from argus_security.registry import Registry
+from argus_security.scan import ScanSession, scan_messages, synthetic_mail
+from argus_security.server import DashboardServer
+from argus_security.store import CHECKLIST, Store
 from tests.test_imap_discovery import FakeIMAP
 
 
@@ -157,7 +159,7 @@ class PersistenceImprovements(StoreFixture):
     def test_migration_of_v1_schema_and_duplicate_signals(self):
         directory = self.root / "v1"
         directory.mkdir()
-        with sqlite3.connect(directory / "accounts.sqlite3") as db:
+        with closing(sqlite3.connect(directory / "accounts.sqlite3")) as db, db:
             db.execute("""CREATE TABLE evidence(id INTEGER PRIMARY KEY, provider_id TEXT, sender_domain TEXT NOT NULL,
                 registered_email TEXT, signal TEXT NOT NULL, score INTEGER NOT NULL, fingerprint TEXT NOT NULL,
                 date TEXT, source TEXT NOT NULL, caveat TEXT, UNIQUE(fingerprint,sender_domain,signal))""")

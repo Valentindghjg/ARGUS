@@ -1,13 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "ARGUS Browser Companion",
-  "description": "Locally checks whether the active tab is an official ARGUS provider domain.",
+  "name": "__MSG_extName__",
+  "description": "__MSG_extDescription__",
+  "default_locale": "en",
   "version": "0.1.0",
   "action": {
-    "default_title": "ARGUS Browser Companion",
+    "default_title": "__MSG_extName__",
     "default_popup": "popup.html"
   },
-  "permissions": ["activeTab"],
+  "permissions": [
+    "activeTab"
+  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; base-uri 'none'"
   }

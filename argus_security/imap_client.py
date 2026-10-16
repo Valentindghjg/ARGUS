@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """TLS-only IMAP ingestion. All selected mailboxes are opened read-only."""
 from dataclasses import dataclass, asdict
 import base64
@@ -9,7 +11,7 @@ import ssl
 import time
 from hashlib import sha256
 
-from .analysis import ANALYSIS_VERSION, MAX_MESSAGE_BYTES
+from .analysis import ANALYSIS_VERSION, HEADERS_ONLY_MARKER, MAX_MESSAGE_BYTES
 from .registry import normalize_domain
 from .store import Store, write_private
 
@@ -144,6 +146,29 @@ class IMAPStream:
         return self.iterator
 
 
+def with_keep_alive(stream: IMAPStream, keep_alive) -> IMAPStream:
+    """Call ``keep_alive`` before each mailbox fetch; closing closes the IMAP stream.
+
+    ``keep_alive`` renews leases and raises to stop the scan. Stopping happens
+    between messages, so evidence and checkpoints stay consistent.
+    """
+    def guarded():
+        iterator = iter(stream)
+        try:
+            while True:
+                keep_alive()
+                try:
+                    raw = next(iterator)
+                except StopIteration:
+                    return
+                yield raw
+        finally:
+            close = getattr(iterator, "close", None)
+            if close:
+                close()
+    return IMAPStream(guarded(), stream.scan_info, stream.scan_emails)
+
+
 def imap_messages(store: Store, config: IMAPConfig, secret: str, *, allow_network=False,
                   full_scan=False, limit=None, list_only=False, factory=None, delay=0.15):
     info = {}
@@ -231,7 +256,7 @@ def _imap_messages(store: Store, config: IMAPConfig, secret: str, *, allow_netwo
                 if raw and len(raw) <= maximum:
                     if header_only:
                         # Retain headers with an explicit local processing marker, not a fetched URL.
-                        raw = b"X-Account-Finder-Headers-Only: yes\r\n" + raw
+                        raw = HEADERS_ONLY_MARKER + b": yes\r\n" + raw
                     yield raw
                 else:
                     yield None
@@ -242,7 +267,7 @@ def _imap_messages(store: Store, config: IMAPConfig, secret: str, *, allow_netwo
                 if delay:
                     time.sleep(delay)
             info["folders_processed"] += 1
-    except (imaplib.IMAP4.error, OSError, UnicodeError, ValueError) as exc:
+    except (imaplib.IMAP4.error, OSError, UnicodeError, ValueError):
         # Never forward server text, exception details, usernames, passwords or tokens.
         raise MailboxError("IMAP connection / authentication failed. Check TLS, host, authorization and app password or OAuth2 with your provider. Saved progress is preserved.") from None
     finally:

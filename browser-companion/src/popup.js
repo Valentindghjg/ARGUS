@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 ARGUS contributors
 "use strict";
 
 const byId = (id) => document.getElementById(id);
@@ -9,12 +11,35 @@ const passwordNote = byId("password-note");
 const actions = byId("actions");
 let passwordUrl = null;
 
+// Messages come from _locales/<browser language>/messages.json (English fallback).
+function message(key) {
+  return chrome.i18n.getMessage(key) || key;
+}
+
+function localizePage() {
+  document.documentElement.lang = chrome.i18n.getUILanguage().toLowerCase().startsWith("de") ? "de" : "en";
+  for (const element of document.querySelectorAll("[data-i18n]")) {
+    element.textContent = message(element.dataset.i18n);
+  }
+}
+
 function hostMatches(host, root) {
   return host === root || host.endsWith(`.${root}`);
 }
 
-function showUnknown(message) {
-  state.textContent = message;
+// The most specific catalogue domain wins, independent of bundle order.
+function bestMatch(providers, host) {
+  let best = null;
+  for (const provider of providers) {
+    for (const root of provider.domains) {
+      if (hostMatches(host, root) && (!best || root.length > best.root.length)) best = {provider, root};
+    }
+  }
+  return best;
+}
+
+function showUnknown(key) {
+  state.textContent = message(key);
   details.hidden = true;
   passwordNote.hidden = true;
   actions.hidden = true;
@@ -30,39 +55,48 @@ async function inspectActiveTab() {
   try {
     url = await activeUrl();
   } catch {
-    showUnknown("ARGUS could not read the active tab URL.");
+    showUnknown("tabUnreadable");
     return;
   }
   if (!url) {
-    showUnknown("No active tab URL is available.");
+    showUnknown("noUrl");
     return;
   }
   let host;
   try {
-    host = new URL(url).hostname.toLowerCase().replace(/\.$/, "");
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:") {
+      showUnknown("notHttps");
+      return;
+    }
+    host = parsed.hostname.toLowerCase().replace(/\.$/, "");
   } catch {
-    showUnknown("This tab does not use a website URL.");
+    showUnknown("notWebsite");
     return;
   }
   const response = await fetch(chrome.runtime.getURL("providers.json"));
   const providers = await response.json();
-  const match = providers.find((provider) => provider.domains.some((root) => hostMatches(host, root)));
-  if (!match) {
-    showUnknown("This domain is not in the bundled ARGUS provider catalogue. This says nothing about whether an account exists.");
+  const found = bestMatch(providers, host);
+  if (!found) {
+    showUnknown("notInCatalogue");
     return;
   }
-  state.textContent = "Official ARGUS provider domain";
+  const match = found.provider;
+  // Many services let anyone publish on their subdomains (blogs, shops, forms).
+  // Only the catalogue domain itself or its www host is labelled as official.
+  const exact = host === found.root || host === `www.${found.root}`;
+  state.textContent = message(exact ? "official" : "subdomain");
   providerName.textContent = match.name;
-  domainName.textContent = host;
+  domainName.textContent = found.root;
   details.hidden = false;
   passwordUrl = typeof match.password_url === "string" ? match.password_url : null;
   if (!passwordUrl) {
-    passwordNote.textContent = "ARGUS has no verified password-management link for this provider. Do not guess one.";
+    passwordNote.textContent = message("noPasswordLink");
     passwordNote.hidden = false;
     actions.hidden = true;
     return;
   }
-  passwordNote.textContent = "A documented password-management link is available. Opening it does not change anything automatically.";
+  passwordNote.textContent = message("passwordLinkAvailable");
   passwordNote.hidden = false;
   actions.hidden = false;
 }
@@ -71,9 +105,9 @@ byId("copy").addEventListener("click", async () => {
   if (!passwordUrl) return;
   try {
     await navigator.clipboard.writeText(passwordUrl);
-    byId("copy").textContent = "Copied";
+    byId("copy").textContent = message("copied");
   } catch {
-    state.textContent = "The browser blocked copying. You can open the verified link instead.";
+    state.textContent = message("copyBlocked");
   }
 });
 
@@ -81,4 +115,5 @@ byId("open").addEventListener("click", () => {
   if (passwordUrl) chrome.tabs.create({url: passwordUrl});
 });
 
-inspectActiveTab().catch(() => showUnknown("The local catalogue could not be read."));
+localizePage();
+inspectActiveTab().catch(() => showUnknown("catalogueUnreadable"));

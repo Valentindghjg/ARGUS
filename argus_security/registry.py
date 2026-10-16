@@ -1,9 +1,13 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Extensible, strictly validated provider catalogue; never follows email links."""
 from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
 import re
 from urllib.parse import urlsplit
+
+from .errors import UserFacingError
 
 CATALOG = Path(__file__).with_name("data") / "providers.json"
 
@@ -13,12 +17,12 @@ def normalize_domain(value: str) -> str:
     try:
         value = value.encode("idna").decode("ascii")
     except UnicodeError:
-        raise ValueError("Invalid domain") from None
+        raise UserFacingError("Invalid domain") from None
     if len(value) > 253 or "." not in value or any(
         not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", label)
         for label in value.split(".")
     ):
-        raise ValueError("Invalid domain")
+        raise UserFacingError("Invalid domain")
     return value
 
 

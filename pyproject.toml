@@ -1,13 +1,15 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "local-account-finder"
-version = "1.16.0"
+name = "argus-account-security"
+dynamic = ["version"]
 description = "Offline-first account inventory, local email evidence and Bitwarden security checklists"
 readme = "README.md"
 requires-python = ">=3.11"
+license = "MPL-2.0"
+license-files = ["LICENSE"]
 dependencies = ["cryptography>=42,<51"]
 keywords = ["account-security", "bitwarden", "email", "imap", "privacy", "password-manager"]
 classifiers = [
@@ -27,16 +29,22 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Valentindghjg/account-compass"
-Repository = "https://github.com/Valentindghjg/account-compass"
-Issues = "https://github.com/Valentindghjg/account-compass/issues"
-Security = "https://github.com/Valentindghjg/account-compass/security/advisories"
+Homepage = "https://github.com/Valentindghjg/ARGUS"
+Repository = "https://github.com/Valentindghjg/ARGUS"
+Issues = "https://github.com/Valentindghjg/ARGUS/issues"
+Security = "https://github.com/Valentindghjg/ARGUS/security/advisories"
 
 [project.scripts]
-account-finder = "account_finder.cli:main"
+argus = "argus_security.cli:main"
+# Deprecated alias for profiles and scripts from before the ARGUS rename.
+account-finder = "account_finder.__main__:main"
 
 [tool.setuptools.package-data]
-account_finder = ["data/*.json", "data/*.pem", "web/*"]
+# Only the publisher PUBLIC key may ship; private keys are git-ignored.
+argus_security = ["data/*.json", "data/license_public_key.pem", "web/*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "argus_security.__version__"}
 
 [tool.setuptools.packages.find]
-include = ["account_finder*"]
+include = ["argus_security*", "account_finder*"]

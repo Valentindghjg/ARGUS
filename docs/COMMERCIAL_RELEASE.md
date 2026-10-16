@@ -1,6 +1,6 @@
 # Commercial-release checklist
 
-This checklist is for the publisher before offering Account Compass Pro for
+This checklist is for the publisher before offering ARGUS Pro for
 payment. It deliberately does not select a country, seller, payment provider or
 legal terms on the owner's behalf.
 
@@ -10,7 +10,7 @@ legal terms on the owner's behalf.
 - Set the Pro price, currency, trial policy, upgrades, refunds and support scope.
 - Have applicable terms, privacy notice, license and tax/invoice obligations
   reviewed for the intended market.
-- Account Compass Free is licensed under MPL-2.0. Keep future proprietary Pro
+- ARGUS Free is licensed under MPL-2.0. Keep future proprietary Pro
   code, commercial terms and publisher signing keys separate from this repository.
 - Add the copyright notice and exact commercial Pro terms before distributing a
   paid Pro edition.

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 from datetime import datetime, timezone
 import os
 from pathlib import Path
@@ -7,7 +9,7 @@ import unittest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-from account_finder.licensing import LicenseError, activate, issue, license_status, read_document, verify
+from argus_security.licensing import LicenseError, activate, issue, license_status, read_document, verify
 
 
 class LicensingTests(unittest.TestCase):
@@ -51,6 +53,22 @@ class LicensingTests(unittest.TestCase):
         self.assertEqual(license_status(self.root, self.root / "missing.pem")["state"], "not_configured")
         (self.root / "license.json").write_text("{}", encoding="utf-8")
         self.assertEqual(license_status(self.root, self.public)["state"], "invalid")
+
+
+class SourceHeaderTests(unittest.TestCase):
+    def test_every_source_file_declares_mpl_and_the_copyright_holder(self):
+        root = Path(__file__).resolve().parents[1]
+        folders = ("argus_security", "account_finder", "tests", "scripts", "browser-companion")
+        missing = []
+        for folder in folders:
+            for path in (root / folder).rglob("*"):
+                if path.suffix not in {".py", ".js", ".html", ".css"} or "dist" in path.parts:
+                    continue
+                head = path.read_text(encoding="utf-8").split("\n", 4)[:4]
+                if not any("SPDX-License-Identifier: MPL-2.0" in line for line in head) or \
+                        not any("Copyright (c) 2026 ARGUS contributors" in line for line in head):
+                    missing.append(str(path.relative_to(root)))
+        self.assertEqual(missing, [])
 
 
 if __name__ == "__main__":

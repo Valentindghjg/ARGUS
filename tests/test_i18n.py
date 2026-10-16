@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """User language choices must not alter detection, accounts or password safety."""
 from contextlib import redirect_stdout, redirect_stderr
 from io import StringIO
@@ -8,14 +10,14 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from account_finder.analysis import ANALYSIS_VERSION
-from account_finder.bitwarden import make_export
-from account_finder.cli import main, parser
-from account_finder.discovery import discover
-from account_finder.i18n import catalog, cli_language, localize_discovery, translate
-from account_finder.registry import Registry
-from account_finder.scan import load_demo, scan_messages, synthetic_mail
-from account_finder.store import Store
+from argus_security.analysis import ANALYSIS_VERSION
+from argus_security.bitwarden import make_export
+from argus_security.cli import main, parser
+from argus_security.discovery import discover
+from argus_security.i18n import catalog, cli_language, localize_discovery, translate
+from argus_security.registry import Registry
+from argus_security.scan import load_demo, scan_messages, synthetic_mail
+from argus_security.store import Store
 
 
 class LanguageTests(unittest.TestCase):
@@ -75,8 +77,8 @@ class LanguageTests(unittest.TestCase):
             make_export(self.store, ["steam"], "fr")
 
     def test_cli_help_including_subcommands_has_selected_language(self):
-        self.assertIn("Lokaler Account-Finder", parser("de").format_help())
-        self.assertIn("Local account finder", parser("en").format_help())
+        self.assertIn("Lokales ARGUS-Account-Inventar", parser("de").format_help())
+        self.assertIn("ARGUS local account inventory", parser("en").format_help())
         output = StringIO()
         with redirect_stdout(output), self.assertRaises(SystemExit) as exited:
             main(["--language", "de", "scan-imap", "--help"])
@@ -86,7 +88,7 @@ class LanguageTests(unittest.TestCase):
 
     def test_cli_german_errors_still_require_explicit_imap_authorization(self):
         error = StringIO()
-        with redirect_stderr(error), patch("account_finder.cli.getpass.getpass") as secret:
+        with redirect_stderr(error), patch("argus_security.cli.getpass.getpass") as secret:
             result = main(["--language", "de", "--data-dir", str(self.store.data_dir), "scan-imap"])
         self.assertEqual(result, 2)
         self.assertIn("Keine Verbindung erlaubt", error.getvalue())
@@ -107,10 +109,10 @@ class LanguageTests(unittest.TestCase):
         self.assertIn("nicht überschrieben", output.getvalue())
 
     def test_language_autodetection_and_explicit_override(self):
-        with patch("account_finder.i18n.locale.getlocale", return_value=("de_DE", "UTF-8")):
+        with patch("argus_security.i18n.locale.getlocale", return_value=("de_DE", "UTF-8")):
             self.assertEqual(cli_language([]), "de")
             self.assertEqual(cli_language(["--language=en", "--help"]), "en")
-        with patch("account_finder.i18n.locale.getlocale", return_value=("fr_FR", "UTF-8")):
+        with patch("argus_security.i18n.locale.getlocale", return_value=("fr_FR", "UTF-8")):
             self.assertEqual(cli_language([]), "en")
 
     def test_offline_discovery_translation_does_not_change_domain_or_network_policy(self):
@@ -125,6 +127,51 @@ class LanguageTests(unittest.TestCase):
         for english, german in catalog()["de"].items():
             with self.subTest(message=english):
                 self.assertEqual(set(re.findall(r"\{([^}]+)\}", english)), set(re.findall(r"\{([^}]+)\}", german)))
+
+    def test_user_facing_errors_have_german_entries(self):
+        """Typed errors reach the CLI or dashboard verbatim and are translated there."""
+        import ast
+        typed = {"LicenseError", "CredentialError", "MailboxError", "BitwardenCliError", "HandoffError", "DNSError",
+                 "UserFacingError", "MailboxBusy", "LeaseLost"}
+        # Raised only by the publisher's offline license-issuing script.
+        publisher_only = {"Invalid publisher private key", "Publisher private key must use Ed25519"}
+        missing = []
+        for path in sorted((Path(__file__).resolve().parents[1] / "argus_security").glob("*.py")):
+            for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+                if (isinstance(node, ast.Raise) and isinstance(node.exc, ast.Call)
+                        and isinstance(node.exc.func, ast.Name) and node.exc.func.id in typed):
+                    # Shown verbatim to users: only constant texts, never data.
+                    if not node.exc.args or not isinstance(node.exc.args[0], ast.Constant):
+                        missing.append(f"{path.name}:{node.lineno}: non-constant message")
+                        continue
+                    message = node.exc.args[0].value
+                    if message not in catalog()["de"] and message not in publisher_only:
+                        missing.append(f"{path.name}:{node.lineno}: {message}")
+        self.assertEqual(missing, [])
+
+    def test_translation_catalog_has_no_unused_entries(self):
+        """Every German entry must match a literal in code, markup or a catalog category.
+
+        If a message is composed at runtime, keep its full English text as a
+        literal next to the composition so this check (and translators) can find it.
+        """
+        import ast
+        import html
+        root = Path(__file__).resolve().parents[1]
+        literals = set()
+        for path in [*(root / "argus_security").glob("*.py"), *(root / "account_finder").glob("*.py")]:
+            literals |= {node.value for node in ast.walk(ast.parse(path.read_text(encoding="utf-8")))
+                         if isinstance(node, ast.Constant) and isinstance(node.value, str)}
+        script = (root / "argus_security" / "web" / "app.js").read_text(encoding="utf-8")
+        for match in re.finditer(r'"((?:[^"\\\n]|\\.)*)"', script):
+            literals.add(json.loads('"' + match.group(1) + '"'))
+        literals |= {match.group(1) for match in re.finditer(r"`([^`]*)`", script)}
+        page = (root / "argus_security" / "web" / "index.html").read_text(encoding="utf-8")
+        literals |= {html.unescape(value) for value in re.findall(r'data-i18n(?:-[a-z-]+)?="([^"]*)"', page)}
+        for path in (root / "argus_security" / "data" / "providers.json", root / "examples" / "providers-extra.json"):
+            data = json.loads(path.read_text(encoding="utf-8"))
+            literals |= {row["category"] for row in (data["providers"] if isinstance(data, dict) else data)}
+        self.assertEqual(sorted(set(catalog()["de"]) - literals), [])
 
 
 if __name__ == "__main__":

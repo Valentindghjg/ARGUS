@@ -1,15 +1,18 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 import json
 import os
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from account_finder.bitwarden import BitwardenCliError, add_to_unlocked_cli, audit_unlocked_cli, make_export, export_file
-from account_finder.registry import Registry
-from account_finder.scan import file_messages, load_demo, scan_messages, synthetic_mail
-from account_finder.store import Store, CHECKLIST
+from argus_security.bitwarden import BitwardenCliError, add_to_unlocked_cli, audit_unlocked_cli, make_export, export_file
+from argus_security.registry import Registry
+from argus_security.scan import file_messages, load_demo, scan_messages, synthetic_mail
+from argus_security.store import Store, CHECKLIST
 
 
 class StoreTests(unittest.TestCase):
@@ -117,14 +120,16 @@ class StoreTests(unittest.TestCase):
                 return SimpleNamespace(returncode=0, stdout='{"status":"unlocked"}')
             self.assertEqual(arguments[1:3], ["create", "item"])
             return SimpleNamespace(returncode=0, stdout='{"id":"46caf902-0e99-4bc1-bb92-6075b813233c"}')
-        with patch("account_finder.bitwarden.shutil.which", return_value="/usr/bin/bw"):
+        with patch("argus_security.bitwarden.shutil.which", return_value="/usr/bin/bw"):
             result = add_to_unlocked_cli(self.store, ["github"], runner=runner, environment={"BW_SESSION":"not-stored"})
         self.assertEqual(result, {"items": 1, "providers": ["github"], "status": "completed"})
         self.assertTrue(self.account()["checklist"]["saved_in_bitwarden"])
         self.assertEqual(len(calls), 2)
-        created = calls[1][0][-1]
+        self.assertEqual(calls[1][0], ["bw", "create", "item"])
+        self.assertNotIn("stdin", calls[1][1])
         import base64
-        payload = json.loads(base64.b64decode(created))
+        payload = json.loads(base64.b64decode(calls[1][1]["input"]))
+        self.assertEqual(calls[0][1]["stdin"], subprocess.DEVNULL)
         self.assertIsNone(payload["login"]["password"])
         self.assertNotIn("SECRET-CONTENT", json.dumps(payload))
         self.assertEqual(calls[1][1]["env"]["BW_SESSION"], "not-stored")
@@ -146,12 +151,13 @@ class StoreTests(unittest.TestCase):
             self.assertEqual(arguments[1:3], ["list", "items"])
             return SimpleNamespace(returncode=0, stdout=json.dumps([{
                 "name": "GitHub personal",
+                # Items created before the ARGUS rename use the legacy field name.
                 "fields": [{"name": "Account-Finder-ID", "value": "github"}],
                 "login": {"username": "demo@example.invalid", "password": vault_password,
                           "uris": [{"uri": "https://github.com/"}]},
             }]))
 
-        with patch("account_finder.bitwarden.shutil.which", return_value="/usr/bin/bw"):
+        with patch("argus_security.bitwarden.shutil.which", return_value="/usr/bin/bw"):
             result = audit_unlocked_cli(self.store, ["github"], runner=runner,
                                         environment={"BW_SESSION": "not-stored"})
         self.assertEqual(result, {"accounts": [{"account_id": "github", "match": "found", "count": 1}]})

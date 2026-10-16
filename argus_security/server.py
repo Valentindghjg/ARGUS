@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Loopback-only dashboard with memory-only bearer token and strict origins."""
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import hmac
@@ -9,11 +11,9 @@ import threading
 import time
 from urllib.parse import urlsplit, unquote
 
+from .errors import UserFacingError
 from .analysis import MAX_MESSAGE_BYTES
-from .bitwarden import BitwardenCliError
 from .background import BackgroundScanService, KeyringCredentialStore
-from .handoffs import HandoffError
-from .licensing import LicenseError
 from .scan import ScanSession, scan_messages
 from .store import Store
 
@@ -76,16 +76,28 @@ class DashboardServer(ThreadingHTTPServer):
 
     def _background_loop(self):
         while not self.background_stop.is_set():
-            # Never overlap a browser EML import with an automatic mailbox run.
-            # The next pass will see the same persistent IMAP checkpoint.
-            if not self.active_import():
-                self.background_service.run_due(allow_network=True)
+            self._background_pass()
             status = self.background_snapshot()
             due = status.get("next_run_at")
             seconds = 60
             if isinstance(due, (int, float)):
                 seconds = max(1, min(60, due - time.time()))
             self.background_stop.wait(seconds)
+
+    def _background_pass(self):
+        # Never start an automatic mailbox run during a browser EML import.
+        # The next pass will see the same persistent IMAP checkpoint.
+        with self.import_lock:
+            busy = self.active_import() is not None
+        if busy:
+            return
+        try:
+            self.background_service.run_due(allow_network=True)
+        except Exception:
+            # A locked database or damaged schedule must not end the scheduler
+            # thread silently; run_due already records safe scan failures, and
+            # the next pass retries without exposing exception text.
+            pass
 
     def server_close(self):
         self.background_stop.set()
@@ -96,7 +108,7 @@ class DashboardServer(ThreadingHTTPServer):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "AccountFinder"
+    server_version = "ARGUS"
     sys_version = ""
 
     def setup(self):
@@ -180,7 +192,9 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/":
             page = (WEB / "index.html").read_text(encoding="utf-8")
-            self._send(200, page.replace("__LOCAL_TOKEN__", self.server.token), "text/html; charset=utf-8")
+            from . import __version__
+            page = page.replace("__LOCAL_TOKEN__", self.server.token).replace("__APP_VERSION__", __version__)
+            self._send(200, page, "text/html; charset=utf-8")
         elif path == "/i18n.js":
             from .i18n import catalog
             self._send(200, "window.AF_TRANSLATIONS=" + json.dumps(catalog(), ensure_ascii=False) + ";", "text/javascript; charset=utf-8")
@@ -207,6 +221,8 @@ class Handler(BaseHTTPRequestHandler):
         try:
             self.server.store.update_account(unquote(path[len("/api/accounts/"):]), self._json())
             self._send(200, {"ok": True})
+        except UserFacingError as exc:
+            self._error(400, str(exc))
         except (ValueError, TypeError, UnicodeError, json.JSONDecodeError):
             self._error(400, "Invalid update; check required steps before marking the account done")
         except sqlite3.Error:
@@ -239,7 +255,7 @@ class Handler(BaseHTTPRequestHandler):
                 data = self._json()
                 expected = data.get("expected")
                 if set(data) != {"expected"} or type(expected) is not int or not 1 <= expected <= 10_000:
-                    raise ValueError("Between 1 and 10000 files are required")
+                    raise UserFacingError("Between 1 and 10000 files are required")
                 with self.server.import_lock:
                     if self.server.active_import():
                         raise ImportBusy()
@@ -259,7 +275,7 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/profile/emails":
                 data = self._json()
                 if set(data) != {"emails"}:
-                    raise ValueError("Specify only your own addresses")
+                    raise UserFacingError("Specify only your own addresses")
                 with self.server.import_lock:
                     if self.server.active_import():
                         raise ImportBusy()
@@ -269,29 +285,29 @@ class Handler(BaseHTTPRequestHandler):
                 from .bitwarden import make_export
                 data = self._json()
                 result = make_export(self.server.store, data.get("ids"), data.get("language", "en"))
-                self._send(200, result, attachment="account-finder-bitwarden.json")
+                self._send(200, result, attachment="argus-bitwarden.json")
             elif path == "/api/bitwarden/cli":
                 from .bitwarden import add_to_unlocked_cli
                 data = self._json()
-                if set(data) != {"ids", "language"}:
-                    raise ValueError("Specify the selected accounts and language")
+                if set(data) != {"ids", "language", "confirmed"} or data["confirmed"] is not True:
+                    raise UserFacingError("Confirm the Bitwarden transfer")
                 result = add_to_unlocked_cli(self.server.store, data["ids"], data["language"])
                 self._send(200, result)
             elif path == "/api/bitwarden/audit":
                 from .bitwarden import audit_unlocked_cli
                 data = self._json()
                 if set(data) != {"ids", "language", "confirmed"} or data["confirmed"] is not True:
-                    raise ValueError("Confirm the local Bitwarden check")
+                    raise UserFacingError("Confirm the local Bitwarden check")
                 self._send(200, audit_unlocked_cli(self.server.store, data["ids"], data["language"]))
             elif path == "/api/secure-next/bitwarden":
                 from .bitwarden import add_to_unlocked_cli
                 data = self._json()
                 if set(data) != {"account_id", "language", "confirmed"} or data["confirmed"] is not True:
-                    raise ValueError("Confirm the guided Bitwarden preparation")
+                    raise UserFacingError("Confirm the guided Bitwarden preparation")
                 snapshot = self.server.store.snapshot(data["language"])
                 current = snapshot["workflow"]["current"]
                 if not isinstance(data["account_id"], str) or data["account_id"] != current:
-                    raise ValueError("Choose the current guided account")
+                    raise UserFacingError("Choose the current guided account")
                 result = add_to_unlocked_cli(self.server.store, [current], data["language"])
                 self._send(200, result)
             elif path == "/api/bitwarden/resolve":
@@ -309,9 +325,9 @@ class Handler(BaseHTTPRequestHandler):
                 self._error(404, "Not found")
         except ImportBusy:
             self._error(409, "An EML import is already running. Finish or cancel it first.")
-        except LicenseError as exc:
-            self._error(400, str(exc))
-        except (BitwardenCliError, HandoffError) as exc:
+        except UserFacingError as exc:
+            # Fixed, translatable texts only (license, Bitwarden, worklist and
+            # account rules). Every other error stays generic.
             self._error(400, str(exc))
         except (ValueError, TypeError, UnicodeError, json.JSONDecodeError):
             self._error(400, "Request failed; check format, selection and size limits")
@@ -322,12 +338,20 @@ class Handler(BaseHTTPRequestHandler):
         self._error(403, "Cross-origin access is not authorized")
 
 
+def startup_notice(background, language="en"):
+    """Tell the truth about mailbox activity before the dashboard starts serving."""
+    from .i18n import translate
+    if background.get("enabled"):
+        return translate("Press Ctrl+C to stop the server. Scheduled read-only IMAP scans are enabled and may connect to your mailbox while it runs; use background-imap disable to stop them.", language)
+    return translate("Press Ctrl+C to stop the server. No mailbox connection is active.", language)
+
+
 def serve(store: Store, port=8765, open_browser=False, language="en"):
     from .i18n import translate
     with DashboardServer(store, port) as server:
         server.start_background_scans()
         print(translate("Local dashboard: ", language) + server.url, flush=True)
-        print(translate("Press Ctrl+C to stop the server. No mailbox connection is active.", language), flush=True)
+        print(startup_notice(server.background_snapshot(), language), flush=True)
         if open_browser:
             import webbrowser
             webbrowser.open(server.url)

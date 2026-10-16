@@ -1,26 +1,27 @@
 <!doctype html>
+<!-- SPDX-License-Identifier: MPL-2.0 · Copyright (c) 2026 ARGUS contributors -->
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ARGUS Browser Companion</title>
+    <title data-i18n="extName">ARGUS Browser Companion</title>
     <link rel="stylesheet" href="popup.css">
   </head>
   <body>
     <main>
-      <p class="eyebrow">ARGUS · LOCAL CHECK</p>
-      <h1>Browser Companion</h1>
-      <p id="state" class="state" role="status">Checking the active tab…</p>
+      <p class="eyebrow" data-i18n="eyebrow">ARGUS · LOCAL CHECK</p>
+      <h1 data-i18n="heading">Browser Companion</h1>
+      <p id="state" class="state" role="status" data-i18n="checking">Checking the active tab…</p>
       <dl id="details" hidden>
-        <div><dt>Provider</dt><dd id="provider"></dd></div>
-        <div><dt>Official domain</dt><dd id="domain"></dd></div>
+        <div><dt data-i18n="providerLabel">Provider</dt><dd id="provider"></dd></div>
+        <div><dt data-i18n="domainLabel">Catalogue domain</dt><dd id="domain"></dd></div>
       </dl>
       <p id="password-note" hidden></p>
       <div id="actions" class="actions" hidden>
-        <button id="copy" type="button">Copy password-management link</button>
-        <button id="open" type="button">Open verified link</button>
+        <button id="copy" type="button" data-i18n="copyLink">Copy password-management link</button>
+        <button id="open" type="button" data-i18n="openLink">Open verified link</button>
       </div>
-      <p class="notice">Visiting a website never confirms that you have an account there.</p>
+      <p class="notice" data-i18n="notice">Visiting a website never confirms that you have an account there.</p>
     </main>
     <script src="popup.js"></script>
   </body>

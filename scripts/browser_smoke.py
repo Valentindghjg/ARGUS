@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Optional browser QA with synthetic data only. Requires Playwright + Chromium."""
 import argparse
 import json
@@ -8,10 +10,10 @@ import tempfile
 import threading
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from account_finder.registry import Registry
-from account_finder.scan import load_demo, synthetic_mail
-from account_finder.server import DashboardServer
-from account_finder.store import Store
+from argus_security.registry import Registry
+from argus_security.scan import load_demo, synthetic_mail
+from argus_security.server import DashboardServer
+from argus_security.store import Store
 
 
 def main():
@@ -57,7 +59,7 @@ def main():
                     page.screenshot(path=str(args.screenshots_dir / "dashboard.png"), full_page=True)
 
                 page.locator('[data-view="plans"]').click()
-                expect(page.locator("#free-plan-name")).to_have_text("Account Compass Free")
+                expect(page.locator("#free-plan-name")).to_have_text("ARGUS Free")
                 expect(page.locator("#free-plan-features li")).to_have_count(3)
                 expect(page.locator("#pro-plan-features li")).to_have_count(3)
                 expect(page.locator("#plans-view")).to_contain_text("Pro is in development and not for sale.")
@@ -168,7 +170,7 @@ def main():
                 expect(page.locator('#export-selection input[value="github"]')).to_have_count(0)
                 expect(page.locator("#bitwarden-cli-button")).to_contain_text("unlocked Bitwarden CLI")
                 expect(page.locator("#bitwarden-cli-button")).to_be_disabled()
-                from account_finder.handoffs import reserve, finish
+                from argus_security.handoffs import reserve, finish
                 attempt = reserve(store, 'instagram', 'demo@example.invalid')
                 finish(store, attempt, 'uncertain')
                 page.evaluate('refresh()')
@@ -314,6 +316,20 @@ def main():
                     expect(localized_page.locator("#page-title")).to_have_text("Your accounts, in one place.")
                     other.close()
                 checks.append("Independent browser language detection, unsupported-language fallback and blocked preference storage")
+
+                # A preference saved before the ARGUS rename is honoured once and moved.
+                legacy = browser.new_context(locale="en-GB")
+                legacy.route("**/*", route)
+                legacy.add_init_script("if(!sessionStorage.getItem('seeded')){localStorage.setItem('account-finder.language','de');sessionStorage.setItem('seeded','1');}")
+                legacy_page = legacy.new_page()
+                legacy_page.on("pageerror", lambda e: errors.append(str(e)))
+                legacy_page.goto(server.url, wait_until="networkidle")
+                expect(legacy_page.locator("html")).to_have_attribute("lang", "de")
+                legacy_page.locator("#language").select_option("de")
+                stored = legacy_page.evaluate("[localStorage.getItem('argus.language'), localStorage.getItem('account-finder.language')]")
+                assert stored == ["de", None], stored
+                legacy.close()
+                checks.append("Pre-rename language preference is honoured and moved to the ARGUS key")
                 assert not errors, errors
                 assert not external, external
                 browser.close()

@@ -34,7 +34,7 @@ Creating or assigning an item for one account never marks another account saved,
 changes its password or completes its checklist. Interrupted transfers retain
 their account and transfer IDs for explicit review.
 
-For command-line selections, `python -m account_finder list-accounts` shows the
+For command-line selections, `python -m argus_security list-accounts` shows the
 stable account IDs. Use the chosen `id` with `bitwarden-export --id`; an old
 provider ID still selects its original entry, and never silently selects all
 sibling accounts. `list-accounts --all` also includes entries without reliable
@@ -98,7 +98,7 @@ eines anderen Accounts, ändert dessen Passwort oder schließt dessen Checkliste
 ab. Unterbrochene Übertragungen behalten ihre Account- und Übertragungskennung
 für die ausdrückliche Prüfung.
 
-Für die Kommandozeile zeigt `python -m account_finder list-accounts` die stabilen
+Für die Kommandozeile zeigt `python -m argus_security list-accounts` die stabilen
 Account-Kennungen. Verwende die gewählte `id` bei `bitwarden-export --id`. Eine
 bisherige Anbieterkennung wählt weiterhin ihren ursprünglichen Eintrag aus,
 niemals stillschweigend alle anderen Accounts. `list-accounts --all` zeigt auch

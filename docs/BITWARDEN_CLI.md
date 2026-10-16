@@ -35,6 +35,11 @@ ARGUS never asks for, stores or generates your Bitwarden master password.
    password-settings link, complete any sign-in or MFA step yourself, then test
    the sign-in and mark the checklist complete.
 
+Item metadata is passed to `bw create item` through standard input, not as a
+command-line argument, so other local users cannot read names or sign-in
+addresses from the process list. Created items carry the custom field
+`ARGUS-Account-ID`; the audit also recognizes the older `Account-Finder-ID`.
+
 The transfer creates no password and cannot change a provider password. Provider
 websites have different authentication and security flows, so ARGUS does not
 bypass MFA, CAPTCHAs, confirmations or password-reset protections.
@@ -75,6 +80,11 @@ Bitwarden-Hauptpasswort, speichert es nicht und erzeugt es nicht.
 6. Erzeuge das neue Passwort in Bitwarden. Öffne den verifizierten Link zu den
    Passwort-Einstellungen des Anbieters, erledige Anmeldung oder MFA selbst,
    teste danach die Anmeldung und schließe die Checkliste ab.
+
+Die Metadaten eines Eintrags gehen über die Standardeingabe an `bw create item`,
+nicht als Befehlszeilenargument. So können andere lokale Benutzer weder Namen
+noch Anmeldeadressen in der Prozessliste lesen. Neue Einträge tragen das Feld
+`ARGUS-Account-ID`; die Prüfung erkennt auch das ältere `Account-Finder-ID`.
 
 Die Übergabe erstellt kein Passwort und kann kein Passwort bei einem Anbieter
 ändern. Anbieter-Websites haben unterschiedliche Anmelde- und Sicherheitsabläufe;

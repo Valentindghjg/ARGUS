@@ -20,6 +20,13 @@ python browser-companion/scripts/build.py
 python browser-companion/tests/validate.py
 ```
 
+`validate.py` also runs `popup.js` under Node.js with simulated browser APIs
+for typical and hostile addresses (lookalike domains, third-party subdomains,
+`http:`, `file:` and browser pages) in English and German.
+
+The popup follows the browser language: German text comes from
+`_locales/de/messages.json`, everything else falls back to English.
+
 The build creates `browser-companion/dist/`. It contains an independent,
 unpacked extension and a reduced copy of the existing public provider catalogue.
 The directory is intentionally ignored by Git because it is reproducible.
@@ -38,7 +45,9 @@ The popup shows one of these local decisions:
 
 | Result | Meaning |
 | --- | --- |
-| Official ARGUS provider domain | The current host is in the bundled provider catalogue. |
+| Official ARGUS provider domain | The current HTTPS host is a bundled catalogue domain itself or its `www.` host. |
+| Subdomain of an ARGUS catalogue domain | The host is below a catalogue domain (for example a blog or shop subdomain). Other people may publish there, so ARGUS does not call it official; check the address yourself. |
+| Not an HTTPS website URL | Plain `http:`, local files and browser pages are never labelled. |
 | Known password-management link | ARGUS has a documented, verified password-management URL for that provider. The user can copy it or open it in a new tab. |
 | No verified password-management link | Do not guess a settings URL. Use the provider's official help site after manually checking the account. |
 | Not in the catalogue | No conclusion about whether an account exists. |
@@ -57,7 +66,8 @@ record. It also never drives a password-change workflow, clicks provider pages,
 fills forms, initiates password resets, or interacts with Bitwarden.
 
 Only URLs already validated by the main ARGUS catalogue are copied into the
-bundle. The build excludes every catalogue field except provider ID, name,
+bundle: the build loads the catalogue through the application's own `Registry`
+validation instead of a second implementation. The build excludes every catalogue field except provider ID, name,
 official website, allowed domains, and an already verified password-management
 URL. A link is enabled only when that URL is present in the bundle.
 

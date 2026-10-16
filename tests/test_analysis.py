@@ -1,12 +1,14 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 import json
 from email.message import EmailMessage
 from pathlib import Path
 import tempfile
 import unittest
 
-from account_finder.analysis import analyze, MAX_MESSAGE_BYTES, normalize_email
-from account_finder.registry import Registry
-from account_finder.scan import synthetic_mail
+from argus_security.analysis import analyze, MAX_MESSAGE_BYTES, normalize_email
+from argus_security.registry import Registry
+from argus_security.scan import synthetic_mail
 
 
 class AnalysisTests(unittest.TestCase):

@@ -1,14 +1,17 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Durable Bitwarden creation attempts. An ambiguous write is never retried blindly."""
 import json
 import time
 import uuid
 
+from .errors import UserFacingError
 from .store import now
 
 LEASE_SECONDS = 60  # Longer than the CLI's 20-second request deadline.
 
 
-class HandoffError(ValueError):
+class HandoffError(UserFacingError):
     pass
 
 
@@ -87,12 +90,12 @@ def _mark_assigned_if_complete(db, account_id):
 def resolve(store, data):
     if (set(data) != {"id", "created", "confirmed"} or not isinstance(data["id"], str)
             or type(data["created"]) is not bool or data["confirmed"] is not True):
-        raise ValueError("Confirm the transfer result after checking Bitwarden")
+        raise UserFacingError("Confirm the transfer result after checking Bitwarden")
     with store.connect() as db:
         db.execute("BEGIN IMMEDIATE")
         row = db.execute("SELECT * FROM instance_bitwarden_handoffs WHERE id=?", (data["id"],)).fetchone()
         if not row or row["state"] not in {"running", "uncertain"}:
-            raise ValueError("Transfer does not need review")
+            raise UserFacingError("Transfer does not need review")
         if row["state"] == "running" and row["lease_until"] > time.time():
             raise HandoffError("The Bitwarden transfer is still running. Wait before checking its result.")
         db.execute("UPDATE instance_bitwarden_handoffs SET state=?,lease_until=0,updated=? WHERE id=?",

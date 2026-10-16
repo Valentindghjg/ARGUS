@@ -1,0 +1,68 @@
+{
+  "extName": {
+    "message": "ARGUS Browser Companion"
+  },
+  "extDescription": {
+    "message": "Locally checks whether the active tab is an official ARGUS provider domain."
+  },
+  "eyebrow": {
+    "message": "ARGUS · LOCAL CHECK"
+  },
+  "heading": {
+    "message": "Browser Companion"
+  },
+  "checking": {
+    "message": "Checking the active tab…"
+  },
+  "providerLabel": {
+    "message": "Provider"
+  },
+  "domainLabel": {
+    "message": "Catalogue domain"
+  },
+  "copyLink": {
+    "message": "Copy password-management link"
+  },
+  "openLink": {
+    "message": "Open verified link"
+  },
+  "notice": {
+    "message": "Visiting a website never confirms that you have an account there."
+  },
+  "tabUnreadable": {
+    "message": "ARGUS could not read the active tab URL."
+  },
+  "noUrl": {
+    "message": "No active tab URL is available."
+  },
+  "notHttps": {
+    "message": "This tab does not use an HTTPS website URL. ARGUS only labels HTTPS pages."
+  },
+  "notWebsite": {
+    "message": "This tab does not use a website URL."
+  },
+  "notInCatalogue": {
+    "message": "This domain is not in the bundled ARGUS provider catalogue. This says nothing about whether an account exists."
+  },
+  "official": {
+    "message": "Official ARGUS provider domain"
+  },
+  "subdomain": {
+    "message": "Subdomain of an ARGUS catalogue domain. Other people may publish pages here; check the address yourself."
+  },
+  "noPasswordLink": {
+    "message": "ARGUS has no verified password-management link for this provider. Do not guess one."
+  },
+  "passwordLinkAvailable": {
+    "message": "A documented password-management link is available. Opening it does not change anything automatically."
+  },
+  "copied": {
+    "message": "Copied"
+  },
+  "copyBlocked": {
+    "message": "The browser blocked copying. You can open the verified link instead."
+  },
+  "catalogueUnreadable": {
+    "message": "The local catalogue could not be read."
+  }
+}

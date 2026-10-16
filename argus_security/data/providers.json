@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "notes": "Curated public-domain catalog; no account queries. Domains are matched only against local email evidence. Sender domains and historical services may change. Password links require a separate official source.",
+  "notes": "Curated catalog of public provider domains; no account queries. Domains are matched only against local email evidence. Sender domains and historical services may change. Password links require a separate official source.",
   "providers": [
     {
       "id": "instagram",

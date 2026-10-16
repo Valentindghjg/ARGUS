@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Password-free Bitwarden import formats and an opt-in official CLI handoff."""
 from datetime import datetime, timezone
 import base64
@@ -9,25 +11,31 @@ from pathlib import Path
 from urllib.parse import urlparse
 import uuid
 
+from .errors import UserFacingError
 from .store import Store, write_private
 from .i18n import translate, validate_language
 from . import handoffs
+
+# Custom field that links a vault item to its local ARGUS account. Items created
+# before the ARGUS rename carry the legacy name; the read-only audit accepts both.
+ACCOUNT_FIELD = "ARGUS-Account-ID"
+LEGACY_ACCOUNT_FIELDS = frozenset({ACCOUNT_FIELD, "Account-Finder-ID"})
 
 
 def make_export(store: Store, ids: list[str], language="en"):
     validate_language(language)
     if not isinstance(ids, list) or not ids or len(ids) > 10_000 or any(not isinstance(x, str) for x in ids):
-        raise ValueError("An explicit selection is required")
+        raise UserFacingError("An explicit selection is required")
     accounts = {a["id"]: a for a in store.snapshot(language)["accounts"]}
     selected = []
     for provider_id in dict.fromkeys(ids):
         account = accounts.get(provider_id)
         if not account or account["classification"] == "unknown":
-            raise ValueError("Export only discovered accounts not already assigned in Bitwarden")
+            raise UserFacingError("Export only discovered accounts not already assigned in Bitwarden")
         if account.get("identity_review_required"):
             raise handoffs.HandoffError("Review this account's sign-in identity before transferring it.")
         if account["checklist"]["saved_in_bitwarden"]:
-            raise ValueError("Export only discovered accounts not already assigned in Bitwarden")
+            raise UserFacingError("Export only discovered accounts not already assigned in Bitwarden")
         selected.append(account)
     folder_id = str(uuid.uuid4())
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -47,17 +55,17 @@ def make_export(store: Store, ids: list[str], language="en"):
                 "id": str(uuid.uuid4()), "organizationId": None, "folderId": folder_id,
                 "type": 1, "reprompt": 0,
                 "name": account["name"] + (" · " + account["label"] if account.get("label") else ""), "favorite": False,
-                "notes": translate("Account-Finder: {classification}; review manually.\nEvidence: {reason}\nNo password exported. Generate a new password directly in Bitwarden and set it at the provider.",
+                "notes": translate("ARGUS: {classification}; review manually.\nEvidence: {reason}\nNo password exported. Generate a new password directly in Bitwarden and set it at the provider.",
                                    language, classification=translate(account["classification"], language), reason=account["reason"]),
-                "fields": [{"name": "Account-Finder-ID", "value": account["id"], "type": 0},
+                "fields": [{"name": ACCOUNT_FIELD, "value": account["id"], "type": 0},
                            {"name": "ARGUS-Provider-ID", "value": account["provider_id"], "type": 0}],
                 "login": {"uris": [{"match": None, "uri": account["website"]}],
                           "username": email, "password": "", "totp": None},
                 "collectionIds": [],
             })
     if not items:
-        raise ValueError("Export only discovered accounts not already assigned in Bitwarden")
-    return {"encrypted": False, "folders": [{"id": folder_id, "name": "Account-Finder · " + stamp}], "items": items}
+        raise UserFacingError("Export only discovered accounts not already assigned in Bitwarden")
+    return {"encrypted": False, "folders": [{"id": folder_id, "name": "ARGUS · " + stamp}], "items": items}
 
 
 def export_file(store: Store, path: Path, ids: list[str], language="en"):
@@ -67,14 +75,20 @@ def export_file(store: Store, path: Path, ids: list[str], language="en"):
     return len(result["items"])
 
 
-class BitwardenCliError(ValueError):
+class BitwardenCliError(UserFacingError):
     """Safe failure that can be shown without exposing CLI output."""
 
 
-def _run_cli(arguments: list[str], environment: dict[str, str], runner):
-    """Run the official CLI without a shell and never surface its stdout/stderr."""
+def _run_cli(arguments: list[str], environment: dict[str, str], runner, stdin_data: str | None = None):
+    """Run the official CLI without a shell and never surface its stdout/stderr.
+
+    Item payloads travel through stdin (``bw create item`` reads its encoded
+    JSON there when no argument is given), so account names and sign-in
+    addresses never appear in the process list that other local users can read.
+    """
+    source = {"input": stdin_data} if stdin_data is not None else {"stdin": subprocess.DEVNULL}
     try:
-        result = runner(["bw", *arguments], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+        result = runner(["bw", *arguments], **source, stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE, text=True, env=environment, timeout=20, check=False)
     except (OSError, subprocess.SubprocessError) as exc:
         raise BitwardenCliError("The Bitwarden CLI could not be started.") from exc
@@ -103,13 +117,13 @@ def _unlocked_environment(store: Store, environment, runner):
 def _audit_accounts(store: Store, ids: list[str], language):
     validate_language(language)
     if not isinstance(ids, list) or not ids or len(ids) > 10_000 or any(not isinstance(item, str) for item in ids):
-        raise ValueError("An explicit selection is required")
+        raise UserFacingError("An explicit selection is required")
     accounts = {account["id"]: account for account in store.snapshot(language)["accounts"]}
     selected = []
     for account_id in dict.fromkeys(ids):
         account = accounts.get(account_id)
         if not account or account["classification"] == "unknown":
-            raise ValueError("Select discovered accounts for the Bitwarden check")
+            raise UserFacingError("Select discovered accounts for the Bitwarden check")
         if account.get("identity_review_required"):
             raise handoffs.HandoffError("Review this account's sign-in identity before checking Bitwarden.")
         selected.append(account)
@@ -133,7 +147,7 @@ def _audit_result(account, items):
             continue
         fields = item.get("fields") if isinstance(item.get("fields"), list) else []
         argus_id = next((field.get("value") for field in fields if isinstance(field, dict)
-                         and field.get("name") == "Account-Finder-ID"), None)
+                         and field.get("name") in LEGACY_ACCOUNT_FIELDS), None)
         if argus_id == account["id"]:
             exact += 1
             continue
@@ -188,7 +202,7 @@ def add_to_unlocked_cli(store: Store, ids: list[str], language="en", *, runner=s
     completed_providers = []
     items_by_provider: dict[str, list[dict]] = {}
     for item in exported["items"]:
-        provider_id = next(field["value"] for field in item["fields"] if field["name"] == "Account-Finder-ID")
+        provider_id = next(field["value"] for field in item["fields"] if field["name"] == ACCOUNT_FIELD)
         items_by_provider.setdefault(provider_id, []).append(item)
 
     for provider_id, items in items_by_provider.items():
@@ -207,7 +221,7 @@ def add_to_unlocked_cli(store: Store, ids: list[str], language="en", *, runner=s
             }
             encoded = base64.b64encode(json.dumps(document, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).decode("ascii")
             try:
-                output = _run_cli(["create", "item", encoded], environment, runner)
+                output = _run_cli(["create", "item"], environment, runner, stdin_data=encoded)
                 result = json.loads(output)
                 item_id = str(uuid.UUID(result["id"]))
             except (BitwardenCliError, ValueError, KeyError, TypeError, AttributeError):
