@@ -598,6 +598,12 @@
     "Account is not in the worklist": "Dieser Account ist nicht in der Arbeitsliste",
     "Secure your next account.": "Sichere deinen nächsten Account.",
     "ARGUS chooses one local priority at a time. You approve every security action.": "ARGUS wählt lokal immer eine Priorität aus. Jede Sicherheitsaktion bestätigst du selbst.",
-    "Secure next account →": "Nächsten Account absichern →"
+    "Secure next account →": "Nächsten Account absichern →",
+    "IMAP settings differ from the authorized target; scheduled scans stopped. Run background-imap enable to approve the current settings.": "Die IMAP-Einstellungen weichen vom freigegebenen Ziel ab; geplante Scans wurden gestoppt. Führe background-imap enable aus, um die aktuellen Einstellungen freizugeben.",
+    "Background IMAP scans require an approved IMAP target": "Geplante IMAP-Scans brauchen ein freigegebenes IMAP-Ziel",
+    "all selectable folders": "alle auswählbaren Ordner",
+    "Scheduled scans will be approved only for {p0}:{p1} as {p2} ({p3}).": "Geplante Scans werden nur für {p0}:{p1} als {p2} ({p3}) freigegeben.",
+    "Press Ctrl+C to stop the server. Scheduled IMAP scans wait for approval of the current IMAP settings and will not connect; run background-imap enable to approve them.": "Strg+C beendet den Server. Geplante IMAP-Scans warten auf die Freigabe der aktuellen IMAP-Einstellungen und verbinden sich nicht; gib sie mit background-imap enable frei.",
+    "Scheduled IMAP scans wait for approval of the current IMAP settings and will not connect. Run background-imap enable in a local terminal.": "Geplante IMAP-Scans warten auf die Freigabe der aktuellen IMAP-Einstellungen und verbinden sich nicht. Führe background-imap enable in einem lokalen Terminal aus."
   }
 }

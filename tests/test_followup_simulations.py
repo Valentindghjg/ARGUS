@@ -72,7 +72,7 @@ class MailboxLeaseSimulation(Profile):
     def test_scheduled_run_gives_its_claim_back_while_a_manual_scan_holds_the_mailbox(self):
         selector = self.credentials.save(SECRET)
         service = self.scheduled()
-        service.configure(credential_id=selector, interval_seconds=900)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint(), interval_seconds=900)
         due = service.schedule().next_run_at
         manual = MailboxLease(self.store, kind="manual", clock=lambda: self.now[0]).acquire()
         self.keyring.calls.clear()
@@ -88,7 +88,7 @@ class MailboxLeaseSimulation(Profile):
         selector = self.credentials.save(SECRET)
         # Both "processes" use the real clock here, as they would in production.
         service = BackgroundScanService(self.store, self.credentials, config_loader=lambda: self.config)
-        service.configure(credential_id=selector, interval_seconds=900)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint(), interval_seconds=900)
         attempts = []
 
         def try_manual(uid):

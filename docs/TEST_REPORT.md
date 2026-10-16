@@ -1,6 +1,6 @@
 # Test report — unreleased security review (2026-10)
 
-The security-review changes passed **202 Python tests** (previously 166) and
+The security-review changes passed **208 Python tests** (previously 166) and
 **24 Chromium browser check groups**, with zero page errors and zero external
 browser requests.
 
@@ -26,6 +26,11 @@ Further checks:
 - The companion validator runs `popup.js` with simulated browser APIs in English
   and German against lookalike domains, third-party subdomains and non-HTTPS pages.
 - Every source file carries the MPL-2.0 SPDX header, and no translation is unused.
+- Target-binding simulations (master plan priority 10) change each approved
+  field (host, port, username, sign-in method, folders) and check that a
+  scheduled run then reads no keyring entry and opens no connection. They also
+  cover schedules from before the binding and re-approval. A counter-check
+  against the previous `main` showed the stored secret reaching a changed host.
 
 Only Python 3.13 ran locally; GitHub Actions covers 3.11–3.14. No real mailbox,
 provider, password, keyring or Bitwarden vault was used.

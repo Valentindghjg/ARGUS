@@ -96,7 +96,8 @@ function renderState() {
   $("profile-email").textContent=t("Configured addresses: {p0}",{p0:(state.emails.join(", "))});
   const scheduled=state.background_scan||{};
   let scheduledText;
-  if(scheduled.enabled) scheduledText=t("Scheduled read-only IMAP scans are enabled. They run only while this local dashboard is open.");
+  if(scheduled.enabled&&!scheduled.target_confirmed) scheduledText=t("Scheduled IMAP scans wait for approval of the current IMAP settings and will not connect. Run background-imap enable in a local terminal.");
+  else if(scheduled.enabled) scheduledText=t("Scheduled read-only IMAP scans are enabled. They run only while this local dashboard is open.");
   else if(scheduled.authorized) scheduledText=t("Scheduled IMAP scans are paused. The authorization stays in your OS keyring until you revoke it.");
   else scheduledText=t("Scheduled IMAP scans are disabled. Enable them from a local terminal after configuring IMAP.");
   if(scheduled.last_error) scheduledText+=" "+t(scheduled.last_error);

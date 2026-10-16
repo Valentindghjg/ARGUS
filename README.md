@@ -282,6 +282,12 @@ only. The first scan is due when the dashboard starts, then it resumes from the
 normal IMAP UID checkpoints. It never runs when ARGUS is closed, does not do a
 full rescan, does not change mail, and backs off after a safe fixed error.
 
+The approval covers exactly the settings shown by `enable` (host, port,
+username, sign-in method and folders). If `imap.json` changes later, scheduled
+scans stop before using the stored authorization; run `background-imap enable`
+again to approve the new settings. Schedules created before this check also ask
+for one new approval.
+
 Check, pause, or remove the authorization with:
 
 ```bash

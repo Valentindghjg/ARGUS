@@ -341,6 +341,8 @@ class Handler(BaseHTTPRequestHandler):
 def startup_notice(background, language="en"):
     """Tell the truth about mailbox activity before the dashboard starts serving."""
     from .i18n import translate
+    if background.get("enabled") and not background.get("target_confirmed"):
+        return translate("Press Ctrl+C to stop the server. Scheduled IMAP scans wait for approval of the current IMAP settings and will not connect; run background-imap enable to approve them.", language)
     if background.get("enabled"):
         return translate("Press Ctrl+C to stop the server. Scheduled read-only IMAP scans are enabled and may connect to your mailbox while it runs; use background-imap disable to stop them.", language)
     return translate("Press Ctrl+C to stop the server. No mailbox connection is active.", language)

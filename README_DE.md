@@ -308,6 +308,13 @@ Dashboards fällig und setzt danach an den normalen IMAP-UID-Checkpoints fort. E
 läuft nicht, wenn ARGUS geschlossen ist, führt keinen Vollscan aus, verändert keine
 Mails und wartet nach einem festen sicheren Fehler bis zum nächsten Intervall.
 
+Die Freigabe gilt genau für die Einstellungen, die `enable` anzeigt (Host, Port,
+Benutzername, Anmeldeart und Ordner). Ändert sich `imap.json` später, stoppen
+geplante Scans, bevor sie die gespeicherte Freigabe verwenden; führe dann
+`background-imap enable` erneut aus, um die neuen Einstellungen freizugeben.
+Zeitpläne aus der Zeit vor dieser Prüfung verlangen ebenfalls einmal eine neue
+Freigabe.
+
 Status, Pause und Widerruf:
 
 ```bash

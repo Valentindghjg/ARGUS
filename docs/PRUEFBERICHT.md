@@ -1,6 +1,6 @@
 # Prüfbericht – unveröffentlichte Sicherheitsreview (2026-10)
 
-Die Änderungen der Sicherheitsreview bestehen **202 Python-Tests** (vorher 166)
+Die Änderungen der Sicherheitsreview bestehen **208 Python-Tests** (vorher 166)
 und **24 Chromium-Prüfgruppen**, ohne Seitenfehler und ohne externe
 Browseranfragen.
 
@@ -32,6 +32,12 @@ Weitere Prüfungen:
   Nicht-HTTPS-Seiten aus.
 - Jede Quelldatei trägt die MPL-2.0-SPDX-Kopfzeile, und keine Übersetzung ist
   ungenutzt.
+- Simulationen zur Zielbindung (Masterplan, Priorität 10) ändern jedes
+  freigegebene Feld (Host, Port, Benutzername, Anmeldeart, Ordner). Danach liest
+  ein geplanter Lauf keinen Schlüsselbund-Eintrag und öffnet keine Verbindung.
+  Zeitpläne aus der Zeit vor der Bindung und die erneute Freigabe sind
+  abgedeckt. Eine Gegenprobe am vorherigen `main` zeigte, dass das gespeicherte
+  Geheimnis einen geänderten Host erreichte.
 
 Lokal lief nur Python 3.13; GitHub Actions deckt 3.11–3.14 ab. Es wurden keine
 echten Postfächer, Anbieter, Passwörter, Schlüsselbünde oder Bitwarden-Tresore

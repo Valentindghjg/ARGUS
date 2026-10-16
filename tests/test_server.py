@@ -55,7 +55,8 @@ class ServerTests(unittest.TestCase):
                                                         "interval_seconds": 86400, "limit": 500,
                                                         "next_run_at": None, "last_started_at": None,
                                                         "last_finished_at": None, "last_result": None,
-                                                        "last_error": None, "running": False})
+                                                        "last_error": None, "running": False,
+                                                        "target_confirmed": False})
 
     def test_api_requires_token(self):
         self.assertEqual(self.request("/api/accounts",authorized=False)[0],401)

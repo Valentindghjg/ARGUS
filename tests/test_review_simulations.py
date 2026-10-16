@@ -78,7 +78,7 @@ class ScheduledScanSimulation(unittest.TestCase):
     def test_long_scan_renews_its_lease_so_a_second_process_cannot_open_the_mailbox(self):
         selector = self.credentials.save(SECRET)
         first, second = self.service(), self.service()
-        first.configure(credential_id=selector, interval_seconds=900, limit=50)
+        first.configure(credential_id=selector, target=self.config.target_fingerprint(), interval_seconds=900, limit=50)
         competing = []
 
         def slow_server(uid):
@@ -97,7 +97,7 @@ class ScheduledScanSimulation(unittest.TestCase):
     def test_disable_during_scan_stops_before_the_next_fetch_and_keeps_evidence(self):
         selector = self.credentials.save(SECRET)
         service = self.service()
-        service.configure(credential_id=selector, interval_seconds=900, limit=50)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint(), interval_seconds=900, limit=50)
         fetched = []
 
         def disable_after_first(uid):
@@ -118,7 +118,7 @@ class ScheduledScanSimulation(unittest.TestCase):
     def test_revoke_during_scan_removes_keyring_entry_and_cancels(self):
         selector = self.credentials.save(SECRET)
         service = self.service()
-        service.configure(credential_id=selector, interval_seconds=900, limit=50)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint(), interval_seconds=900, limit=50)
 
         def revoke_on_second(uid):
             if uid == 2:
@@ -135,7 +135,7 @@ class ScheduledScanSimulation(unittest.TestCase):
     def test_secret_never_reaches_profile_files_after_a_scheduled_run(self):
         selector = self.credentials.save(SECRET)
         service = self.service()
-        service.configure(credential_id=selector, interval_seconds=900, limit=50)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint(), interval_seconds=900, limit=50)
         result = self.run_with(HookedIMAP({1: account_mail(1)}, lambda uid: None), service)
         self.assertEqual(result["status"], "completed")
         for path in Path(self.store.data_dir).rglob("*"):
@@ -273,12 +273,14 @@ class DashboardSchedulerSimulation(unittest.TestCase):
         self.assertEqual(calls, [True])
 
     def test_startup_notice_discloses_enabled_mailbox_schedule_in_both_languages(self):
-        enabled = {"enabled": True}
+        enabled = {"enabled": True, "target_confirmed": True}
+        waiting = {"enabled": True, "target_confirmed": False}
         for language in ("en", "de"):
             self.assertIn("background-imap disable", startup_notice(enabled, language))
             self.assertNotIn("No mailbox connection", startup_notice(enabled, language))
-        english = startup_notice(enabled, "en")
-        self.assertIn(english, catalog()["de"])
+            self.assertIn("background-imap enable", startup_notice(waiting, language))
+        for notice in (startup_notice(enabled, "en"), startup_notice(waiting, "en")):
+            self.assertIn(notice, catalog()["de"])
         self.assertIn("No mailbox connection is active", startup_notice({"enabled": False}, "en"))
 
 

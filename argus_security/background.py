@@ -11,6 +11,7 @@ started merely because this module is installed.
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+import re
 import time
 from pathlib import Path
 from typing import Any, Callable, Protocol
@@ -30,6 +31,8 @@ DEFAULT_INTERVAL_SECONDS = 24 * 60 * 60
 DEFAULT_LIMIT = 500
 MAX_LIMIT = 10_000
 RUN_LEASE_SECONDS = 5 * 60
+TARGET_CHANGED_ERROR = ("IMAP settings differ from the authorized target; scheduled scans stopped. "
+                        "Run background-imap enable to approve the current settings.")
 # A running scan renews its lease well before expiry and notices a disable,
 # revoke or replacement lease within this interval.
 LEASE_RENEW_SECONDS = 15
@@ -141,6 +144,9 @@ class BackgroundSchedule:
     last_error: str | None = None
     run_id: str | None = None
     lease_until: float | None = None
+    # Fingerprint of the IMAP settings the user approved (see
+    # IMAPConfig.target_fingerprint). None for schedules from before 2.0.
+    target: str | None = None
 
     @classmethod
     def from_data(cls, data: Any) -> "BackgroundSchedule":
@@ -150,7 +156,7 @@ class BackgroundSchedule:
             raise ValueError("Invalid background IMAP schedule")
         allowed = {"version", "enabled", "interval_seconds", "limit", "credential_id", "next_run_at",
                    "last_started_at", "last_finished_at", "last_result", "last_error",
-                   "run_id", "lease_until"}
+                   "run_id", "lease_until", "target"}
         if set(data) - allowed or data.get("version", SCHEDULE_VERSION) != SCHEDULE_VERSION:
             raise ValueError("Invalid background IMAP schedule")
         enabled = data.get("enabled", False)
@@ -171,6 +177,9 @@ class BackgroundSchedule:
             raise ValueError("Invalid background IMAP schedule")
         if enabled and credential_id is None:
             raise ValueError("Background IMAP scans require OS-keyring authorization")
+        target = data.get("target")
+        if target is not None and (not isinstance(target, str) or not re.fullmatch(r"[0-9a-f]{64}", target)):
+            raise ValueError("Invalid background IMAP schedule")
         if any(value is not None and (type(value) not in {int, float} or value < 0) for value in timestamps.values()):
             raise ValueError("Invalid background IMAP schedule")
         for name in ("last_result", "last_error"):
@@ -180,7 +189,8 @@ class BackgroundSchedule:
         return cls(enabled, interval, limit, credential_id,
                    next_run_at=data.get("next_run_at"), last_started_at=data.get("last_started_at"),
                    last_finished_at=data.get("last_finished_at"), last_result=data.get("last_result"),
-                   last_error=data.get("last_error"), run_id=run_id, lease_until=data.get("lease_until"))
+                   last_error=data.get("last_error"), run_id=run_id, lease_until=data.get("lease_until"),
+                   target=target)
 
     def public_data(self) -> dict[str, Any]:
         """Stable metadata safe to persist locally; it contains no secret."""
@@ -188,7 +198,7 @@ class BackgroundSchedule:
                 "limit": self.limit, "credential_id": self.credential_id, "next_run_at": self.next_run_at,
                 "last_started_at": self.last_started_at, "last_finished_at": self.last_finished_at,
                 "last_result": self.last_result, "last_error": self.last_error,
-                "run_id": self.run_id, "lease_until": self.lease_until}
+                "run_id": self.run_id, "lease_until": self.lease_until, "target": self.target}
 
 
 def _default_runner(store: MetaStore, config: IMAPConfig, secret: str, *, limit: int,
@@ -246,12 +256,20 @@ class BackgroundScanService:
             return (UNCHANGED if updated is None else updated.public_data()), result
         return atomic_meta_update(self.store, SCHEDULE_META_KEY, apply)
 
-    def configure(self, *, credential_id: str, interval_seconds: int = DEFAULT_INTERVAL_SECONDS,
+    def configure(self, *, credential_id: str, target: str | None = None,
+                  interval_seconds: int = DEFAULT_INTERVAL_SECONDS,
                   limit: int = DEFAULT_LIMIT, enabled: bool = True) -> BackgroundSchedule:
-        """Persist an explicit opt-in.  Call ``credentials.save`` first."""
+        """Persist an explicit opt-in for exactly one IMAP target.
+
+        Call ``credentials.save`` first; ``target`` is the approved
+        ``IMAPConfig.target_fingerprint()``.
+        """
+        if enabled and target is None:
+            raise ValueError("Background IMAP scans require an approved IMAP target")
         now = self.clock()
         schedule = BackgroundSchedule(enabled=enabled, interval_seconds=interval_seconds, limit=limit,
-                                      credential_id=credential_id, next_run_at=now if enabled else None)
+                                      credential_id=credential_id, next_run_at=now if enabled else None,
+                                      target=target)
         # Reuse strict validation rather than silently accepting unsafe values.
         schedule = BackgroundSchedule.from_data(schedule.public_data())
         return self._save(schedule)
@@ -274,7 +292,7 @@ class BackgroundScanService:
         if current.credential_id:
             self.credentials.delete(current.credential_id)
         revoked = replace(current, enabled=False, credential_id=None, next_run_at=None,
-                          run_id=None, lease_until=None)
+                          run_id=None, lease_until=None, target=None)
         return self._save(revoked)
 
     def snapshot(self) -> dict[str, Any]:
@@ -285,11 +303,48 @@ class BackgroundScanService:
         """
         schedule = self.schedule()
         return {"enabled": schedule.enabled, "authorized": schedule.credential_id is not None,
+                "target_confirmed": self._target_confirmed(schedule),
                 "interval_seconds": schedule.interval_seconds, "limit": schedule.limit,
                 "next_run_at": schedule.next_run_at, "last_started_at": schedule.last_started_at,
                 "last_finished_at": schedule.last_finished_at, "last_result": schedule.last_result,
                 "last_error": schedule.last_error, "running": schedule.run_id is not None and
                 schedule.lease_until is not None and schedule.lease_until > self.clock()}
+
+    def _target_confirmed(self, schedule: BackgroundSchedule) -> bool:
+        """Whether the current IMAP settings are the ones the user approved."""
+        if schedule.target is None:
+            return False
+        try:
+            config = self.config_loader()
+            return isinstance(config, IMAPConfig) and config.target_fingerprint() == schedule.target
+        except Exception:
+            return False
+
+    def _require_reauthorization(self, run_id) -> bool:
+        """Stop scheduling until the user approves the current target again.
+
+        The keyring entry stays (``revoke`` removes it); no secret was loaded.
+        """
+        moment = self.clock()
+
+        def stop(schedule):
+            if schedule.run_id != run_id:
+                return None, False
+            stopped = replace(schedule, enabled=False, next_run_at=None, run_id=None, lease_until=None,
+                              last_finished_at=moment, last_result="reauthorization_required",
+                              last_error=TARGET_CHANGED_ERROR)
+            return stopped, True
+
+        return self._atomic_update(stop)
+
+    def _fail(self, run_id) -> dict[str, Any]:
+        # Do not retain implementation/server/keyring exception text.  A
+        # failure backs off for the selected interval instead of retrying.
+        # A lost lease (ScanCancelled) ends as "cancelled" because the
+        # schedule no longer carries this run ID.
+        error = "Background IMAP scan could not complete; check local setup and authorization"
+        committed = self._finish_claim(run_id, outcome="failed", error=error)
+        return {"status": "failed" if committed else "cancelled", "error": error}
 
     def _claim_due(self):
         moment = self.clock()
@@ -374,6 +429,19 @@ class BackgroundScanService:
             return claimed
         schedule = claimed["schedule"]
         run_id = claimed["run_id"]
+        # The approved target is checked before any keyring or network use:
+        # a changed host, account or folder selection is a new approval.
+        try:
+            config = self.config_loader()
+            if not isinstance(config, IMAPConfig):
+                raise ValueError("Invalid IMAP configuration")
+            approved = schedule.target is not None and config.target_fingerprint() == schedule.target
+        except Exception:
+            return self._fail(run_id)
+        if not approved:
+            committed = self._require_reauthorization(run_id)
+            return {"status": "reauthorization_required" if committed else "cancelled",
+                    "error": TARGET_CHANGED_ERROR}
         # A manual scan-imap of the same profile may hold the mailbox. Give the
         # claim back unchanged; the dashboard's next pass retries.
         mailbox = MailboxLease(self.store, kind="scheduled", clock=self.clock)
@@ -384,9 +452,6 @@ class BackgroundScanService:
             return {"status": "busy"}
         try:
             secret = self.credentials.load(schedule.credential_id or "")
-            config = self.config_loader()
-            if not isinstance(config, IMAPConfig):
-                raise ValueError("Invalid IMAP configuration")
             result = self.scan_runner(self.store, config, secret, limit=schedule.limit,
                                       keep_alive=self._keep_alive(run_id, mailbox))
             if not isinstance(result, dict):
@@ -400,12 +465,6 @@ class BackgroundScanService:
                     if type(result.get(key)) is int and result[key] >= 0}
             return {"status": "completed" if committed else "cancelled", "result": outcome, **safe}
         except Exception:
-            # Do not retain implementation/server/keyring exception text.  A
-            # failure backs off for the selected interval instead of retrying.
-            # A lost lease (ScanCancelled) ends here as "cancelled" because the
-            # schedule no longer carries this run ID.
-            error = "Background IMAP scan could not complete; check local setup and authorization"
-            committed = self._finish_claim(run_id, outcome="failed", error=error)
-            return {"status": "failed" if committed else "cancelled", "error": error}
+            return self._fail(run_id)
         finally:
             mailbox.release()
