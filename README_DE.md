@@ -380,6 +380,30 @@ Bei Prüfung, Passwortwechsel, Anmeldetest sowie MFA/Wiederherstellung speichert
 **Ich habe diesen Schritt erledigt** deine ausdrückliche lokale Bestätigung und
 führt danach direkt mit dem nächsten Schritt weiter.
 
+## Neu seit deiner letzten Durchsicht
+
+Nach einem Import zeigt „Neu seit…“ nur Hinweise, die neu sind oder anders
+bewertet werden, seit du Änderungen zuletzt als gesehen markiert hast. Dieselbe
+E-Mail erneut importiert erscheint nicht wieder. Hinweise sind nach Account
+gruppiert; was deine Entscheidung braucht (Absender außerhalb des Katalogs,
+Hinweise ohne eindeutigen Account, eine zu wählende Anmeldeadresse, neue Belege
+nach einem Verwerfen), steht zuerst. Werbung, Bestellungen und
+Rücksetz-Anfragen werden nur gezählt. Lücken des letzten Imports (übersprungene,
+unlesbare oder nur aus Kopfzeilen gelesene Nachrichten) bleiben sichtbar, bis du
+sie als gesehen markierst.
+
+Wenn du zurückkommst, fasst die Übersicht das an einer Stelle zusammen:
+zuerst Importlücken und unklare Bitwarden-Übertragungen, dann neue
+Entscheidungen, neue Hinweise und erreichte Prüfdaten. **Als gesehen markieren**
+ändert keine Entscheidung und keinen Schritt und lässt sich einmal über die
+Meldung zurücknehmen. Die Gruppierung bestätigt, vereinigt oder ordnet nie einen
+Account zu. Die CLI bietet dasselbe:
+
+```bash
+python -m argus_security whats-new
+python -m argus_security whats-new --mark-reviewed
+```
+
 ## Unklares, ausgeblendete Domains und Adressnotizen
 
 „Unklares“ sammelt alles, was deine Mails nicht klären, damit du einmal statt an
@@ -647,6 +671,7 @@ Begründung mitziehen muss. `--json` gibt den vollständigen Bericht aus.
 | `argus_security/states.py`, `changes.py` | Getrennte Account-Zustände (ADR-0001), Änderungsprotokoll und Rückgängig |
 | `argus_security/review.py` | Unklares, ausgeblendete Absenderdomains und Adressnotizen |
 | `argus_security/summary.py`, `guidance.py` | Ergebniszusammenfassung, nächste Aufgabe und Hinweise zum nächsten Schritt |
+| `argus_security/digest.py` | Neues seit der letzten Durchsicht und Zusammenfassung beim Wiederkommen |
 | `argus_security/backup.py` | Lokale Profilsicherungen und Wiederherstellung |
 | `argus_security/workflow.py` | Lokale Sicherheits-Arbeitsliste und geführter nächster Schritt |
 | `argus_security/handoffs.py` | Dauerhaftes Journal für Bitwarden-Übertragungen |

@@ -70,7 +70,8 @@ const titles = {
   bitwarden:["One unique password per account, kept in Bitwarden.","Prepare new vault items and make the changes yourself.","Prepare Bitwarden"],
   workflow:["Secure your accounts, one at a time.","A local worklist that remembers your progress.","Security worklist"],
   setup:["Start with your mailbox.","Import existing messages or set up read-only IMAP access.","Mailbox & Import"],
-  unclear:["Unclear items in one place.","Check what ARGUS cannot decide for you, then decide once.","Unclear items"]
+  unclear:["Unclear items in one place.","Check what ARGUS cannot decide for you, then decide once.","Unclear items"],
+  changes:["What changed since your last review.","New and changed clues, grouped by account, unclear ones first.","What's new"]
 };
 function node(tag, text, className) { const e=document.createElement(tag); if(text!==undefined)e.textContent=text; if(className)e.className=className; return e; }
 function accountEmail(account){return account.identity_email||account.manual_email||account.registered_emails[0]||"";}
@@ -91,15 +92,16 @@ function problem(id,message,hint){
 }
 function error(message,hint){problem("error",message,hint);}
 function failure(e){error(e.message,e.hint);}
-let toastTimer=null,toastBatch=null;
+let toastTimer=null,toastUndo=null;
 // A toast after a local change offers to undo exactly that change (ADR-0001, rule 3).
-function toast(message,batch=null){
+// "undo" is a change-log batch ID or a function for other reversible marks.
+function toast(message,undo=null){
   // A modal dialog makes the page behind it inert, so the toast moves into it.
   const host=[$("export-preview"),$("account-dialog")].find(dialog=>dialog.open)||document.body;
   if($("toast").parentElement!==host)host.append($("toast"));
-  setMessage("toast-text",canonicalMessage(message));toastBatch=batch;
-  $("toast-undo").classList.toggle("hidden",!batch);$("toast").classList.remove("hidden");
-  clearTimeout(toastTimer);toastTimer=setTimeout(()=>{$("toast").classList.add("hidden");toastBatch=null;},batch?8000:3000);
+  setMessage("toast-text",canonicalMessage(message));toastUndo=typeof undo==="string"?()=>undoChange(undo):undo;
+  $("toast-undo").classList.toggle("hidden",!toastUndo);$("toast").classList.remove("hidden");
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>{$("toast").classList.add("hidden");toastUndo=null;},toastUndo?8000:3000);
 }
 async function undoChange(batch){
   try{await api("/api/undo",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({batch})});await refresh();if($("account-dialog").open)renderDetail();toast(t("Change undone locally."));}
@@ -159,7 +161,65 @@ function renderState() {
   $("alias-email").disabled=state.demo;$("alias-owned").disabled=state.demo;
   if(state.demo)setMessage("alias-message","Add real own addresses in a personal profile on your computer. The demo profile stays separate.");
   renderRows();renderCandidates();renderExport();renderBitwardenAudit();renderWorklist();renderGuided();renderHandoffs();renderHistory();
-  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();
+  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();renderChanges();
+}
+// Plan A1-A4, A7, A28: what is new since the last review, in one place and one summary.
+const changeReasons={
+  reconsider:"New, stronger evidence arrived after you rejected this account.",
+  identity:"Choose the sign-in address of this account. Its older progress waits for it.",
+  unassigned:"These clues concern this service but name no clear account.",
+  domain:"A sender outside the catalog. A sender domain may be spoofed; it is never opened as an official website."
+};
+const returnTexts={
+  scan_gaps:"The last import has gaps. Check them before relying on the result.",
+  handoff:"{count} Bitwarden transfer(s) need clarification.",
+  decide_first:"{count} new item(s) need your decision first.",
+  changes:"{count} clue(s) are new or rated differently.",
+  review_due:"{count} account(s) have reached their review date."
+};
+function sinceText(since){return since?t("Since your last review on {date}",{date:localDate(since)}):t("Since you started");}
+function changeCard(group){
+  const card=node("article",undefined,"worklist-item"),actions=node("div",undefined,"bitwarden-actions");
+  const account=state.accounts.find(a=>a.id===group.account_id);
+  card.append(node("strong",group.kind==="domain"?group.domain:group.kind==="unassigned"?account.name:accountTitle(account)));
+  const counts=[group.new?t("{count} new",{count:group.new}):"",group.changed?t("{count} rated differently",{count:group.changed}):""].filter(Boolean);
+  card.append(node("p",[...counts,group.reasons.join(", ")].join(" · ")));
+  if(group.attention)card.append(node("p",t(changeReasons[group.attention]),"small-muted"));
+  if(group.shared)card.append(node("p",t("This is a shared sending service: it sends mail for many companies, so the actual sender stays unclear."),"small-muted"));
+  actions.append(group.kind==="domain"?actionButton("Open unclear items",()=>navigate("unclear")):actionButton("Open",()=>openDetail(group.account_id)));
+  card.append(actions);return card;
+}
+function renderChanges(){
+  const changes=state.changes,other=changes.other,others=other.marketing+other.order+other.reset;
+  const attention=changes.groups.filter(g=>g.attention),rest=changes.groups.filter(g=>!g.attention);
+  $("nav-changes-count").textContent=changes.groups.length;
+  $("changes-title").textContent=sinceText(changes.since);
+  $("changes-gaps").classList.toggle("hidden",!changes.gaps);
+  if(changes.gaps){
+    $("changes-gaps-text").textContent=t("The last import has gaps: {skipped} skipped, {errors} unreadable, {headers} read from headers only.",{skipped:changes.gaps.skipped||0,errors:changes.gaps.errors||0,headers:changes.gaps.headers_only||0});
+    $("changes-gap-steps").replaceChildren(...changes.gaps.next_steps.map(step=>node("li",t(step))));
+  }
+  $("changes-attention").replaceChildren(...attention.map(changeCard));
+  if(!attention.length)$("changes-attention").append(node("p",t("Nothing to decide first.")));
+  $("changes-accounts").replaceChildren(...rest.map(changeCard));
+  if(!rest.length)$("changes-accounts").append(node("p",t("No new or changed accounts.")));
+  $("changes-other").classList.toggle("hidden",!others);
+  $("changes-other").textContent=t("Not shown as accounts: {marketing} advertising, {order} order or invoice, {reset} reset request clue(s).",other);
+  $("changes-seen").disabled=!(changes.groups.length||changes.gaps||others);
+  const summary=state.return_summary;
+  $("return-summary").classList.toggle("hidden",!summary.items.length);
+  $("return-title").textContent=sinceText(summary.since);
+  $("return-lines").replaceChildren(...summary.items.map(item=>node("li",t(returnTexts[item.kind],{count:item.count}),["scan_gaps","handoff"].includes(item.kind)?"problem":"")));
+}
+async function markReviewed(){
+  try{
+    await api("/api/digest/seen",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({revision:state.changes.revision})});
+    await refresh();toast(t("Marked as reviewed. Your decisions and steps are unchanged."),undoReviewed);
+  }catch(e){failure(e);}
+}
+async function undoReviewed(){
+  try{await api("/api/digest/seen/undo",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});await refresh();toast(t("The changes are shown again."));}
+  catch(e){failure(e);}
 }
 // Plan E3, E4, A9: everything unclear in one list; exclusions stay reversible.
 const exclusionReasons={newsletter:"Newsletter",spam:"Spam",not_relevant:"Not relevant"};
@@ -344,6 +404,7 @@ function navigate(next,clearError=true){
   $("setup-view").classList.toggle("hidden",next!=="setup");
   $("workflow-view").classList.toggle("hidden",next!=="workflow");
   $("unclear-view").classList.toggle("hidden",next!=="unclear");
+  $("changes-view").classList.toggle("hidden",next!=="changes");
   $("list-title").textContent=next==="security"?t("High-priority accounts"):t("Your account inventory");
   if(state)renderRows();
 }
@@ -836,7 +897,7 @@ async function importFiles(){
     if(activeBatch){try{stats=await api("/api/import/finish",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:activeBatch,...(importCancelled||failed?{result:"partial"}:{})})});$("import-status").textContent=scanDescription(stats);renderScan(stats);}catch(e){failure(e);}}
     activeBatch=null;$("cancel-import").classList.add("hidden");$("cancel-import").disabled=false;
     $("import-button").disabled=false;$("email-files").disabled=false;$("email-files").value="";
-    try{await refresh();if(stats)toast(stats.result==="completed"?t("Local import completed."):t("Import status saved locally. Clues are preserved."));}catch(e){failure(e);}
+    try{await refresh();if(stats)toast(stats.result==="completed"?t("Local import completed. {count} clue(s) are new or rated differently; see What's new.",{count:state.changes.new+state.changes.changed}):t("Import status saved locally. Clues are preserved."));}catch(e){failure(e);}
   }
 }
 async function cancelImport(){
@@ -870,7 +931,8 @@ $("decide-confirm").onclick=()=>decide("confirmed");
 $("decide-reject").onclick=()=>decide("rejected",$("reject-reason").value);
 $("decide-reset").onclick=()=>decide("undecided");
 $("reject-reason").onchange=renderDetail;
-$("toast-undo").onclick=()=>{const batch=toastBatch;$("toast").classList.add("hidden");toastBatch=null;if(batch)undoChange(batch);};
+$("changes-seen").onclick=markReviewed;$("return-seen").onclick=markReviewed;$("return-open").onclick=()=>navigate("changes");
+$("toast-undo").onclick=()=>{const undo=toastUndo;$("toast").classList.add("hidden");toastUndo=null;if(undo)undo();};
 $("export-button").onclick=exportMetadata;
 $("preview-confirm").onclick=confirmPreview;
 $("preview-cancel").onclick=()=>$("export-preview").close();

@@ -361,6 +361,27 @@ guide.
 See the [worklist guide](docs/WORKLIST.md) and
 [interrupted-transfer guidance](docs/BITWARDEN_CLI.md).
 
+## What's new since your last review
+
+After an import, “What's new” shows only clues that are new or rated
+differently since you last marked changes as reviewed. The same email imported
+again does not reappear. Clues are grouped by account; items that need your
+decision (a sender outside the catalog, clues without a clear account, a sign-in
+address to choose, new evidence after a rejection) come first. Advertising,
+orders and reset requests are only counted. Gaps of the last import (skipped,
+unreadable or header-only messages) stay visible until you mark them reviewed.
+
+When you come back, the overview sums this up in one place: import gaps and
+unclear Bitwarden transfers first, then new items to decide, new clues and
+reached review dates. **Mark as reviewed** changes no decision and no step and
+can be undone once from the message. Grouping never confirms, merges or assigns
+an account. The CLI offers the same:
+
+```bash
+python -m argus_security whats-new
+python -m argus_security whats-new --mark-reviewed
+```
+
 ## Unclear items, hidden domains and address notes
 
 “Unclear items” collects everything your emails cannot settle, so you decide
@@ -601,6 +622,7 @@ report.
 | `argus_security/states.py`, `changes.py` | Separate account states (ADR-0001), change log and undo |
 | `argus_security/review.py` | Unclear items, hidden sender domains and address notes |
 | `argus_security/summary.py`, `guidance.py` | Result summary, next task and next-step hints |
+| `argus_security/digest.py` | What's new since the last review and the return summary |
 | `argus_security/backup.py` | Local profile backups and restore |
 | `argus_security/workflow.py` | Local security worklist and guided next step |
 | `argus_security/handoffs.py` | Durable Bitwarden transfer journal |

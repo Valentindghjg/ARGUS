@@ -15,6 +15,7 @@ from .instances import (SCHEMA as INSTANCE_SCHEMA, defer_in_queue, direct_identi
 from .registry import Registry
 from .review import SCHEMA as REVIEW_SCHEMA
 from .changes import ChangeBatch, planning
+from .digest import acknowledge, change_digest, next_revision, return_summary, review_mark, undo_acknowledge
 from .states import (DECISIONS, LEGACY_CHECKLIST, LEGACY_STEPS, REJECT_REASONS, STEPS, default_steps,
                      evidence_level, legacy_checklist, legacy_classification, legacy_status, progress,
                      review_date, valid_step_state)
@@ -28,7 +29,7 @@ CHECKLIST = LEGACY_CHECKLIST
 #   2: ADR-0001 axes: decision, dated steps, planning only in the worklist, change log
 #   3: rule features per clue (plan E1); older clues gain them on their next import
 #   4: reversible sender-domain exclusions and relations between own addresses (E4, A9)
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 
 def now():
@@ -65,6 +66,8 @@ CREATE TABLE IF NOT EXISTS evidence (
   caveat TEXT,
   rule_version INTEGER NOT NULL DEFAULT 1,
   features TEXT,
+  created_rev INTEGER NOT NULL DEFAULT 0,
+  changed_rev INTEGER NOT NULL DEFAULT 0,
   UNIQUE(fingerprint, sender_domain, signal)
 );
 CREATE INDEX IF NOT EXISTS evidence_provider ON evidence(provider_id);
@@ -176,6 +179,10 @@ class Store:
                 db.execute("ALTER TABLE evidence ADD COLUMN rule_version INTEGER NOT NULL DEFAULT 1")
             if "features" not in evidence_columns:
                 db.execute("ALTER TABLE evidence ADD COLUMN features TEXT")
+            # Plan A1/A2: clues stored before revisions existed count as already seen (revision 0).
+            for column in ("created_rev", "changed_rev"):
+                if column not in evidence_columns:
+                    db.execute(f"ALTER TABLE evidence ADD COLUMN {column} INTEGER NOT NULL DEFAULT 0")
             # A message's raw fingerprint is its identity across rule/catalogue revisions.
             indexes = {row["name"] for row in db.execute("PRAGMA index_list(evidence)")}
             if "evidence_fingerprint" not in indexes:
@@ -300,17 +307,20 @@ class Store:
             values = (evidence.provider_id, evidence.sender_domain, evidence.registered_email,
                       evidence.signal, evidence.score, evidence.date, evidence.caveat, ANALYSIS_VERSION, features)
             if previous and tuple(previous[f] for f in fields) == values:
+                # Plan A2: the same message with the same result is never presented again.
                 return "duplicate"
+            revision = next_revision(db)
             db.execute("""INSERT INTO evidence
-              (provider_id,sender_domain,registered_email,signal,score,fingerprint,date,source,caveat,rule_version,features)
-              VALUES (?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(fingerprint) DO UPDATE SET
+              (provider_id,sender_domain,registered_email,signal,score,fingerprint,date,source,caveat,rule_version,features,
+               created_rev,changed_rev)
+              VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(fingerprint) DO UPDATE SET
                 provider_id=excluded.provider_id, sender_domain=excluded.sender_domain,
                 registered_email=excluded.registered_email, signal=excluded.signal,
                 score=excluded.score, date=excluded.date, caveat=excluded.caveat,
-                rule_version=excluded.rule_version, features=excluded.features""", (
+                rule_version=excluded.rule_version, features=excluded.features, changed_rev=excluded.changed_rev""", (
                 evidence.provider_id, evidence.sender_domain, evidence.registered_email,
                 evidence.signal, evidence.score, evidence.fingerprint, evidence.date,
-                evidence.source, evidence.caveat, ANALYSIS_VERSION, features,
+                evidence.source, evidence.caveat, ANALYSIS_VERSION, features, revision, revision,
             ))
             synchronize_instances(db, self.registry, {evidence.provider_id})
             if previous and changes is not None and (previous["signal"], previous["score"], previous["provider_id"]) != (
@@ -337,6 +347,8 @@ class Store:
             related = relations(db)
             evidences = [dict(r) for r in db.execute("SELECT * FROM evidence ORDER BY score DESC,id DESC")]
             own = owned_emails(db)
+            mark = review_mark(db)
+            revision = db.execute("SELECT value FROM meta WHERE key='revision'").fetchone()
         from .catalog import categories as catalog_categories, personal_providers
         from .registry import is_shared_sender
         from .workflow import effectively_deferred, utcnow
@@ -474,6 +486,8 @@ class Store:
         snapshot["unclear"] = unclear_items(snapshot)
         snapshot["result"] = result_summary(snapshot)
         snapshot["next_task"] = next_task(snapshot)
+        snapshot["changes"] = change_digest(snapshot, evidences, mark, json.loads(revision[0]) if revision else 0)
+        snapshot["return_summary"] = return_summary(snapshot)
         from .i18n import localize_snapshot
         return localize_snapshot(snapshot, language)
 
@@ -674,6 +688,19 @@ class Store:
                 batch.record(account_id, "step:" + step, current, new)
                 db.execute("UPDATE account_instances SET updated=? WHERE id=?", (now(), account_id))
             return {"ok": True, "batch": batch.close()}
+
+    def acknowledge_changes(self, revision):
+        """Mark the changes the person saw as reviewed (plan A1); decisions stay untouched."""
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            acknowledge(db, revision, now())
+        return {"ok": True}
+
+    def undo_acknowledge_changes(self):
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            undo_acknowledge(db)
+        return {"ok": True}
 
     def add_provider(self, data):
         """Add a provider to this profile's own catalog (plan E5)."""

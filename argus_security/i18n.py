@@ -87,6 +87,8 @@ def localize_snapshot(snapshot, language="en"):
         for evidence in [*account["evidence"], *account.get("unassigned_evidence", [])]:
             evidence["reason"] = translate(evidence["reason"], language)
             evidence["caveat"] = translate(evidence["caveat"], language)
+    for group in snapshot.get("changes", {}).get("groups", []):
+        group["reasons"] = [translate(reason, language) for reason in group["reasons"]]
     for candidate in snapshot["candidates"]:
         candidate["reason"] = translate(candidate["reason"], language)
         for evidence in candidate["evidence"]:

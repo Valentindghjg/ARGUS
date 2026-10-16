@@ -25,3 +25,5 @@ html,body{max-width:100%;overflow-x:clip}
 .evidence-head{display:flex;justify-content:space-between;gap:8px;align-items:center}.evidence-why{margin:4px 0 0;padding-left:18px;font-size:10px;color:#6b7b8f;line-height:1.7}.evidence-why-title{display:block;margin-top:6px;font-size:10px;color:#56677c;font-weight:600}.kind-marketing,.kind-reset,.kind-order{background:#f1f3f6;color:#6f7d8e}.kind-account{background:#eef3ff;color:var(--blue)}
 .relation-form{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 12px}
 .catalog-form{display:grid;gap:6px}.catalog-form label{font-size:11px;color:#697990;margin-top:6px}.catalog-form input{border:1px solid var(--border);border-radius:7px;padding:9px 11px;font-size:12px}
+.return-summary{margin-bottom:22px}.return-summary li.problem{color:#a74338;font-weight:600}#changes-view h3{margin-top:24px}
+p.small-muted{white-space:normal;overflow-wrap:anywhere}

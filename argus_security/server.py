@@ -263,6 +263,15 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, self.server.store.set_step(unquote(action.group(1)), data["step"],
                                                            state=data.get("state", UNCHANGED),
                                                            review_after=data.get("review_after", UNCHANGED)))
+            elif path == "/api/digest/seen":
+                data = self._json()
+                if set(data) != {"revision"}:
+                    raise UserFacingError("These changes are no longer current; reload the page")
+                self._send(200, self.server.store.acknowledge_changes(data["revision"]))
+            elif path == "/api/digest/seen/undo":
+                if self._json() != {}:
+                    raise UserFacingError("There is no review mark to undo")
+                self._send(200, self.server.store.undo_acknowledge_changes())
             elif path == "/api/catalog":
                 self._send(200, self.server.store.add_provider(self._json()))
             elif path == "/api/catalog/remove":

@@ -1,3 +1,26 @@
+# Änderungen – unveröffentlicht (Paket C: lokale Vorarbeit)
+
+## Neu seit deiner letzten Durchsicht (A1–A4, A7, A28, Prioritäten 05 und 06)
+
+- Die neue Ansicht „Neu seit…“ zeigt nur Hinweise, die seit deiner letzten
+  Durchsicht neu sind oder anders bewertet werden, nach Account gruppiert; was
+  eine Entscheidung braucht, steht zuerst, Werbung, Bestellungen und
+  Rücksetz-Anfragen werden nur gezählt. Dieselbe E-Mail erneut importiert bringt
+  nichts zurück. Lücken des letzten Imports bleiben bis zur Durchsicht sichtbar.
+- Die Übersicht zeigt eine Zusammenfassung beim Wiederkommen: zuerst
+  Importlücken und unklare Bitwarden-Übertragungen, dann neue Entscheidungen,
+  neue Hinweise und erreichte Prüfdaten. Ein Import endet mit einer Meldung statt
+  mehrerer.
+- **Als gesehen markieren** ändert keine Entscheidung und keinen Schritt und
+  lässt sich einmal zurücknehmen. Neuer CLI-Befehl `whats-new [--mark-reviewed]`;
+  API `POST /api/digest/seen` und `POST /api/digest/seen/undo`; Snapshot-Felder
+  `changes` und `return_summary`.
+- Schemaversion 5 ergänzt nach der automatischen Sicherung zwei
+  Revisionsspalten bei Hinweisen. Vorher gespeicherte Hinweise gelten als
+  bereits gesehen.
+- Hinweise in der Accountliste und unter „Unklares“ brechen auf schmalen
+  Bildschirmen jetzt um.
+
 # Änderungen – Version 2.1.0, Paket B: erklärbare, korrigierbare Erkennung (noch ohne Tag)
 
 ## Warum ein Hinweis zählt, welche Art er hat und wie alt er ist (E1, E2, Priorität 03)
