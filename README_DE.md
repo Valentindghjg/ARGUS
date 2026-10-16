@@ -560,6 +560,7 @@ Spracherkennung und mobile Ansichten.
 | [Checkliste für die kommerzielle Veröffentlichung](docs/COMMERCIAL_RELEASE.md) | Entscheidungen des Inhabers vor dem ersten Pro-Kauf |
 | [Lizenztechnik](docs/LICENSE_IMPLEMENTATION.md) | Signierte Offline-Pro-Lizenzen und Umgang mit Herausgeber-Schlüsseln |
 | [Veröffentlichungs-Checkliste](docs/PUBLISHING.md) | Schritte, die der Inhaber vor der Veröffentlichung selbst prüft |
+| [Produktstrategie](docs/strategy/README.md) | Gesamtplan für Funktionen und sichere Automatisierung, mit Umsetzungsstand |
 | [Technischer Plan](docs/PLAN_DE.md) | Reihenfolge und Architektur |
 | [Sicherheitsmodell](docs/SICHERHEIT.md) | Datenschutz, Grenzen und Schutzmaßnahmen |
 | [Datenschutzerklärung](PRIVACY.md) | Was die lokale App verarbeitet und wann sie sich verbindet |
