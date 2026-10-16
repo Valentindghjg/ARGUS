@@ -41,7 +41,7 @@ details, retention periods and jurisdiction-specific information. See
 ## Deutsch
 
 ARGUS ist eine lokale Python-Anwendung. Sie betreibt keinen gehosteten
-Account-Finder, sammelt keine Telemetrie, nutzt keine Analysewerkzeuge, enthält
+Account-Suchdienst, sammelt keine Telemetrie, nutzt keine Analysewerkzeuge, enthält
 keine Werbung und überträgt keine Mailinhalte an einen KI-Dienst.
 
 Das lokale Profil kann Account-Belege, konfigurierte eigene Mailadressen,

@@ -7,7 +7,7 @@ import unittest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-from account_finder.licensing import LicenseError, activate, issue, license_status, read_document, verify
+from argus_security.licensing import LicenseError, activate, issue, license_status, read_document, verify
 
 
 class LicensingTests(unittest.TestCase):

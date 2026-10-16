@@ -6,10 +6,10 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from account_finder.analysis import analyze
-from account_finder.registry import Registry
-from account_finder.scan import scan_messages, synthetic_mail
-from account_finder.store import CHECKLIST, Store
+from argus_security.analysis import analyze
+from argus_security.registry import Registry
+from argus_security.scan import scan_messages, synthetic_mail
+from argus_security.store import CHECKLIST, Store
 
 
 class InstanceTests(unittest.TestCase):
@@ -183,8 +183,8 @@ class InstanceTests(unittest.TestCase):
         self.assertEqual(legacy["id"], "github")
         self.assertTrue(legacy["identity_review_required"])
         self.assertEqual(legacy["status"], "done")
-        from account_finder.bitwarden import make_export
-        from account_finder.handoffs import HandoffError
+        from argus_security.bitwarden import make_export
+        from argus_security.handoffs import HandoffError
         with self.assertRaises(HandoffError):
             make_export(self.store, [legacy["id"]])
         self.assertEqual(self.store.snapshot()["summary"]["done"], 0)
@@ -248,11 +248,11 @@ class InstanceTests(unittest.TestCase):
             db.execute("""INSERT INTO accounts(provider_id,confirmed,status,checklist,updated)
                           VALUES ('github',1,'done',?,'legacy')""",
                        (json.dumps({key: True for key in CHECKLIST}),))
-        from account_finder.instances import migrate_instances
+        from argus_security.instances import migrate_instances
         def interrupt_after_copy(db, registry):
             migrate_instances(db, registry)
             raise RuntimeError("Synthetic interruption before commit")
-        with patch("account_finder.store.migrate_instances", side_effect=interrupt_after_copy):
+        with patch("argus_security.store.migrate_instances", side_effect=interrupt_after_copy):
             with self.assertRaises(RuntimeError):
                 Store(self.directory, self.registry)
         with self.store.connect() as db:

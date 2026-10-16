@@ -6,12 +6,12 @@ from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
-from account_finder.background import (BackgroundScanService, CredentialError, KeyringCredentialStore,
+from argus_security.background import (BackgroundScanService, CredentialError, KeyringCredentialStore,
                                        RUN_LEASE_SECONDS, SCHEDULE_META_KEY)
-from account_finder.cli import main
-from account_finder.imap_client import IMAPConfig, save_config
-from account_finder.registry import Registry
-from account_finder.store import Store
+from argus_security.cli import main
+from argus_security.imap_client import IMAPConfig, save_config
+from argus_security.registry import Registry
+from argus_security.store import Store
 
 
 class MemoryStore:
@@ -118,7 +118,7 @@ class BackgroundScanTests(unittest.TestCase):
     def test_revoke_stops_scans_and_removes_the_keyring_secret(self):
         selector = self.credentials.save("APP-PASSWORD")
         service = self.service()
-        service.start(credential_id=selector)
+        service.configure(credential_id=selector)
         result = service.revoke()
         self.assertFalse(result.enabled)
         self.assertIsNone(result.credential_id)
@@ -128,7 +128,7 @@ class BackgroundScanTests(unittest.TestCase):
     def test_expired_lease_replaces_stale_worker_without_old_completion_winning(self):
         selector = self.credentials.save("APP-PASSWORD")
         service = self.service()
-        service.start(credential_id=selector)
+        service.configure(credential_id=selector)
         first = service._claim_due()
         self.assertEqual(first["status"], "claimed")
         self.assertEqual(service._claim_due(), {"status": "running"})
@@ -153,7 +153,7 @@ class BackgroundScanTests(unittest.TestCase):
                                           config_loader=lambda: self.config, scan_runner=runner)
             second = BackgroundScanService(store, self.credentials,
                                            config_loader=lambda: self.config, scan_runner=runner)
-            first.start(credential_id=selector)
+            first.configure(credential_id=selector)
             result = []
             worker = threading.Thread(target=lambda: result.append(first.run_due(allow_network=True)))
             worker.start()
@@ -167,9 +167,9 @@ class BackgroundScanTests(unittest.TestCase):
     def test_disable_while_running_prevents_late_completion_from_reenabling(self):
         selector = self.credentials.save("APP-PASSWORD")
         service = self.service()
-        service.start(credential_id=selector)
+        service.configure(credential_id=selector)
         claim = service._claim_due()
-        service.stop()
+        service.disable()
         self.assertFalse(service._finish_claim(claim["run_id"], outcome="completed"))
         self.assertFalse(service.snapshot()["enabled"])
 
@@ -189,16 +189,16 @@ class BackgroundCliTests(unittest.TestCase):
         secret = "APP-PASSWORD-NOT-IN-ARGUS"
         argv = ["--data-dir", str(self.data_dir), "background-imap", "enable", "--interval-minutes", "15", "--limit", "11"]
         output = StringIO()
-        with patch("account_finder.cli.KeyringCredentialStore", return_value=credentials), \
-             patch("account_finder.cli.sys.stdin.isatty", return_value=True), \
-             patch("account_finder.cli.getpass.getpass", return_value=secret), redirect_stdout(output):
+        with patch("argus_security.cli.KeyringCredentialStore", return_value=credentials), \
+             patch("argus_security.cli.sys.stdin.isatty", return_value=True), \
+             patch("argus_security.cli.getpass.getpass", return_value=secret), redirect_stdout(output):
             self.assertEqual(main(argv), 0)
         saved = Store(self.data_dir, Registry()).meta(SCHEDULE_META_KEY)
         self.assertTrue(saved["enabled"])
         self.assertEqual(saved["interval_seconds"], 900)
         self.assertNotIn(secret, repr(saved))
         self.assertNotIn(secret, output.getvalue())
-        with patch("account_finder.cli.KeyringCredentialStore", return_value=credentials), redirect_stdout(output):
+        with patch("argus_security.cli.KeyringCredentialStore", return_value=credentials), redirect_stdout(output):
             self.assertEqual(main(["--data-dir", str(self.data_dir), "background-imap", "revoke"]), 0)
         saved = Store(self.data_dir, Registry()).meta(SCHEDULE_META_KEY)
         self.assertFalse(saved["enabled"])
@@ -209,12 +209,12 @@ class BackgroundCliTests(unittest.TestCase):
         credentials = KeyringCredentialStore(self.keyring)
         selector = credentials.save("APP-PASSWORD")
         service = BackgroundScanService(Store(self.data_dir, Registry()), credentials)
-        service.start(credential_id=selector)
+        service.configure(credential_id=selector)
         snapshot = service.snapshot()
         self.assertTrue(snapshot["enabled"])
         self.assertTrue(snapshot["authorized"])
         self.assertNotIn("credential_id", snapshot)
-        service.stop()
+        service.disable()
         self.assertFalse(service.snapshot()["enabled"])
 
 

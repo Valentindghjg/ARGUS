@@ -7,11 +7,11 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from account_finder.discovery import discover, lookup_mx, parse_mx, provider_hints, DNSError
-from account_finder.imap_client import IMAPConfig, imap_messages, MailboxError, encode_folder, decode_folder, load_config, save_config
-from account_finder.registry import Registry
-from account_finder.scan import scan_messages, synthetic_mail
-from account_finder.store import Store
+from argus_security.discovery import discover, lookup_mx, parse_mx, provider_hints, DNSError
+from argus_security.imap_client import IMAPConfig, imap_messages, MailboxError, encode_folder, decode_folder, load_config, save_config
+from argus_security.registry import Registry
+from argus_security.scan import scan_messages, synthetic_mail
+from argus_security.store import Store
 
 
 class FakeIMAP:
@@ -97,7 +97,7 @@ class IMAPTests(unittest.TestCase):
         self.assertEqual(client.calls[-1][0], "LOGOUT")
 
     def test_permission_required_before_socket(self):
-        with patch("account_finder.imap_client.BoundedIMAP4SSL") as factory:
+        with patch("argus_security.imap_client.BoundedIMAP4SSL") as factory:
             with self.assertRaises(MailboxError):
                 list(imap_messages(self.store, self.config, "SECRET-TOKEN"))
             factory.assert_not_called()

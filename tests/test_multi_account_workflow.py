@@ -11,13 +11,13 @@ import unittest
 from unittest.mock import patch
 import uuid
 
-from account_finder.bitwarden import add_to_unlocked_cli, make_export
-from account_finder.cli import main
-from account_finder.handoffs import HandoffError, handoff_snapshot, resolve
-from account_finder.registry import Registry
-from account_finder.scan import scan_messages, synthetic_mail
-from account_finder.store import CHECKLIST, Store
-from account_finder.workflow import change_worklist
+from argus_security.bitwarden import add_to_unlocked_cli, make_export
+from argus_security.cli import main
+from argus_security.handoffs import HandoffError, handoff_snapshot, resolve
+from argus_security.registry import Registry
+from argus_security.scan import scan_messages, synthetic_mail
+from argus_security.store import CHECKLIST, Store
+from argus_security.workflow import change_worklist
 
 
 class SeparateAccountWorkflowTests(unittest.TestCase):
@@ -35,7 +35,7 @@ class SeparateAccountWorkflowTests(unittest.TestCase):
                 if a["provider_id"] == "github" and a["identity_email"]}
 
     def run_cli(self, ids, runner):
-        with patch("account_finder.bitwarden.shutil.which", return_value="/fake/bw"):
+        with patch("argus_security.bitwarden.shutil.which", return_value="/fake/bw"):
             return add_to_unlocked_cli(self.store, ids, runner=runner,
                                        environment={"BW_SESSION": "FAKE-SESSION-NEVER-STORED"})
 
@@ -67,7 +67,7 @@ class SeparateAccountWorkflowTests(unittest.TestCase):
         def fail_second(arguments, **kwargs):
             if arguments[1] == "status":
                 return self.successful(arguments, **kwargs)
-            payloads.append(json.loads(base64.b64decode(arguments[-1])))
+            payloads.append(json.loads(base64.b64decode(kwargs["input"])))
             if len(payloads) == 2:
                 raise subprocess.TimeoutExpired(arguments, 20)
             return self.successful(arguments, **kwargs)

@@ -1,7 +1,7 @@
-# Account Compass Free und Pro
+# ARGUS Free und Pro
 
-Account Compass wird als datenschutzfreundliches Freemium-Produkt vorbereitet.
-Dieses Repository enthält aktuell **Account Compass Free**. Diese Edition ist
+ARGUS wird als datenschutzfreundliches Freemium-Produkt vorbereitet.
+Dieses Repository enthält aktuell **ARGUS Free**. Diese Edition ist
 vollständig nutzbar und lokal; sie benötigt weder Online-Konto, Zahlungsdaten noch
 Telemetrie.
 

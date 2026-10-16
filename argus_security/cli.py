@@ -6,7 +6,8 @@ import sys
 from .i18n import translate, cli_language, LocalizedArgumentParser, localize_discovery
 from .registry import Registry
 from .discovery import discover, DNSError
-from .imap_client import IMAPConfig, MailboxError, load_config, save_config, imap_messages
+from .imap_client import IMAPConfig, MailboxError, load_config, save_config, imap_messages, with_keep_alive
+from .mailbox_lease import MailboxLease
 from .background import (BackgroundScanService, CredentialError, KeyringCredentialStore,
                          DEFAULT_INTERVAL_SECONDS, DEFAULT_LIMIT,
                          MIN_INTERVAL_SECONDS, MAX_INTERVAL_SECONDS, MAX_LIMIT)
@@ -14,12 +15,46 @@ from .bitwarden import export_file
 from .scan import file_messages, load_demo, scan_messages
 from .server import serve
 from .store import Store
-DEFAULT_DATA = Path.home() / '.local' / 'share' / 'account-finder'
+
+
+def data_root():
+    """Parent folder of the default profile; a function so tests can redirect it."""
+    return Path.home() / '.local' / 'share'
+
+
+def default_data_dir(language="en"):
+    """Return the default profile, moving a pre-rename profile there once.
+
+    The old ``account-finder`` folder is renamed atomically inside the same
+    parent, which keeps its private permissions and every file in it. Keyring
+    entries use an opaque selector and the "ARGUS IMAP authorization" service
+    name, so they need no migration. An explicit --data-dir is never moved.
+    """
+    root = data_root()
+    current, legacy = root / 'argus', root / 'account-finder'
+    if legacy.is_symlink() or not legacy.is_dir():
+        return current
+    if current.exists() or current.is_symlink():
+        print(translate('An older profile folder still exists at {p0}; ARGUS does not use it. Check it, then move or delete it yourself.',
+                        language, p0=legacy), file=sys.stderr)
+        return current
+    try:
+        legacy.rename(current)
+    except OSError:
+        # Another ARGUS process may have completed the same move first.
+        if current.is_dir() and not legacy.exists():
+            return current
+        print(translate('The previous profile folder {p0} could not be moved; ARGUS keeps using it.',
+                        language, p0=legacy), file=sys.stderr)
+        return legacy
+    print(translate('Moved your profile from {p0} to {p1}.', language, p0=legacy, p1=current), file=sys.stderr)
+    return current
+
 
 def parser(language="en"):
     t = lambda message, **values: translate(message, language, **values)
-    p = LocalizedArgumentParser(language=language, description=t('Local account finder. No login attempts at cataloged services.'))
-    p.add_argument('--data-dir', type=Path, default=DEFAULT_DATA, help=t('Private local results directory'))
+    p = LocalizedArgumentParser(prog='argus', language=language, description=t('ARGUS local account inventory. No login attempts at cataloged services.'))
+    p.add_argument('--data-dir', type=Path, help=t('Private local results directory (default: ~/.local/share/argus)'))
     p.add_argument('--providers', type=Path, help=t('Additional JSON provider catalog'))
     p.add_argument("--language", choices=["en", "de"], default=language, help=t("Interface language (defaults to your system language)"))
     sub = p.add_subparsers(dest='command', required=True)
@@ -75,7 +110,7 @@ def main(argv=None):
     args = parser(language).parse_args(argv)
     try:
         registry = Registry(args.providers)
-        store = Store(args.data_dir, registry)
+        store = Store(args.data_dir if args.data_dir is not None else default_data_dir(language), registry)
         if args.command == 'init':
             store.configure(args.email)
             print(t('Local profile initialized. {p0} providers; no network connection.', p0=len(registry.providers)))
@@ -121,7 +156,7 @@ def main(argv=None):
             print(t('Saved private imap.json without passwords or tokens. Run scan-imap --allow-imap to scan.'))
         elif args.command == 'scan-imap':
             if not args.allow_imap:
-                raise MailboxError(t('No connection authorized; explicitly choose scan-imap --allow-imap'))
+                raise MailboxError('No connection authorized; explicitly choose scan-imap --allow-imap')
             if store.meta('demo', False) or not store.meta('emails'):
                 raise ValueError(t('IMAP requires an initialized personal local profile'))
             if args.limit is not None and args.limit < 1:
@@ -129,10 +164,15 @@ def main(argv=None):
             config = load_config(store.data_dir / 'imap.json')
             print(t('Authorized TLS host: {p0}:{p1}; read-only access.', p0=config.host, p1=config.port))
             if not sys.stdin.isatty():
-                raise MailboxError(t('Enter credentials only in an interactive terminal; no pipes or command-line passwords'))
-            secret = getpass.getpass(t('Short-lived IMAP OAuth2 token: ') if config.auth == 'oauth2' else t('Separate IMAP app password (not Bitwarden): '))
+                raise MailboxError('Enter credentials only in an interactive terminal; no pipes or command-line passwords')
+            # Claim the profile's mailbox before asking for the secret, so a
+            # running scheduled scan is reported instead of a second session.
+            mailbox = MailboxLease(store, kind='manual').acquire()
+            secret = ''
             try:
+                secret = getpass.getpass(t('Short-lived IMAP OAuth2 token: ') if config.auth == 'oauth2' else t('Separate IMAP app password (not Bitwarden): '))
                 messages = imap_messages(store, config, secret, allow_network=True, full_scan=args.full_scan, limit=args.limit, list_only=args.list_folders)
+                messages = with_keep_alive(messages, mailbox.keep_alive)
                 if args.list_folders:
                     for folder in messages:
                         print(folder)
@@ -141,6 +181,7 @@ def main(argv=None):
                     print(json.dumps(result, ensure_ascii=False))
             finally:
                 secret = ''
+                mailbox.release()
         elif args.command == 'background-imap':
             if store.meta('demo', False) or not store.meta('emails'):
                 raise ValueError(t('Background IMAP requires an initialized personal local profile'))
@@ -148,7 +189,7 @@ def main(argv=None):
             if args.action == 'status':
                 print(json.dumps(service.snapshot(), ensure_ascii=False, indent=2))
             elif args.action == 'disable':
-                service.stop()
+                service.disable()
                 print(t('Scheduled IMAP scans are disabled. The app password remains only in your OS keyring until you revoke it.'))
             elif args.action == 'revoke':
                 service.revoke()
@@ -162,14 +203,14 @@ def main(argv=None):
                 # asking for the secret. This command never opens an IMAP socket.
                 config = load_config(store.data_dir / 'imap.json')
                 if not sys.stdin.isatty():
-                    raise MailboxError(t('Enter credentials only in an interactive terminal; no pipes or command-line passwords'))
+                    raise MailboxError('Enter credentials only in an interactive terminal; no pipes or command-line passwords')
                 schedule = service.schedule()
                 secret = getpass.getpass(t('Separate IMAP app password / OAuth2 token for OS keyring: '))
                 try:
                     selector = service.credentials.save(secret, schedule.credential_id)
                 finally:
                     secret = ''
-                service.start(credential_id=selector, interval_seconds=args.interval_minutes * 60, limit=args.limit)
+                service.configure(credential_id=selector, interval_seconds=args.interval_minutes * 60, limit=args.limit)
                 print(t('Scheduled read-only IMAP scans are enabled. They run only while the local ARGUS dashboard is running.'))
                 if config.auth == 'oauth2':
                     print(t('Note: OAuth2 access tokens usually expire within hours. Scheduled scans fail safely once it expires; run enable again with a fresh token or use a provider-supported app password.'))

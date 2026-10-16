@@ -9,13 +9,14 @@ started merely because this module is installed.
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-import json
 import time
 from pathlib import Path
 from typing import Any, Callable, Protocol
 from uuid import UUID, uuid4
 
-from .imap_client import IMAPConfig, IMAPStream, imap_messages, load_config
+from .imap_client import IMAPConfig, imap_messages, load_config, with_keep_alive
+from .mailbox_lease import MailboxBusy, MailboxLease
+from .store import UNCHANGED, atomic_meta_update
 from .scan import scan_messages
 
 
@@ -188,30 +189,11 @@ class BackgroundSchedule:
                 "run_id": self.run_id, "lease_until": self.lease_until}
 
 
-def _with_keep_alive(stream: IMAPStream, keep_alive: Callable[[], None]) -> IMAPStream:
-    """Check the lease before each mailbox fetch; closing also closes the IMAP stream."""
-    def guarded():
-        iterator = iter(stream)
-        try:
-            while True:
-                keep_alive()
-                try:
-                    raw = next(iterator)
-                except StopIteration:
-                    return
-                yield raw
-        finally:
-            close = getattr(iterator, "close", None)
-            if close:
-                close()
-    return IMAPStream(guarded(), stream.scan_info, stream.scan_emails)
-
-
 def _default_runner(store: MetaStore, config: IMAPConfig, secret: str, *, limit: int,
                     keep_alive: Callable[[], None]) -> dict[str, Any]:
     """The only network path, reached after explicit schedule + runtime consent."""
     messages = imap_messages(store, config, secret, allow_network=True, full_scan=False, limit=limit)
-    return scan_messages(store, _with_keep_alive(messages, keep_alive), "imap")
+    return scan_messages(store, with_keep_alive(messages, keep_alive), "imap")
 
 
 class BackgroundScanService:
@@ -254,26 +236,13 @@ class BackgroundScanService:
     def _atomic_update(self, change):
         """Apply a schedule transition under SQLite's cross-process write lock.
 
-        Test doubles without ``connect`` retain the deterministic single-process
-        behavior used by focused unit tests. Production ``Store`` always offers
-        this method, so mailbox work is leased before any keyring or network use.
+        ``change`` receives the validated schedule and returns ``(updated or
+        None, result)``; mailbox work is claimed before any keyring or network use.
         """
-        connect = getattr(self.store, "connect", None)
-        if not callable(connect):
-            current = self.schedule()
-            updated, result = change(current)
-            if updated is not None:
-                self._save(updated)
-            return result
-        with connect() as db:
-            db.execute("BEGIN IMMEDIATE")
-            row = db.execute("SELECT value FROM meta WHERE key=?", (SCHEDULE_META_KEY,)).fetchone()
-            current = BackgroundSchedule.from_data(json.loads(row[0]) if row else None)
-            updated, result = change(current)
-            if updated is not None:
-                db.execute("INSERT INTO meta VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
-                           (SCHEDULE_META_KEY, json.dumps(updated.public_data(), ensure_ascii=False)))
-            return result
+        def apply(value):
+            updated, result = change(BackgroundSchedule.from_data(value))
+            return (UNCHANGED if updated is None else updated.public_data()), result
+        return atomic_meta_update(self.store, SCHEDULE_META_KEY, apply)
 
     def configure(self, *, credential_id: str, interval_seconds: int = DEFAULT_INTERVAL_SECONDS,
                   limit: int = DEFAULT_LIMIT, enabled: bool = True) -> BackgroundSchedule:
@@ -285,21 +254,11 @@ class BackgroundScanService:
         schedule = BackgroundSchedule.from_data(schedule.public_data())
         return self._save(schedule)
 
-    # These names are deliberately compact for a local server controller.
-    # ``start`` does not connect; it merely saves an explicit opt-in schedule.
-    def start(self, *, credential_id: str, interval_seconds: int = DEFAULT_INTERVAL_SECONDS,
-              limit: int = DEFAULT_LIMIT) -> BackgroundSchedule:
-        return self.configure(credential_id=credential_id, interval_seconds=interval_seconds,
-                              limit=limit, enabled=True)
-
     def disable(self) -> BackgroundSchedule:
         def disable(schedule):
             stopped = replace(schedule, enabled=False, next_run_at=None, run_id=None, lease_until=None)
             return stopped, stopped
         return self._atomic_update(disable)
-
-    def stop(self) -> BackgroundSchedule:
-        return self.disable()
 
     def revoke(self) -> BackgroundSchedule:
         """Disable scheduling and remove the stored OS-keyring authorization.
@@ -363,6 +322,15 @@ class BackgroundScanService:
 
         return self._atomic_update(finish)
 
+    def _release_claim(self, run_id) -> None:
+        """Give a claimed run back unchanged when the mailbox is busy elsewhere."""
+        def release(schedule):
+            if schedule.run_id != run_id:
+                return None, None
+            return replace(schedule, run_id=None, lease_until=None), None
+
+        self._atomic_update(release)
+
     def _renew_claim(self, run_id) -> bool:
         moment = self.clock()
 
@@ -373,21 +341,21 @@ class BackgroundScanService:
 
         return self._atomic_update(renew)
 
-    def _keep_alive(self, run_id) -> Callable[[], None]:
-        """Return the runner's heartbeat: renew the lease or stop the run.
+    def _keep_alive(self, run_id, mailbox: MailboxLease) -> Callable[[], None]:
+        """Return the runner's heartbeat: renew both leases or stop the run.
 
         Without renewal a long scan (up to ``MAX_LIMIT`` messages) outlives
-        ``RUN_LEASE_SECONDS`` and a second process could open the mailbox too.
+        ``RUN_LEASE_SECONDS``; a disable, revoke or replacement stops it.
         """
         renewed = [self.clock()]
 
         def keep_alive():
             moment = self.clock()
-            if moment - renewed[0] < LEASE_RENEW_SECONDS:
-                return
-            if not self._renew_claim(run_id):
-                raise ScanCancelled()
-            renewed[0] = moment
+            if moment - renewed[0] >= LEASE_RENEW_SECONDS:
+                if not self._renew_claim(run_id):
+                    raise ScanCancelled()
+                renewed[0] = moment
+            mailbox.keep_alive()
 
         return keep_alive
 
@@ -404,13 +372,21 @@ class BackgroundScanService:
             return claimed
         schedule = claimed["schedule"]
         run_id = claimed["run_id"]
+        # A manual scan-imap of the same profile may hold the mailbox. Give the
+        # claim back unchanged; the dashboard's next pass retries.
+        mailbox = MailboxLease(self.store, kind="scheduled", clock=self.clock)
+        try:
+            mailbox.acquire()
+        except MailboxBusy:
+            self._release_claim(run_id)
+            return {"status": "busy"}
         try:
             secret = self.credentials.load(schedule.credential_id or "")
             config = self.config_loader()
             if not isinstance(config, IMAPConfig):
                 raise ValueError("Invalid IMAP configuration")
             result = self.scan_runner(self.store, config, secret, limit=schedule.limit,
-                                      keep_alive=self._keep_alive(run_id))
+                                      keep_alive=self._keep_alive(run_id, mailbox))
             if not isinstance(result, dict):
                 raise ValueError("Invalid scan result")
             outcome = result.get("result", "completed")
@@ -429,3 +405,5 @@ class BackgroundScanService:
             error = "Background IMAP scan could not complete; check local setup and authorization"
             committed = self._finish_claim(run_id, outcome="failed", error=error)
             return {"status": "failed" if committed else "cancelled", "error": error}
+        finally:
+            mailbox.release()

@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import sqlite3
 
+from .errors import UserFacingError
 from .analysis import ANALYSIS_VERSION, Evidence, LABELS, english_caveat, normalize_email
 from .instances import (SCHEMA as INSTANCE_SCHEMA, direct_identity, insert_instance,
                         migrate_instances, owned_emails, synchronize_instances)
@@ -16,6 +17,33 @@ CHECKLIST = ("reviewed", "saved_in_bitwarden", "password_changed", "login_tested
 
 def now():
     return datetime.now(timezone.utc).isoformat()
+
+
+UNCHANGED = object()
+
+
+def atomic_meta_update(store, key, change):
+    """Read, change and write one meta value under SQLite's cross-process lock.
+
+    ``change(value)`` receives the decoded value (``None`` when missing) and
+    returns ``(new_value, result)``; ``UNCHANGED`` skips the write. Duck-typed
+    stores without ``connect`` (focused unit-test doubles) fall back to
+    ``meta``/``set_meta`` and are therefore single-process only.
+    """
+    connect = getattr(store, "connect", None)
+    if not callable(connect):
+        value, result = change(store.meta(key))
+        if value is not UNCHANGED:
+            store.set_meta(key, value)
+        return result
+    with connect() as db:
+        db.execute("BEGIN IMMEDIATE")
+        row = db.execute("SELECT value FROM meta WHERE key=?", (key,)).fetchone()
+        value, result = change(json.loads(row[0]) if row else None)
+        if value is not UNCHANGED:
+            db.execute("INSERT INTO meta VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                       (key, json.dumps(value, ensure_ascii=False)))
+        return result
 
 
 def private_dir(path: Path):
@@ -150,27 +178,27 @@ class Store:
     def configure(self, emails: list[str], demo=False):
         normalized = sorted({normalize_email(x) for x in emails})
         if not normalized:
-            raise ValueError("At least one own email address is required")
+            raise UserFacingError("At least one own email address is required")
         previous = self.meta("emails")
         if previous and previous != normalized:
-            raise ValueError("A different initial address scope requires a new data directory; use add-email to add aliases")
+            raise UserFacingError("A different initial address scope requires a new data directory; use add-email to add aliases")
         self.set_meta("emails", normalized)
         self.set_meta("demo", bool(demo))
 
     def add_emails(self, emails: list[str]):
         if not isinstance(emails, list) or not emails or any(not isinstance(e, str) for e in emails):
-            raise ValueError("Specify your own email addresses as a list")
+            raise UserFacingError("Specify your own email addresses as a list")
         extra = {normalize_email(e) for e in emails}
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             current = db.execute("SELECT value FROM meta WHERE key='emails'").fetchone()
             demo = db.execute("SELECT value FROM meta WHERE key='demo'").fetchone()
             if not current or (demo and json.loads(demo[0])):
-                raise ValueError("Aliases require an initialized personal profile")
+                raise UserFacingError("Aliases require an initialized personal profile")
             previous = set(json.loads(current[0]))
             merged = sorted(previous | extra)
             if len(merged) > 64:
-                raise ValueError("A profile supports up to 64 own addresses")
+                raise UserFacingError("A profile supports up to 64 own addresses")
             added = sorted(extra - previous)
             if added:
                 db.execute("UPDATE meta SET value=? WHERE key='emails'", (json.dumps(merged),))
@@ -318,13 +346,13 @@ class Store:
     def update_account(self, account_id: str, change: dict):
         allowed = {"checklist", "status", "priority", "login_method", "registered_email", "label"}
         if not isinstance(account_id, str) or not isinstance(change, dict) or set(change) - allowed:
-            raise ValueError("Invalid account update")
+            raise UserFacingError("Invalid account update")
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             row = db.execute("SELECT * FROM account_instances WHERE id=?", (account_id,)).fetchone()
             if row is None:
                 if account_id not in self.registry.providers:
-                    raise ValueError("Invalid account update")
+                    raise UserFacingError("Invalid account update")
                 insert_instance(db, account_id, ident=account_id)
                 row = db.execute("SELECT * FROM account_instances WHERE id=?", (account_id,)).fetchone()
             state = dict(row)
@@ -332,7 +360,7 @@ class Store:
             if "checklist" in change:
                 additions = change["checklist"]
                 if not isinstance(additions, dict) or set(additions) - set(CHECKLIST) or any(type(v) is not bool for v in additions.values()):
-                    raise ValueError("Invalid checklist")
+                    raise UserFacingError("Invalid checklist")
                 checklist.update(additions)
             method = change.get("login_method", state["login_method"])
             manual_email, identity_email = state["manual_email"], state["identity_email"]
@@ -340,43 +368,43 @@ class Store:
             if "registered_email" in change:
                 proposed = change["registered_email"]
                 if proposed is not None and not isinstance(proposed, str):
-                    raise ValueError("Invalid sign-in address")
+                    raise UserFacingError("Invalid sign-in address")
                 proposed = normalize_email(proposed) if proposed else None
                 if proposed and proposed not in owned_emails(db):
-                    raise ValueError("Use only explicitly configured own addresses")
+                    raise UserFacingError("Use only explicitly configured own addresses")
                 if identity_email and proposed != identity_email:
-                    raise ValueError("An existing account's sign-in address cannot be reassigned; add a separate account")
+                    raise UserFacingError("An existing account's sign-in address cannot be reassigned; add a separate account")
                 if proposed and not identity_email:
                     if db.execute("SELECT 1 FROM instance_bitwarden_handoffs WHERE account_id=?", (account_id,)).fetchone():
-                        raise ValueError("An account with a Bitwarden transfer cannot be assigned a different identity; add a separate account")
+                        raise UserFacingError("An account with a Bitwarden transfer cannot be assigned a different identity; add a separate account")
                     if db.execute("SELECT 1 FROM account_instances WHERE provider_id=? AND identity_email=? AND canonical=1 AND id<>?", (state["provider_id"], proposed, account_id)).fetchone():
-                        raise ValueError("That sign-in address already belongs to a separate account")
+                        raise UserFacingError("That sign-in address already belongs to a separate account")
                     identity_email, review = proposed, 0
                 manual_email = proposed
             label = change.get("label", state["label"])
             label = self._account_label(label)
             if not state["canonical"] and not label:
-                raise ValueError("Use a unique label for accounts with the same sign-in address")
+                raise UserFacingError("Use a unique label for accounts with the same sign-in address")
             peers = db.execute("SELECT label FROM account_instances WHERE provider_id=? AND identity_email IS ? AND id<>?",
                                (state["provider_id"], identity_email, account_id)).fetchall()
             if label and any(peer["label"].casefold() == label.casefold() for peer in peers):
-                raise ValueError("Use a unique label for accounts with the same sign-in address")
+                raise UserFacingError("Use a unique label for accounts with the same sign-in address")
             if method not in {"password", "sso", "passkey"}:
-                raise ValueError("Invalid sign-in method")
+                raise UserFacingError("Invalid sign-in method")
             priority = change.get("priority", state["priority_override"])
             if priority not in {None, "normal", "high", "critical"}:
-                raise ValueError("Invalid priority")
+                raise UserFacingError("Invalid priority")
             status = change.get("status", state["status"])
             if status not in {"pending", "in_progress", "done", "skipped"}:
-                raise ValueError("Invalid status")
+                raise UserFacingError("Invalid status")
             if change.get("status") == "done" and review:
-                raise ValueError("Identify this account before marking it done")
+                raise UserFacingError("Identify this account before marking it done")
             required = ["reviewed", "saved_in_bitwarden", "login_tested"]
             if method == "password":
                 required.append("password_changed")
             if status == "done" and not all(checklist.get(k) for k in required):
                 if "status" in change:
-                    raise ValueError("Check the required steps before marking this account done")
+                    raise UserFacingError("Check the required steps before marking this account done")
                 status = "in_progress"
             if status == "pending" and any(checklist.values()):
                 status = "in_progress"
@@ -388,7 +416,7 @@ class Store:
     @staticmethod
     def _account_label(value):
         if not isinstance(value, str) or len(value) > 80 or any(ord(c) < 32 or ord(c) == 127 for c in value):
-            raise ValueError("Account labels must contain at most 80 characters and no control characters")
+            raise UserFacingError("Account labels must contain at most 80 characters and no control characters")
         return value.strip()
 
     def create_account(self, data: dict):
@@ -396,16 +424,16 @@ class Store:
         if (not isinstance(data, dict) or set(data) != {"provider_id", "email", "label", "confirmed"}
                 or data["confirmed"] is not True or not isinstance(data["provider_id"], str)
                 or data["provider_id"] not in self.registry.providers or not isinstance(data["email"], str)):
-            raise ValueError("Confirm the provider and your own sign-in address")
+            raise UserFacingError("Confirm the provider and your own sign-in address")
         provider_id, label = data["provider_id"], self._account_label(data["label"])
         email = normalize_email(data["email"]) if data["email"] else None
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             if email and email not in owned_emails(db):
-                raise ValueError("Use only explicitly configured own addresses")
+                raise UserFacingError("Use only explicitly configured own addresses")
             matches = db.execute("SELECT * FROM account_instances WHERE provider_id=? AND identity_email IS ?", (provider_id, email)).fetchall()
             if matches and (not label or any(row["label"].casefold() == label.casefold() for row in matches)):
-                raise ValueError("Use a unique label for accounts with the same sign-in address")
+                raise UserFacingError("Use a unique label for accounts with the same sign-in address")
             canonical = not any(row["canonical"] for row in matches)
             ident = insert_instance(db, provider_id, email, canonical=canonical, label=label,
                                     manual=True, state={"confirmed": 1, "status": "in_progress",

@@ -1,7 +1,8 @@
 "use strict";
 const $ = id => document.getElementById(id);
 let language;
-try { language=localStorage.getItem("account-finder.language"); } catch (_) {}
+// "account-finder.language" is the pre-rename key; it is read once and replaced.
+try { language=localStorage.getItem("argus.language")||localStorage.getItem("account-finder.language"); } catch (_) {}
 if(!["en","de"].includes(language))language=(navigator.language||"en").toLowerCase().startsWith("de")?"de":"en";
 const translations=window.AF_TRANSLATIONS.de;
 const translationSpacing=new WeakMap();
@@ -18,7 +19,7 @@ function canonicalMessage(message){return Object.keys(translations).find(key=>tr
 function applyLanguage(next,remember=false){
   if(!["en","de"].includes(next))return;
   language=next;
-  if(remember){try{localStorage.setItem("account-finder.language",language);}catch(_){}}
+  if(remember){try{localStorage.setItem("argus.language",language);localStorage.removeItem("account-finder.language");}catch(_){}}
   document.documentElement.lang=language;
   document.querySelectorAll("[data-i18n]").forEach(e=>{
     if(!translationSpacing.has(e))translationSpacing.set(e,[e.textContent.match(/^\s*/)[0],e.textContent.match(/\s*$/)[0]]);
@@ -51,7 +52,7 @@ const titles = {
   bitwarden:["A secure password for every account.","Prepare new vault items and make the changes yourself.","Prepare Bitwarden"],
   workflow:["Secure your accounts, one at a time.","A local worklist that remembers your progress.","Security worklist"],
   setup:["Start with your mailbox.","Import existing messages or set up read-only IMAP access.","Mailbox & Import"],
-  plans:["Choose your local edition.","Account Compass Free is available now; Pro is a transparent preview.","Plans"]
+  plans:["Choose your local edition.","ARGUS Free is available now; Pro is a transparent preview.","Plans"]
 };
 function node(tag, text, className) { const e=document.createElement(tag); if(text!==undefined)e.textContent=text; if(className)e.className=className; return e; }
 function accountEmail(account){return account.identity_email||account.manual_email||account.registered_emails[0]||"";}
@@ -67,8 +68,11 @@ function error(message) { setMessage("error",canonicalMessage(message)); $("erro
 function toast(message) { setMessage("toast",canonicalMessage(message)); $("toast").classList.remove("hidden"); setTimeout(()=>$("toast").classList.add("hidden"),3000); }
 async function api(path, options={}) {
   const headers={Authorization:`Bearer ${token}`,...(options.headers||{})};
-  const response=await fetch(path,{...options,headers,cache:"no-store",credentials:"omit"});
-  if(!response.ok){const result=await response.json().catch(()=>({}));throw new Error(result.error||t("Local request failed."));}
+  let response;
+  // A stopped local server must not surface the browser's raw network error.
+  try{response=await fetch(path,{...options,headers,cache:"no-store",credentials:"omit"});}
+  catch(_){throw new Error("Local request failed.");}
+  if(!response.ok){const result=await response.json().catch(()=>({}));throw new Error(result.error||"Local request failed.");}
   return response.json();
 }
 async function refresh() {
@@ -96,7 +100,7 @@ function renderState() {
   if(scheduled.last_error) scheduledText+=" "+t(scheduled.last_error);
   $("background-scan-status").textContent=scheduledText;
   const domain=(state.emails[0]||"").split("@")[1]||"your-domain.example";
-  $("discover-command").textContent=`python -m account_finder discover --domain ${domain} --allow-dns`;
+  $("discover-command").textContent=`python -m argus_security discover --domain ${domain} --allow-dns`;
   renderScan(state.active_import||state.last_scan);
   $("cancel-import").classList.toggle("hidden",!activeBatch&&!state.active_import);
   $("add-alias-button").disabled=state.demo||addingAlias||Boolean(activeBatch||state.active_import);
@@ -112,7 +116,7 @@ function renderPlans(){
   const license=product.license;
   $("license-activation").classList.toggle("hidden",!license.activation_enabled);
   $("license-status").textContent=t(license.message);
-  setMessage("pro-preview-note",license.state==="active"?"Account Compass Pro is active.":"Pro is in development and not for sale. This app does not collect payment details, create an online account or send telemetry.");
+  setMessage("pro-preview-note",license.state==="active"?"ARGUS Pro is active.":"Pro is in development and not for sale. This app does not collect payment details, create an online account or send telemetry.");
   $("activate-license").disabled=!license.activation_enabled;
 }
 function scanDescription(scan){
@@ -438,7 +442,7 @@ async function exportMetadata(){
   try{
     const result=await api("/api/bitwarden",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids,language})});
     const url=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:"application/json"}));
-    const a=document.createElement("a");a.href=url;a.download="account-finder-bitwarden.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast(t("Metadata downloaded. No vault was changed."));
+    const a=document.createElement("a");a.href=url;a.download="argus-bitwarden.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast(t("Metadata downloaded. No vault was changed."));
   }catch(e){error(e.message);}finally{bitwardenBusy=false;renderExport();}
 }
 function selectedBitwardenIds(){

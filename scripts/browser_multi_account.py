@@ -8,10 +8,10 @@ import tempfile
 import threading
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from account_finder.registry import Registry
-from account_finder.scan import scan_messages, synthetic_mail
-from account_finder.server import DashboardServer
-from account_finder.store import Store, now
+from argus_security.registry import Registry
+from argus_security.scan import scan_messages, synthetic_mail
+from argus_security.server import DashboardServer
+from argus_security.store import Store, now
 
 
 def main():

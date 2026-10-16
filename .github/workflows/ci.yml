@@ -35,21 +35,23 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: JavaScript syntax
         run: |
-          node --check account_finder/web/app.js
+          node --check argus_security/web/app.js
           node --check browser-companion/src/popup.js
           python browser-companion/tests/validate.py
       - name: Build and validate the installed package
         run: |
           python -m pip install build
           python -m build
-          python -m venv /tmp/account-finder-package
-          /tmp/account-finder-package/bin/python -m pip install dist/*.whl
+          python -m venv /tmp/argus-package
+          /tmp/argus-package/bin/python -m pip install dist/*.whl
           cd /tmp
-          /tmp/account-finder-package/bin/python -m account_finder --language en --help
-          /tmp/account-finder-package/bin/python -m account_finder --language de --help
-          /tmp/account-finder-package/bin/python -m account_finder --data-dir /tmp/installed-demo demo
-          /tmp/account-finder-package/bin/python -m account_finder --data-dir /tmp/installed-demo report
-          /tmp/account-finder-package/bin/python -m account_finder --data-dir /tmp/installed-demo list-accounts
+          /tmp/argus-package/bin/python -m argus_security --language en --help
+          /tmp/argus-package/bin/python -m argus_security --language de --help
+          /tmp/argus-package/bin/argus --language en --help
+          /tmp/argus-package/bin/account-finder --language en --help
+          /tmp/argus-package/bin/python -m argus_security --data-dir /tmp/installed-demo demo
+          /tmp/argus-package/bin/python -m argus_security --data-dir /tmp/installed-demo report
+          /tmp/argus-package/bin/python -m argus_security --data-dir /tmp/installed-demo list-accounts
 
   browser:
     name: German and English browser checks

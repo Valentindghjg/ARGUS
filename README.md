@@ -1,10 +1,10 @@
-# Account Compass 1.16.0
+# ARGUS 1.16.0
 
 [Deutsch](README_DE.md) · English
 
 [![Checks](https://github.com/Valentindghjg/ARGUS/actions/workflows/ci.yml/badge.svg)](https://github.com/Valentindghjg/ARGUS/actions/workflows/ci.yml)
 
-A local Python account finder with a **German/English dashboard**, **527
+ARGUS is a local Python account inventory with a **German/English dashboard**, **527
 extensible providers**, local email analysis and a Bitwarden security checklist.
 Users choose their interface language. Email detection always supports both
 English and German, independently of that choice.
@@ -23,15 +23,15 @@ that no account exists. Synthetic demo data and personal profiles stay separate.
 
 ## License status
 
-Account Compass Free is licensed under the
+ARGUS Free is licensed under the
 [Mozilla Public License 2.0](LICENSE) (MPL-2.0). A future commercial Pro edition
 will be distributed separately under its own terms; it is not included in this
 repository. See [LICENSING.md](LICENSING.md) and the
 [publication checklist](docs/PUBLISHING.md).
 
-## Account Compass Free and Pro
+## ARGUS Free and Pro
 
-This build is **Account Compass Free**: its account inventory, local mail import,
+This build is **ARGUS Free**: its account inventory, local mail import,
 security checklists and password-free Bitwarden metadata are available without an
 online account, payment data or telemetry. The dashboard also explains a future
 **Pro edition in development**. It is not implemented, purchasable or
@@ -44,7 +44,7 @@ Extract the archive or clone the repository, open a terminal in its folder
 
 ```bash
 python -m pip install .
-python -m account_finder --data-dir .local/demo demo --serve --open
+python -m argus_security --data-dir .local/demo demo --serve --open
 ```
 
 Open `http://127.0.0.1:8765/` if your browser does not open automatically. Ctrl+C
@@ -60,7 +60,7 @@ You can also clone the GitHub repository:
 git clone https://github.com/Valentindghjg/ARGUS.git
 cd ARGUS
 python -m pip install .
-python -m account_finder --data-dir .local/demo demo --serve --open
+python -m argus_security --data-dir .local/demo demo --serve --open
 ```
 
 Use `git pull --ff-only` to update an existing clean checkout. Personal profiles
@@ -98,9 +98,9 @@ The CLI follows your system language, or accepts a global flag **before** the
 subcommand:
 
 ```bash
-python -m account_finder --language en --help
-python -m account_finder --language de --help
-python -m account_finder --language de --data-dir .local/demo demo --serve
+python -m argus_security --language en --help
+python -m argus_security --language de --help
+python -m argus_security --language de --data-dir .local/demo demo --serve
 ```
 
 Human-readable help, prompts, validation and metadata notes use that language.
@@ -115,25 +115,31 @@ Run the app on **your own computer** before processing real emails or credential
 Replace `your.email@example.org` with your own registration address:
 
 ```bash
-python -m account_finder init --email your.email@example.org
-python -m account_finder serve --open
+python -m argus_security init --email your.email@example.org
+python -m argus_security serve --open
 ```
 
-The default personal directory is `~/.local/share/account-finder/`. To use a
-different directory, put `--data-dir /absolute/path` **before the subcommand**.
+The default personal directory is `~/.local/share/argus/`. A profile from
+before the ARGUS rename (`~/.local/share/account-finder/`) is moved there
+automatically once, with its files and permissions. To use a
+different directory, put `--data-dir /absolute/path` **before the subcommand**;
+such a directory is never moved. After `pip install .` the shorter `argus`
+command works the same as `python -m argus_security`. The old `account-finder`
+command and `python -m account_finder` still work for now but print a
+deprecation notice.
 Your new personal profile initially has no discovered accounts until emails are
 imported. The demo directory is separate.
 
 You can configure multiple own registration addresses:
 
 ```bash
-python -m account_finder --data-dir .local/personal init --email your.email@example.org --email your.alias@example.org
+python -m argus_security --data-dir .local/personal init --email your.email@example.org --email your.alias@example.org
 ```
 
 Add another own address later in “Mailbox & Import”, or with:
 
 ```bash
-python -m account_finder add-email --email your.alias@example.org
+python -m argus_security add-email --email your.alias@example.org
 ```
 
 Adding addresses preserves existing addresses, confirmations and checklists.
@@ -158,10 +164,10 @@ export large messages without attachments in your email client where practical.
 Command-line imports do not use outgoing network connections:
 
 ```bash
-python -m account_finder import /path/to/eml-folder --format eml
-python -m account_finder import /path/to/mailbox.mbox --format mbox
-python -m account_finder import /path/to/Maildir --format maildir
-python -m account_finder report
+python -m argus_security import /path/to/eml-folder --format eml
+python -m argus_security import /path/to/mailbox.mbox --format mbox
+python -m argus_security import /path/to/Maildir --format maildir
+python -m argus_security report
 ```
 
 Maildir needs `cur/` and `new/`. Re-importing does not duplicate evidence or reset
@@ -184,13 +190,13 @@ Replace `example.org` with your own mail domain in these commands.
 guidance:
 
 ```bash
-python -m account_finder discover --domain example.org
+python -m argus_security discover --domain example.org
 ```
 
 If you explicitly authorize the public DNS query:
 
 ```bash
-python -m account_finder discover --domain example.org --allow-dns
+python -m argus_security discover --domain example.org --allow-dns
 ```
 
 Only the domain is sent to your DNS resolver, not the full email address or any
@@ -211,7 +217,7 @@ also makes a network query; the app does not run it automatically.
 3. Save settings without credentials:
 
 ```bash
-python -m account_finder setup-imap
+python -m argus_security setup-imap
 ```
 
 The assistant asks for the host and username and saves private `imap.json`; it
@@ -219,7 +225,7 @@ does not connect. Defaults: TLS port 993 and all selectable folders, including
 archives. To choose folders explicitly:
 
 ```bash
-python -m account_finder setup-imap --host VERIFIED-IMAP-HOST --username your.email@example.org --folder INBOX --folder Archive
+python -m argus_security setup-imap --host VERIFIED-IMAP-HOST --username your.email@example.org --folder INBOX --folder Archive
 ```
 
 Replace `VERIFIED-IMAP-HOST` with the actual host. Folder names depend on the
@@ -239,9 +245,9 @@ settings. Do not add credentials. Only these fields are accepted:
 4. Explicitly authorize the connection, first with a limited scan:
 
 ```bash
-python -m account_finder scan-imap --allow-imap --list-folders
-python -m account_finder scan-imap --allow-imap --limit 500
-python -m account_finder scan-imap --allow-imap
+python -m argus_security scan-imap --allow-imap --list-folders
+python -m argus_security scan-imap --allow-imap --limit 500
+python -m argus_security scan-imap --allow-imap
 ```
 
 The secret is entered in a hidden interactive terminal prompt on every run and
@@ -265,8 +271,8 @@ backends and has no file fallback:
 
 ```bash
 python -m pip install keyring
-python -m account_finder background-imap enable --interval-minutes 1440 --limit 500
-python -m account_finder serve --open
+python -m argus_security background-imap enable --interval-minutes 1440 --limit 500
+python -m argus_security serve --open
 ```
 
 The command asks for the separate app password or externally obtained OAuth2
@@ -279,9 +285,9 @@ full rescan, does not change mail, and backs off after a safe fixed error.
 Check, pause, or remove the authorization with:
 
 ```bash
-python -m account_finder background-imap status
-python -m account_finder background-imap disable
-python -m account_finder background-imap revoke
+python -m argus_security background-imap status
+python -m argus_security background-imap disable
+python -m argus_security background-imap revoke
 ```
 
 `disable` pauses future scans while retaining the keyring entry. `revoke`
@@ -408,7 +414,7 @@ the [Bitwarden CLI handoff guide](docs/BITWARDEN_CLI.md).
 A command-line metadata export is also supported:
 
 ```bash
-python -m account_finder bitwarden-export /local/protected/path/account-finder.json --id github --id steam
+python -m argus_security bitwarden-export /local/protected/path/argus-bitwarden.json --id github --id steam
 ```
 
 CLI exports are created with private permissions and never overwrite existing
@@ -417,11 +423,11 @@ downloads use the permissions and backup settings of your downloads directory.
 
 ## Extend the provider catalog
 
-`account_finder/data/providers.json` contains 527 curated providers. Add a separate
+`argus_security/data/providers.json` contains 527 curated providers. Add a separate
 JSON file without editing the built-in catalog:
 
 ```bash
-python -m account_finder --providers examples/providers-extra.json --data-dir .local/demo-custom demo --serve
+python -m argus_security --providers examples/providers-extra.json --data-dir .local/demo-custom demo --serve
 ```
 
 The example is synthetic and uses `.example`. IDs and domain roots must be unique;
@@ -479,16 +485,16 @@ python scripts/browser_multi_account.py --browser /usr/bin/chromium
 
 | File | Purpose |
 |---|---|
-| `account_finder/analysis.py` | Local MIME parsing and bilingual detection rules |
-| `account_finder/data/providers.json` | Extensible provider catalog |
-| `account_finder/i18n.py`, `data/translations.json` | Local German/English presentation |
-| `account_finder/store.py` | SQLite evidence and checklist persistence |
-| `account_finder/instances.py` | Stable account identities and conservative profile migration |
-| `account_finder/imap_client.py` | TLS IMAP, PEEK and resuming |
-| `account_finder/background.py` | Explicit keyring-backed incremental IMAP schedule |
-| `account_finder/discovery.py` | Explicitly authorized MX hints |
-| `account_finder/bitwarden.py` | Official metadata-only import format |
-| `account_finder/server.py`, `web/` | Local dashboard |
+| `argus_security/analysis.py` | Local MIME parsing and bilingual detection rules |
+| `argus_security/data/providers.json` | Extensible provider catalog |
+| `argus_security/i18n.py`, `data/translations.json` | Local German/English presentation |
+| `argus_security/store.py` | SQLite evidence and checklist persistence |
+| `argus_security/instances.py` | Stable account identities and conservative profile migration |
+| `argus_security/imap_client.py` | TLS IMAP, PEEK and resuming |
+| `argus_security/background.py` | Explicit keyring-backed incremental IMAP schedule |
+| `argus_security/discovery.py` | Explicitly authorized MX hints |
+| `argus_security/bitwarden.py` | Official metadata-only import format |
+| `argus_security/server.py`, `web/` | Local dashboard |
 | `tests/` | Automated regression tests |
 | `browser-companion/` | Minimal unpacked Chromium domain/settings-link companion |
 | [Catalog policy](docs/CATALOG.md) | Scope, review standards and how to propose providers |

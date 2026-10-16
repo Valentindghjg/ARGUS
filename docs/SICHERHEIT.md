@@ -50,9 +50,11 @@ laufender Scan verlängert seine Lease zwischen zwei Nachrichten höchstens alle
 inzwischen deaktiviert, widerrufen oder ersetzt, endet der Lauf vor dem nächsten
 Nachrichtenabruf, meldet sich ab und behält bereits gespeicherte Belege.
 Ordner-Checkpoints werden atomar zusammengeführt. Solange Zeitpläne aktiv sind,
-weist die Startmeldung des Dashboards auf mögliche Postfachverbindungen hin. Ein
-manueller `scan-imap` nutzt diese Lease nicht; starte ihn nicht während eines
-laufenden geplanten Scans.
+weist die Startmeldung des Dashboards auf mögliche Postfachverbindungen hin.
+Manuelle `scan-imap`-Läufe und geplante Scans teilen sich zusätzlich eine
+prozessübergreifende Postfach-Lease. So öffnet ein Profil nie zwei IMAP-Sitzungen
+gleichzeitig: Ein manueller Scan wird während eines geplanten Laufs noch vor der
+Passwortabfrage abgelehnt, und ein geplanter Lauf wartet auf einen manuellen.
 
 Das Bitwarden-Hauptpasswort wird niemals abgefragt. Die Anwendung meldet sich
 nicht bei Bitwarden an. Die optionale direkte Übertragung benötigt eine bereits
@@ -139,7 +141,10 @@ nicht in URLs, Local Storage oder Logs geschrieben. Die lokale Startseite
 Host-/Origin-Prüfung, fehlende CORS-Freigabe, Content Security Policy,
 Frame-Schutz und `no-store` begrenzen browserbasierte Angriffe. Dynamische Daten
 werden mit `textContent` eingefügt. Passwortlinks stammen ausschließlich aus dem
-validierten Katalog, nie aus Mails.
+validierten Katalog, nie aus Mails. Fehlerantworten enthalten nur feste,
+übersetzbare Regelmeldungen (etwa eine Anmeldeadresse, die bereits zu einem
+anderen Account gehört); Ausnahme-, Server-, Pfad- und Tresordetails bleiben
+allgemein.
 
 Der optionale Chromium-Browser-Begleiter ist eine entpackte Manifest-V3-Erweiterung
 mit ausschließlich der Berechtigung `activeTab`. Beim Öffnen des Popups liest sie

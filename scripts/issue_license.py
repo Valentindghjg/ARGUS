@@ -1,4 +1,4 @@
-"""Publisher tool: issue a signed Account Compass Pro entitlement after payment."""
+"""Publisher tool: issue a signed ARGUS Pro entitlement after payment."""
 import argparse
 from datetime import datetime, timezone
 import json
@@ -8,7 +8,7 @@ import secrets
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from account_finder.licensing import PRO_FEATURES, issue
+from argus_security.licensing import PRO_FEATURES, issue
 
 
 def iso_now():
@@ -25,7 +25,7 @@ def write_new(path: Path, content: str):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Issue a signed Account Compass Pro license")
+    parser = argparse.ArgumentParser(description="Issue a signed ARGUS Pro license")
     parser.add_argument("--private-key", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--license-id", default="pro_" + secrets.token_urlsafe(18).replace("-", "_").replace("~", "_"))

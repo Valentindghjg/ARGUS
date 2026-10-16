@@ -13,7 +13,9 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 
-PRODUCT_ID = "account-compass-pro"
+from .errors import UserFacingError
+
+PRODUCT_ID = "argus-pro"
 FORMAT = 1
 LICENSE_FILE = "license.json"
 BUNDLED_PUBLIC_KEY = Path(__file__).with_name("data") / "license_public_key.pem"
@@ -22,7 +24,7 @@ FIELDS = frozenset({"format", "license_id", "product", "edition", "issued_at", "
 LICENSE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{15,79}\Z")
 
 
-class LicenseError(ValueError):
+class LicenseError(UserFacingError):
     """A local entitlement is missing, invalid, expired or not trusted."""
 
 
@@ -125,14 +127,14 @@ def license_status(data_dir: Path, public_key_path: Path = BUNDLED_PUBLIC_KEY) -
     path = data_dir / LICENSE_FILE
     if not path.exists():
         return {"edition": "free", "state": "missing", "activation_enabled": True,
-                "message": "Account Compass Free is active."}
+                "message": "ARGUS Free is active."}
     try:
         entitlement = verify(read_document(path), public_key_path.read_bytes())
     except (LicenseError, OSError):
         return {"edition": "free", "state": "invalid", "activation_enabled": True,
                 "message": "The local Pro license could not be verified."}
     return {**entitlement, "state": "active", "activation_enabled": True,
-            "message": "Account Compass Pro is active."}
+            "message": "ARGUS Pro is active."}
 
 
 def activate(data_dir: Path, document: dict, public_key_path: Path = BUNDLED_PUBLIC_KEY) -> dict:

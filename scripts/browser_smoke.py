@@ -8,10 +8,10 @@ import tempfile
 import threading
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from account_finder.registry import Registry
-from account_finder.scan import load_demo, synthetic_mail
-from account_finder.server import DashboardServer
-from account_finder.store import Store
+from argus_security.registry import Registry
+from argus_security.scan import load_demo, synthetic_mail
+from argus_security.server import DashboardServer
+from argus_security.store import Store
 
 
 def main():
@@ -57,7 +57,7 @@ def main():
                     page.screenshot(path=str(args.screenshots_dir / "dashboard.png"), full_page=True)
 
                 page.locator('[data-view="plans"]').click()
-                expect(page.locator("#free-plan-name")).to_have_text("Account Compass Free")
+                expect(page.locator("#free-plan-name")).to_have_text("ARGUS Free")
                 expect(page.locator("#free-plan-features li")).to_have_count(3)
                 expect(page.locator("#pro-plan-features li")).to_have_count(3)
                 expect(page.locator("#plans-view")).to_contain_text("Pro is in development and not for sale.")
@@ -168,7 +168,7 @@ def main():
                 expect(page.locator('#export-selection input[value="github"]')).to_have_count(0)
                 expect(page.locator("#bitwarden-cli-button")).to_contain_text("unlocked Bitwarden CLI")
                 expect(page.locator("#bitwarden-cli-button")).to_be_disabled()
-                from account_finder.handoffs import reserve, finish
+                from argus_security.handoffs import reserve, finish
                 attempt = reserve(store, 'instagram', 'demo@example.invalid')
                 finish(store, attempt, 'uncertain')
                 page.evaluate('refresh()')

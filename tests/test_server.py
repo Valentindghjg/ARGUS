@@ -7,10 +7,10 @@ import threading
 import unittest
 from unittest.mock import patch
 
-from account_finder.registry import Registry
-from account_finder.scan import synthetic_mail
-from account_finder.server import DashboardServer
-from account_finder.store import Store
+from argus_security.registry import Registry
+from argus_security.scan import synthetic_mail
+from argus_security.server import DashboardServer
+from argus_security.store import Store
 
 
 class ServerTests(unittest.TestCase):
@@ -124,13 +124,13 @@ class ServerTests(unittest.TestCase):
     def test_direct_bitwarden_cli_handoff_requires_explicit_selection(self):
         raw = synthetic_mail("notify@github.com", "Your account has been created", "")
         self.request("/api/import", "POST", raw, headers={"Content-Type":"message/rfc822"})
-        with patch("account_finder.bitwarden.add_to_unlocked_cli", return_value={"items":1,"providers":["github"]}) as handoff:
+        with patch("argus_security.bitwarden.add_to_unlocked_cli", return_value={"items":1,"providers":["github"]}) as handoff:
             status, _, body = self.request("/api/bitwarden/cli", "POST", json.dumps({"ids":["github"],"language":"en","confirmed":True}), headers={"Content-Type":"application/json"})
         self.assertEqual(status, 200)
         self.assertEqual(json.loads(body)["items"], 1)
         handoff.assert_called_once_with(self.store, ["github"], "en")
         self.assertEqual(self.request("/api/bitwarden/cli", "POST", json.dumps({"ids":["github"]}), headers={"Content-Type":"application/json"})[0], 400)
-        with patch("account_finder.bitwarden.add_to_unlocked_cli") as unconfirmed:
+        with patch("argus_security.bitwarden.add_to_unlocked_cli") as unconfirmed:
             for confirmed in (None, False, "true", 1):
                 payload = {"ids":["github"],"language":"en"}
                 if confirmed is not None:
@@ -145,7 +145,7 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(self.request("/api/bitwarden/audit", "POST",
                                       json.dumps({"ids":["github"], "language":"en", "confirmed":False}),
                                       headers=headers)[0], 400)
-        with patch("account_finder.bitwarden.audit_unlocked_cli",
+        with patch("argus_security.bitwarden.audit_unlocked_cli",
                    return_value={"accounts":[{"account_id":"github", "match":"found", "count":1}]}) as audit:
             status, _, body = self.request("/api/bitwarden/audit", "POST",
                                            json.dumps({"ids":["github"], "language":"en", "confirmed":True}),
@@ -165,7 +165,7 @@ class ServerTests(unittest.TestCase):
                         {"account_id":"not-current","language":"en","confirmed":True},
                         {"account_id":current,"language":"en","confirmed":True,"password":"rejected"}):
             self.assertEqual(self.request("/api/secure-next/bitwarden", "POST", json.dumps(payload), headers=headers)[0], 400)
-        with patch("account_finder.bitwarden.add_to_unlocked_cli", return_value={"items":1,"status":"ok"}) as handoff:
+        with patch("argus_security.bitwarden.add_to_unlocked_cli", return_value={"items":1,"status":"ok"}) as handoff:
             status, _, body = self.request("/api/secure-next/bitwarden", "POST", json.dumps({"account_id":current,"language":"en","confirmed":True}), headers=headers)
         self.assertEqual(status, 200)
         self.assertEqual(json.loads(body)["items"], 1)

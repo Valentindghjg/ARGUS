@@ -30,7 +30,7 @@ def main() -> int:
         forbidden = {"host_permissions", "optional_permissions", "optional_host_permissions", "background",
                      "content_scripts", "externally_connectable", "nativeMessaging", "web_accessible_resources"}
         require(not (forbidden & set(manifest)), "Prototype must not add background or page/native access")
-        catalogue = json.loads((ROOT / "account_finder" / "data" / "providers.json").read_text(encoding="utf-8"))["providers"]
+        catalogue = json.loads((ROOT / "argus_security" / "data" / "providers.json").read_text(encoding="utf-8"))["providers"]
         require(len(providers) == len(catalogue), "Bundled catalogue must contain every provider")
         require(all(row["website"].startswith("https://") for row in providers), "Unsafe website link")
         require(all(set(row) == {"id", "name", "website", "domains", "password_url"} for row in providers), "Unexpected provider fields")

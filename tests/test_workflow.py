@@ -11,12 +11,12 @@ import unittest
 from unittest.mock import patch
 import uuid
 
-from account_finder.bitwarden import add_to_unlocked_cli, BitwardenCliError, make_export
-from account_finder.handoffs import HandoffError, handoff_snapshot, reserve, resolve
-from account_finder.registry import Registry
-from account_finder.scan import scan_messages, synthetic_mail
-from account_finder.store import CHECKLIST, Store
-from account_finder.workflow import MAX_PRIORITY_WORKLIST, change_worklist, next_step, recommended_accounts
+from argus_security.bitwarden import add_to_unlocked_cli, BitwardenCliError, make_export
+from argus_security.handoffs import HandoffError, handoff_snapshot, reserve, resolve
+from argus_security.registry import Registry
+from argus_security.scan import scan_messages, synthetic_mail
+from argus_security.store import CHECKLIST, Store
+from argus_security.workflow import MAX_PRIORITY_WORKLIST, change_worklist, next_step, recommended_accounts
 
 
 class ProfileFixture:
@@ -100,14 +100,14 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
         change_worklist(self.store, {'action':'add', 'ids':['github', 'discord']})
         before = self.account('github')
         fixed = datetime(2030, 1, 1, tzinfo=timezone.utc)
-        with patch('account_finder.workflow.utcnow', return_value=fixed):
+        with patch('argus_security.workflow.utcnow', return_value=fixed):
             change_worklist(self.store, {'action':'snooze', 'id':'github', 'days':7})
             snapshot = self.queue()
             github = next(item for item in snapshot['items'] if item['id'] == 'github')
             self.assertTrue(github['deferred'])
             self.assertEqual(github['snoozed_until'], (fixed + timedelta(days=7)).isoformat())
             self.assertEqual(snapshot['current'], 'discord')
-        with patch('account_finder.workflow.utcnow', return_value=fixed + timedelta(days=8)):
+        with patch('argus_security.workflow.utcnow', return_value=fixed + timedelta(days=8)):
             snapshot = self.queue()
             github = next(item for item in snapshot['items'] if item['id'] == 'github')
             self.assertFalse(github['deferred'])
@@ -118,13 +118,13 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
     def test_custom_snooze_date_is_bounded_and_stored_at_utc_midnight(self):
         change_worklist(self.store, {'action':'add', 'ids':['github']})
         fixed = datetime(2030, 1, 1, 12, tzinfo=timezone.utc)
-        with patch('account_finder.workflow.utcnow', return_value=fixed):
+        with patch('argus_security.workflow.utcnow', return_value=fixed):
             change_worklist(self.store, {'action':'snooze_until', 'id':'github', 'date':'2030-01-08'})
             item = self.queue()['items'][0]
             self.assertEqual(item['snoozed_until'], '2030-01-08T00:00:00+00:00')
             self.assertTrue(item['deferred'])
         for value in ('2030-01-01', '2029-12-31', '2031-01-02', 'not-a-date', None):
-            with patch('account_finder.workflow.utcnow', return_value=fixed):
+            with patch('argus_security.workflow.utcnow', return_value=fixed):
                 with self.assertRaises(ValueError):
                     change_worklist(self.store, {'action':'snooze_until', 'id':'github', 'date':value})
 
@@ -208,7 +208,7 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
 
 class HandoffTests(ProfileFixture, unittest.TestCase):
     def transfer(self, ids=None, runner=None):
-        with patch('account_finder.bitwarden.shutil.which', return_value='/fake/bw'):
+        with patch('argus_security.bitwarden.shutil.which', return_value='/fake/bw'):
             return add_to_unlocked_cli(self.store, ids or ['github'], runner=runner or self.success,
                                        environment={'BW_SESSION':'SESSION-MUST-NOT-BE-STORED'})
 
@@ -241,7 +241,7 @@ class HandoffTests(ProfileFixture, unittest.TestCase):
 
     def test_manual_found_marks_only_vault_assignment(self):
         attempt = reserve(self.store, 'github', 'demo@example.invalid')
-        from account_finder.handoffs import finish
+        from argus_security.handoffs import finish
         finish(self.store, attempt, 'uncertain')
         self.review(True)
         checks = self.account()['checklist']
@@ -264,7 +264,7 @@ class HandoffTests(ProfileFixture, unittest.TestCase):
         reserve(self.store, 'github', 'demo@example.invalid')
         with self.assertRaises(HandoffError):
             self.review(False)
-        with patch('account_finder.handoffs.time.time', return_value=10**12):
+        with patch('argus_security.handoffs.time.time', return_value=10**12):
             self.assertEqual(handoff_snapshot(self.store)[0]['state'], 'uncertain')
             self.review(False)
         self.assertEqual(self.transfer()['items'], 1)
@@ -293,7 +293,7 @@ class HandoffTests(ProfileFixture, unittest.TestCase):
         payloads = []
         def fail_second(arguments, **kwargs):
             if arguments[1] == 'status': return self.success(arguments, **kwargs)
-            payloads.append(json.loads(base64.b64decode(arguments[-1])))
+            payloads.append(json.loads(base64.b64decode(kwargs['input'])))
             if len(payloads) == 2: raise subprocess.TimeoutExpired(arguments,20)
             return self.success(arguments, **kwargs)
         self.assertEqual(self.transfer(ids=[first['id'], second['id']], runner=fail_second)['items'], 1)

@@ -2,6 +2,8 @@
 from datetime import date, datetime, time, timedelta, timezone
 import json
 
+from .errors import UserFacingError
+
 
 PRIORITY_RANK = {"critical": 0, "high": 1, "normal": 2}
 CLASSIFICATION_RANK = {"confirmed": 0, "probable": 1}
@@ -43,13 +45,13 @@ def effectively_deferred(row, current):
 
 def custom_snooze_date(value, current):
     if not isinstance(value, str):
-        raise ValueError("Choose a future local date")
+        raise UserFacingError("Choose a future local date")
     try:
         selected = date.fromisoformat(value)
     except ValueError as exc:
-        raise ValueError("Choose a future local date") from exc
+        raise UserFacingError("Choose a future local date") from exc
     if not current.date() < selected <= current.date() + timedelta(days=365):
-        raise ValueError("Choose a future local date")
+        raise UserFacingError("Choose a future local date")
     return datetime.combine(selected, time.min, tzinfo=timezone.utc).isoformat()
 
 
@@ -124,14 +126,14 @@ def change_worklist(store, data):
               "snooze": {"action", "id", "days"},
               "snooze_until": {"action", "id", "date"}}
     if not isinstance(action, str) or action not in shapes or set(data) != shapes[action]:
-        raise ValueError("Invalid worklist action")
+        raise UserFacingError("Invalid worklist action")
     if action == "add":
         ids = data["ids"]
         if not isinstance(ids, list) or not ids or len(ids) > 10_000 or any(not isinstance(i, str) for i in ids):
-            raise ValueError("Select discovered accounts for the worklist")
+            raise UserFacingError("Select discovered accounts for the worklist")
         accounts = {account["id"]: account for account in store.snapshot()["accounts"]}
         if any(i not in accounts or accounts[i]["classification"] == "unknown" for i in ids):
-            raise ValueError("Select discovered accounts for the worklist")
+            raise UserFacingError("Select discovered accounts for the worklist")
         # A single transaction makes additions idempotent even across tabs/processes.
         with store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
@@ -186,14 +188,14 @@ def change_worklist(store, data):
     else:
         account_id = data["id"]
         if not isinstance(account_id, str):
-            raise ValueError("Invalid worklist account")
+            raise UserFacingError("Invalid worklist account")
         if action == "snooze" and (type(data["days"]) is not int or not 1 <= data["days"] <= 365):
-            raise ValueError("Choose a valid local snooze period")
+            raise UserFacingError("Choose a valid local snooze period")
         resume_after = custom_snooze_date(data["date"], utcnow()) if action == "snooze_until" else None
         with store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             if not db.execute("SELECT 1 FROM instance_work_queue WHERE account_id=?", (account_id,)).fetchone():
-                raise ValueError("Account is not in the worklist")
+                raise UserFacingError("Account is not in the worklist")
             if action == "remove":
                 db.execute("DELETE FROM instance_work_queue WHERE account_id=?", (account_id,))
             elif action in {"defer", "restore"}:

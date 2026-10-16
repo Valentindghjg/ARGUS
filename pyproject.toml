@@ -3,8 +3,8 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "local-account-finder"
-version = "1.16.0"
+name = "argus-account-security"
+dynamic = ["version"]
 description = "Offline-first account inventory, local email evidence and Bitwarden security checklists"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -35,11 +35,16 @@ Issues = "https://github.com/Valentindghjg/ARGUS/issues"
 Security = "https://github.com/Valentindghjg/ARGUS/security/advisories"
 
 [project.scripts]
-account-finder = "account_finder.cli:main"
+argus = "argus_security.cli:main"
+# Deprecated alias for profiles and scripts from before the ARGUS rename.
+account-finder = "account_finder.__main__:main"
 
 [tool.setuptools.package-data]
 # Only the publisher PUBLIC key may ship; private keys are git-ignored.
-account_finder = ["data/*.json", "data/license_public_key.pem", "web/*"]
+argus_security = ["data/*.json", "data/license_public_key.pem", "web/*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "argus_security.__version__"}
 
 [tool.setuptools.packages.find]
-include = ["account_finder*"]
+include = ["argus_security*", "account_finder*"]

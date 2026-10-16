@@ -8,9 +8,14 @@ from hashlib import sha256
 from html.parser import HTMLParser
 import re
 
+from .errors import UserFacingError
 from .registry import Registry, normalize_domain
 
 MAX_MESSAGE_BYTES = 2 * 1024 * 1024
+# Internal marker prepended to header-only IMAP fetches. It is part of the
+# message fingerprint, so it keeps its pre-rename name: changing it would
+# duplicate evidence for large messages that were already analyzed.
+HEADERS_ONLY_MARKER = b"X-Account-Finder-Headers-Only"
 MAX_TEXT = 100_000
 ANALYSIS_VERSION = 2
 LABELS = {
@@ -65,10 +70,10 @@ URL = re.compile(r"(?:https?://|www\.)\S+", re.I)
 def normalize_email(value: str) -> str:
     value = value.strip()
     if len(value) > 254 or any(c.isspace() or ord(c) < 32 for c in value) or value.count("@") != 1:
-        raise ValueError("Invalid email address")
+        raise UserFacingError("Invalid email address")
     local, domain = value.rsplit("@", 1)
     if not local or len(local) > 64:
-        raise ValueError("Invalid email address")
+        raise UserFacingError("Invalid email address")
     return local.casefold() + "@" + normalize_domain(domain)
 
 
@@ -208,7 +213,7 @@ def analyze(raw: bytes, registry: Registry, own_emails: list[str], source="eml")
         score = min(score, 35)
         ambiguity = "Multiple own recipients; sign-in address uncertain" if len(direct) > 1 else "Forwarding / recipient association uncertain"
         caveat = caveat + "; " + ambiguity if caveat else ambiguity
-    if message.get("X-Account-Finder-Headers-Only"):
+    if message.get(HEADERS_ONLY_MARKER.decode("ascii")):
         score = min(score, 70)
         header_note = "Only headers analyzed (message exceeds size limit)"
         caveat = caveat + "; " + header_note if caveat else header_note

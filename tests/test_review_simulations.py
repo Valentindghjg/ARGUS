@@ -9,14 +9,14 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from account_finder.background import (BackgroundScanService, KeyringCredentialStore,
+from argus_security.background import (BackgroundScanService, KeyringCredentialStore,
                                        LEASE_RENEW_SECONDS, RUN_LEASE_SECONDS)
-from account_finder.i18n import catalog
-from account_finder.imap_client import IMAPConfig, imap_messages
-from account_finder.registry import Registry
-from account_finder.scan import file_messages, scan_messages, synthetic_mail
-from account_finder.server import DashboardServer, startup_notice
-from account_finder.store import Store
+from argus_security.i18n import catalog
+from argus_security.imap_client import IMAPConfig, imap_messages
+from argus_security.registry import Registry
+from argus_security.scan import file_messages, scan_messages, synthetic_mail
+from argus_security.server import DashboardServer, startup_notice
+from argus_security.store import Store
 from tests.test_background import FakeKeyring
 from tests.test_imap_discovery import FakeIMAP
 
@@ -59,7 +59,7 @@ class ScheduledScanSimulation(unittest.TestCase):
         self.credentials = KeyringCredentialStore(self.keyring)
         self.now = [1_700_000_000.0]
         self.config = IMAPConfig("imap.example.invalid", OWN)
-        no_sleep = patch("account_finder.imap_client.time.sleep", lambda seconds: None)
+        no_sleep = patch("argus_security.imap_client.time.sleep", lambda seconds: None)
         no_sleep.start()
         self.addCleanup(no_sleep.stop)
 
@@ -70,13 +70,13 @@ class ScheduledScanSimulation(unittest.TestCase):
 
     def run_with(self, client, service):
         factory = lambda host, port, ssl_context, timeout: client
-        with patch("account_finder.imap_client.BoundedIMAP4SSL", factory):
+        with patch("argus_security.imap_client.BoundedIMAP4SSL", factory):
             return service.run_due(allow_network=True)
 
     def test_long_scan_renews_its_lease_so_a_second_process_cannot_open_the_mailbox(self):
         selector = self.credentials.save(SECRET)
         first, second = self.service(), self.service()
-        first.start(credential_id=selector, interval_seconds=900, limit=50)
+        first.configure(credential_id=selector, interval_seconds=900, limit=50)
         competing = []
 
         def slow_server(uid):
@@ -95,7 +95,7 @@ class ScheduledScanSimulation(unittest.TestCase):
     def test_disable_during_scan_stops_before_the_next_fetch_and_keeps_evidence(self):
         selector = self.credentials.save(SECRET)
         service = self.service()
-        service.start(credential_id=selector, interval_seconds=900, limit=50)
+        service.configure(credential_id=selector, interval_seconds=900, limit=50)
         fetched = []
 
         def disable_after_first(uid):
@@ -116,7 +116,7 @@ class ScheduledScanSimulation(unittest.TestCase):
     def test_revoke_during_scan_removes_keyring_entry_and_cancels(self):
         selector = self.credentials.save(SECRET)
         service = self.service()
-        service.start(credential_id=selector, interval_seconds=900, limit=50)
+        service.configure(credential_id=selector, interval_seconds=900, limit=50)
 
         def revoke_on_second(uid):
             if uid == 2:
@@ -133,7 +133,7 @@ class ScheduledScanSimulation(unittest.TestCase):
     def test_secret_never_reaches_profile_files_after_a_scheduled_run(self):
         selector = self.credentials.save(SECRET)
         service = self.service()
-        service.start(credential_id=selector, interval_seconds=900, limit=50)
+        service.configure(credential_id=selector, interval_seconds=900, limit=50)
         result = self.run_with(HookedIMAP({1: account_mail(1)}, lambda uid: None), service)
         self.assertEqual(result["status"], "completed")
         for path in Path(self.store.data_dir).rglob("*"):
@@ -185,8 +185,8 @@ class OAuthScheduleNoticeSimulation(unittest.TestCase):
     def test_enabling_an_oauth2_schedule_warns_about_token_expiry_without_echoing_it(self):
         from contextlib import redirect_stdout
         from io import StringIO
-        from account_finder.cli import main
-        from account_finder.imap_client import save_config
+        from argus_security.cli import main
+        from argus_security.imap_client import save_config
         for language, expected in (("en", "expire within hours"), ("de", "nach wenigen Stunden ab")):
             with self.subTest(language=language), tempfile.TemporaryDirectory() as temporary:
                 data_dir = Path(temporary) / "profile"
@@ -194,9 +194,9 @@ class OAuthScheduleNoticeSimulation(unittest.TestCase):
                 save_config(data_dir / "imap.json", IMAPConfig("imap.example.invalid", OWN, auth="oauth2"))
                 credentials = KeyringCredentialStore(FakeKeyring())
                 output = StringIO()
-                with patch("account_finder.cli.KeyringCredentialStore", return_value=credentials), \
-                     patch("account_finder.cli.sys.stdin.isatty", return_value=True), \
-                     patch("account_finder.cli.getpass.getpass", return_value=SECRET), redirect_stdout(output):
+                with patch("argus_security.cli.KeyringCredentialStore", return_value=credentials), \
+                     patch("argus_security.cli.sys.stdin.isatty", return_value=True), \
+                     patch("argus_security.cli.getpass.getpass", return_value=SECRET), redirect_stdout(output):
                     self.assertEqual(main(["--language", language, "--data-dir", str(data_dir),
                                            "background-imap", "enable"]), 0)
                 self.assertIn(expected, output.getvalue())
@@ -261,7 +261,7 @@ class DashboardSchedulerSimulation(unittest.TestCase):
             def run_due(self, *, allow_network):
                 calls.append(allow_network)
 
-        from account_finder.scan import ScanSession
+        from argus_security.scan import ScanSession
         self.server.background_service = Recorder()
         self.server.import_job = ScanSession(self.store, "eml", expected=2)
         self.server._background_pass()

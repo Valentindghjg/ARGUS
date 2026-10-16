@@ -10,7 +10,7 @@ from urllib.parse import urlsplit
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SOURCE = ROOT / "account_finder" / "data" / "providers.json"
+SOURCE = ROOT / "argus_security" / "data" / "providers.json"
 COMPANION = ROOT / "browser-companion"
 
 

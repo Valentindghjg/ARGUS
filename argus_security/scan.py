@@ -6,7 +6,7 @@ from pathlib import Path
 import time
 import uuid
 
-from .analysis import ANALYSIS_VERSION, analyze, MAX_MESSAGE_BYTES
+from .analysis import ANALYSIS_VERSION, HEADERS_ONLY_MARKER, analyze, MAX_MESSAGE_BYTES
 from .store import Store, now
 
 
@@ -63,7 +63,7 @@ class ScanSession:
         if not isinstance(raw, bytes) or not raw or len(raw) > MAX_MESSAGE_BYTES:
             self.stats["skipped"] += 1
         else:
-            if raw.startswith(b"X-Account-Finder-Headers-Only: yes"):
+            if raw.startswith(HEADERS_ONLY_MARKER + b": yes"):
                 self.stats["headers_only"] += 1
             try:
                 evidence = analyze(raw, self.store.registry, self.emails, self.stats["source"])

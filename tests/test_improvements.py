@@ -9,12 +9,12 @@ import tempfile
 import threading
 import unittest
 
-from account_finder.analysis import analyze
-from account_finder.imap_client import IMAPConfig, imap_messages
-from account_finder.registry import Registry
-from account_finder.scan import ScanSession, scan_messages, synthetic_mail
-from account_finder.server import DashboardServer
-from account_finder.store import CHECKLIST, Store
+from argus_security.analysis import analyze
+from argus_security.imap_client import IMAPConfig, imap_messages
+from argus_security.registry import Registry
+from argus_security.scan import ScanSession, scan_messages, synthetic_mail
+from argus_security.server import DashboardServer
+from argus_security.store import CHECKLIST, Store
 from tests.test_imap_discovery import FakeIMAP
 
 

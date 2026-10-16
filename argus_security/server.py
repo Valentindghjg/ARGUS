@@ -9,11 +9,9 @@ import threading
 import time
 from urllib.parse import urlsplit, unquote
 
+from .errors import UserFacingError
 from .analysis import MAX_MESSAGE_BYTES
-from .bitwarden import BitwardenCliError
 from .background import BackgroundScanService, KeyringCredentialStore
-from .handoffs import HandoffError
-from .licensing import LicenseError
 from .scan import ScanSession, scan_messages
 from .store import Store
 
@@ -108,7 +106,7 @@ class DashboardServer(ThreadingHTTPServer):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "AccountFinder"
+    server_version = "ARGUS"
     sys_version = ""
 
     def setup(self):
@@ -192,7 +190,9 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/":
             page = (WEB / "index.html").read_text(encoding="utf-8")
-            self._send(200, page.replace("__LOCAL_TOKEN__", self.server.token), "text/html; charset=utf-8")
+            from . import __version__
+            page = page.replace("__LOCAL_TOKEN__", self.server.token).replace("__APP_VERSION__", __version__)
+            self._send(200, page, "text/html; charset=utf-8")
         elif path == "/i18n.js":
             from .i18n import catalog
             self._send(200, "window.AF_TRANSLATIONS=" + json.dumps(catalog(), ensure_ascii=False) + ";", "text/javascript; charset=utf-8")
@@ -219,6 +219,8 @@ class Handler(BaseHTTPRequestHandler):
         try:
             self.server.store.update_account(unquote(path[len("/api/accounts/"):]), self._json())
             self._send(200, {"ok": True})
+        except UserFacingError as exc:
+            self._error(400, str(exc))
         except (ValueError, TypeError, UnicodeError, json.JSONDecodeError):
             self._error(400, "Invalid update; check required steps before marking the account done")
         except sqlite3.Error:
@@ -251,7 +253,7 @@ class Handler(BaseHTTPRequestHandler):
                 data = self._json()
                 expected = data.get("expected")
                 if set(data) != {"expected"} or type(expected) is not int or not 1 <= expected <= 10_000:
-                    raise ValueError("Between 1 and 10000 files are required")
+                    raise UserFacingError("Between 1 and 10000 files are required")
                 with self.server.import_lock:
                     if self.server.active_import():
                         raise ImportBusy()
@@ -271,7 +273,7 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/profile/emails":
                 data = self._json()
                 if set(data) != {"emails"}:
-                    raise ValueError("Specify only your own addresses")
+                    raise UserFacingError("Specify only your own addresses")
                 with self.server.import_lock:
                     if self.server.active_import():
                         raise ImportBusy()
@@ -281,29 +283,29 @@ class Handler(BaseHTTPRequestHandler):
                 from .bitwarden import make_export
                 data = self._json()
                 result = make_export(self.server.store, data.get("ids"), data.get("language", "en"))
-                self._send(200, result, attachment="account-finder-bitwarden.json")
+                self._send(200, result, attachment="argus-bitwarden.json")
             elif path == "/api/bitwarden/cli":
                 from .bitwarden import add_to_unlocked_cli
                 data = self._json()
                 if set(data) != {"ids", "language", "confirmed"} or data["confirmed"] is not True:
-                    raise ValueError("Confirm the Bitwarden transfer")
+                    raise UserFacingError("Confirm the Bitwarden transfer")
                 result = add_to_unlocked_cli(self.server.store, data["ids"], data["language"])
                 self._send(200, result)
             elif path == "/api/bitwarden/audit":
                 from .bitwarden import audit_unlocked_cli
                 data = self._json()
                 if set(data) != {"ids", "language", "confirmed"} or data["confirmed"] is not True:
-                    raise ValueError("Confirm the local Bitwarden check")
+                    raise UserFacingError("Confirm the local Bitwarden check")
                 self._send(200, audit_unlocked_cli(self.server.store, data["ids"], data["language"]))
             elif path == "/api/secure-next/bitwarden":
                 from .bitwarden import add_to_unlocked_cli
                 data = self._json()
                 if set(data) != {"account_id", "language", "confirmed"} or data["confirmed"] is not True:
-                    raise ValueError("Confirm the guided Bitwarden preparation")
+                    raise UserFacingError("Confirm the guided Bitwarden preparation")
                 snapshot = self.server.store.snapshot(data["language"])
                 current = snapshot["workflow"]["current"]
                 if not isinstance(data["account_id"], str) or data["account_id"] != current:
-                    raise ValueError("Choose the current guided account")
+                    raise UserFacingError("Choose the current guided account")
                 result = add_to_unlocked_cli(self.server.store, [current], data["language"])
                 self._send(200, result)
             elif path == "/api/bitwarden/resolve":
@@ -321,9 +323,9 @@ class Handler(BaseHTTPRequestHandler):
                 self._error(404, "Not found")
         except ImportBusy:
             self._error(409, "An EML import is already running. Finish or cancel it first.")
-        except LicenseError as exc:
-            self._error(400, str(exc))
-        except (BitwardenCliError, HandoffError) as exc:
+        except UserFacingError as exc:
+            # Fixed, translatable texts only (license, Bitwarden, worklist and
+            # account rules). Every other error stays generic.
             self._error(400, str(exc))
         except (ValueError, TypeError, UnicodeError, json.JSONDecodeError):
             self._error(400, "Request failed; check format, selection and size limits")

@@ -9,7 +9,7 @@ scheduled IMAP scans.
 Run it from the source directory with a separate synthetic profile:
 
 ```bash
-python -m account_finder --data-dir .local/demo demo --serve
+python -m argus_security --data-dir .local/demo demo --serve
 python -m unittest discover -s tests -v
 ```
 
@@ -36,7 +36,7 @@ Preserve these behavior guarantees:
 - Passwords are generated in Bitwarden; exports contain empty password fields.
 - Technical IDs, canonical statuses and stored evidence do not change with locale.
 
-For translations, edit `account_finder/data/translations.json`, preserve named
+For translations, edit `argus_security/data/translations.json`, preserve named
 placeholders and check both directions of language switching. For catalog
 extensions, use official domain sources and document verified password links.
 Re-import synthetic source messages to test changed detection or catalog entries.

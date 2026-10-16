@@ -2,7 +2,7 @@
 
 CURRENT_EDITION = {
     "id": "free",
-    "name": "Account Compass Free",
+    "name": "ARGUS Free",
     "commercial_status": "pro_in_development",
     "billing": "not_configured",
     "telemetry": False,
