@@ -12,14 +12,8 @@ publish itself.
   files are ignored. Do not rely on `.gitignore` for files already committed.
 - Run `python -m unittest discover -s tests -v` and the optional browser suite.
 - Review README, security guidance and screenshots as a first-time user would.
-- The repository includes the exact MPL-2.0 text as `LICENSE`. Confirm that the
-  publication model still separates future proprietary Pro code and terms from
-  this Free repository.
-- For the Freemium product, complete
-  [COMMERCIAL_RELEASE.md](COMMERCIAL_RELEASE.md) before offering a paid Pro
-  edition. The current dashboard marks Pro as in development; it has no checkout.
-  The `activate-license` command and dashboard activation stay disabled until a
-  publisher public key is bundled.
+- The repository includes the exact MPL-2.0 text as `LICENSE`. Every feature is
+  free; there is no edition switch, license key or checkout to review.
 - Decide whether the current GitHub username, repository name, issues and Actions
   history should be public. Rename or transfer the repository before publishing if
   needed.
@@ -41,7 +35,7 @@ publish itself.
 
 ## What a public user gets
 
-- A local German/English Free edition, 527-provider catalog, tests and CI.
+- A local German/English app with every feature free, a 527-provider catalog, tests and CI.
 - Synthetic examples only; no user mailbox, password, token or Bitwarden vault.
 - A clear limitation: evidence is not account proof and unknown is not absence.
 

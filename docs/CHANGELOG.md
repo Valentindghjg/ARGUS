@@ -2,7 +2,18 @@
 
 ## Unreleased — Security review 2026-10
 
-See [the security review](SECURITY_REVIEW_2026-10.md).
+See [the security review](SECURITY_REVIEW_2026-10.md) and
+[the master plan status](strategy/README.md).
+
+### Breaking: one free edition, standard library only
+
+- Every feature is free (owner decision, master plan step S1). The Plans page,
+  `license-status`, `activate-license`, `POST /api/license/activate`, the
+  snapshot field `product` and the publisher license scripts are removed.
+- ARGUS no longer depends on `cryptography`; it runs on the Python standard
+  library. `keyring` stays optional for scheduled scans. A test rejects new
+  runtime dependencies.
+- A leftover `license.json` in an old profile is ignored and can be deleted.
 
 ### Breaking: the project is now ARGUS everywhere
 
@@ -12,8 +23,6 @@ See [the security review](SECURITY_REVIEW_2026-10.md).
 - The default profile moves once, atomically, from `~/.local/share/account-finder`
   to `~/.local/share/argus`, with all files and permissions. An explicit
   `--data-dir` is never moved. Keyring entries need no migration.
-- Editions are **ARGUS Free/Pro**; the Pro license product ID is `argus-pro`.
-  No license had been issued under the old ID.
 - New Bitwarden items carry the field `ARGUS-Account-ID`; the read-only audit
   still recognizes the older `Account-Finder-ID`. The dashboard language
   preference moves to a new browser storage key on first use.

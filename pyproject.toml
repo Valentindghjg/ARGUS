@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "MPL-2.0"
 license-files = ["LICENSE"]
-dependencies = ["cryptography>=42,<51"]
+dependencies = []
 keywords = ["account-security", "bitwarden", "email", "imap", "privacy", "password-manager"]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -40,8 +40,7 @@ argus = "argus_security.cli:main"
 account-finder = "account_finder.__main__:main"
 
 [tool.setuptools.package-data]
-# Only the publisher PUBLIC key may ship; private keys are git-ignored.
-argus_security = ["data/*.json", "data/license_public_key.pem", "web/*"]
+argus_security = ["data/*.json", "web/*"]
 
 [tool.setuptools.dynamic]
 version = {attr = "argus_security.__version__"}

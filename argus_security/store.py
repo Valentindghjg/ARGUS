@@ -344,18 +344,12 @@ class Store:
             "last_scan": self.meta("last_scan"),
             "stale_evidence": stale_evidence, "analysis_version": ANALYSIS_VERSION,
         }
-        from .product import public_product
-        snapshot["product"] = public_product(self.data_dir)
         from .workflow import worklist_snapshot
         from .handoffs import handoff_snapshot
         snapshot["workflow"] = worklist_snapshot(self, accounts)
         snapshot["bitwarden_handoffs"] = handoff_snapshot(self)
         from .i18n import localize_snapshot
         return localize_snapshot(snapshot, language)
-
-    def activate_license(self, document: dict):
-        from .licensing import activate
-        return activate(self.data_dir, document)
 
     def update_account(self, account_id: str, change: dict):
         allowed = {"checklist", "status", "priority", "login_method", "registered_email", "label"}

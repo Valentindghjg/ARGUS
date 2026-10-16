@@ -21,28 +21,18 @@ Die Anwendung findet **Hinweise in deinen eigenen Nachrichten**. Ein fehlender
 Hinweis bedeutet „Unbekannt“ und beweist nicht, dass kein Account existiert.
 Künstliche Demo und persönliche Ergebnisse bleiben getrennt.
 
-## Lizenzstatus
+## Lizenz
 
-ARGUS Free steht unter der
-[Mozilla Public License 2.0](LICENSE) (MPL-2.0). Eine spätere kommerzielle
-Pro-Edition wird getrennt unter eigenen Bedingungen angeboten und ist nicht Teil
-dieses Repositorys. Details stehen in [LICENSING.md](LICENSING.md) und in der
+ARGUS steht unter der
+[Mozilla Public License 2.0](LICENSE) (MPL-2.0). Alle Funktionen sind kostenlos:
+Es gibt keine Editionen, Lizenzschlüssel, Online-Konten, Zahlungsdaten oder
+Telemetrie. Details stehen in [LICENSING.md](LICENSING.md) und in der
 [Veröffentlichungs-Checkliste](docs/PUBLISHING.md).
-
-## ARGUS Free und Pro
-
-Diese Version ist **ARGUS Free**: Account-Inventur, lokaler Mailimport,
-Sicherheitschecklisten und passwortfreie Bitwarden-Metadaten stehen ohne
-Online-Konto, Zahlungsdaten oder Telemetrie bereit. Das Dashboard erläutert
-zusätzlich eine **Pro-Edition in Entwicklung**. Sie ist noch nicht implementiert,
-kauf- oder aktivierbar; Free wird daher nicht durch ein künstliches Testlimit
-eingeschränkt. Details stehen im [Freemium-Plan](docs/FREEMIUM_DE.md).
 
 ## In zwei Minuten starten
 
-Voraussetzung: **Python 3.11 oder neuer** und ein aktueller Browser. Installiere
-die eine Sicherheitsabhängigkeit aus den Projektmetadaten; npm und Docker sind
-nicht nötig.
+Voraussetzung: **Python 3.11 oder neuer** und ein aktueller Browser. ARGUS nutzt
+nur die Python-Standardbibliothek; npm und Docker sind nicht nötig.
 
 1. Projektarchiv entpacken oder Repository klonen und ein Terminal in diesem Ordner
    öffnen (bei einem Git-Klon `ARGUS`).
@@ -489,10 +479,10 @@ Versuch geprüft. Zwei lokale Tabellen werden automatisch ergänzt; Belege und
 Checklisten bleiben erhalten. Sichere dein geschütztes Datenverzeichnis vor dem
 Update.
 
-Version 1.6 ergänzt signierte Offline-Prüfung und lokale Aktivierung einer
-Pro-Lizenz. Der Standard-Build enthält keinen Herausgeber-Öffentlichkeitsschlüssel;
-er kann daher weder Pro aktivieren noch einen Zahlungsdienst kontaktieren. Version
-1.5 ergänzt die lokale Anzeige von Free und Pro. Erkennung, Datenbankschema und
+Die Versionen 1.5 und 1.6 brachten eine Free/Pro-Anzeige und Offline-Pro-Lizenzen.
+Die nächste Hauptversion entfernt beides wieder, weil alle Funktionen kostenlos
+bleiben. Eine übrig gebliebene `license.json` in einem alten Profil wird ignoriert
+und kann gelöscht werden. Erkennung, Datenbankschema und
 Account-Ergebnisse bleiben kompatibel. Version 1.4 erweitert den eingebauten
 Katalog von 372 auf 527 Dienste. Bestehende Profile und Checklisten bleiben
 kompatibel. Lokale Originalmails erneut importieren oder einen separat
@@ -551,14 +541,10 @@ Spracherkennung und mobile Ansichten.
 | `argus_security/handoffs.py` | Dauerhaftes Journal für Bitwarden-Übertragungen |
 | `argus_security/mailbox_lease.py` | Eine Postfachsitzung pro Profil über Prozesse hinweg |
 | `argus_security/errors.py` | Feste, übersetzbare Meldungen, die das Dashboard zeigen darf |
-| `argus_security/licensing.py`, `product.py` | Offline-Prüfung von Pro-Lizenzen und Editionsangaben |
 | `account_finder/` | Veralteter Alias für `python -m account_finder` und `account-finder` |
 | `tests/` | Automatisierte Regressionstests |
 | `browser-companion/` | Minimaler entpackter Chromium-Begleiter für Domain- und Einstellungslinks |
 | [Katalogrichtlinie](docs/KATALOG.md) | Umfang, Qualitätsmaßstäbe und neue Dienste vorschlagen |
-| [Freemium-Plan](docs/FREEMIUM_DE.md) | Verfügbare Free-Funktionen, Pro-Status in Entwicklung und Produktgrenzen |
-| [Checkliste für die kommerzielle Veröffentlichung](docs/COMMERCIAL_RELEASE.md) | Entscheidungen des Inhabers vor dem ersten Pro-Kauf |
-| [Lizenztechnik](docs/LICENSE_IMPLEMENTATION.md) | Signierte Offline-Pro-Lizenzen und Umgang mit Herausgeber-Schlüsseln |
 | [Veröffentlichungs-Checkliste](docs/PUBLISHING.md) | Schritte, die der Inhaber vor der Veröffentlichung selbst prüft |
 | [Produktstrategie](docs/strategy/README.md) | Gesamtplan für Funktionen und sichere Automatisierung, mit Umsetzungsstand |
 | [Technischer Plan](docs/PLAN_DE.md) | Reihenfolge und Architektur |

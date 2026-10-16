@@ -12,7 +12,6 @@ dist/
 .env.*
 !.env.example
 imap.json
-license.json
 *.log
 *.db
 *.sqlite*
@@ -20,7 +19,6 @@ license.json
 *.mbox
 *bitwarden*.json
 !examples/*.eml
-# Publisher signing keys never belong in Git; only the public key may ship.
+# Keys and certificates never belong in Git.
 *.pem
 *.key
-!argus_security/data/license_public_key.pem

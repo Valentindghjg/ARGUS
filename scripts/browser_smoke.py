@@ -58,15 +58,6 @@ def main():
                     args.screenshots_dir.mkdir(parents=True, exist_ok=True)
                     page.screenshot(path=str(args.screenshots_dir / "dashboard.png"), full_page=True)
 
-                page.locator('[data-view="plans"]').click()
-                expect(page.locator("#free-plan-name")).to_have_text("ARGUS Free")
-                expect(page.locator("#free-plan-features li")).to_have_count(3)
-                expect(page.locator("#pro-plan-features li")).to_have_count(3)
-                expect(page.locator("#plans-view")).to_contain_text("Pro is in development and not for sale.")
-                expect(page.locator("#license-activation")).to_be_hidden()
-                if args.screenshots_dir:
-                    page.screenshot(path=str(args.screenshots_dir / "plans.png"), full_page=True)
-                checks.append("Local Free edition and Pro-in-development status without checkout")
                 page.locator('[data-view="workflow"]').click()
                 expect(page.locator('#guided-priority-preview')).to_be_visible()
                 expect(page.locator('#guided-priority-items article')).to_have_count(10)
