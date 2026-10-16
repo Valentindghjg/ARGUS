@@ -14,7 +14,8 @@ python -m unittest discover -s tests -v
 
 The optional browser suite requires Playwright and Chromium, as documented in
 the user guides. GitHub Actions runs Python regression tests on Linux with
-Python 3.11–3.14, package installation checks and German/English browser checks.
+Python 3.11–3.14, the same tests and a package installation check on Windows
+and macOS (Python 3.13), and German/English browser checks on Linux.
 Its browser session permits requests only to its temporary loopback server.
 
 Do not commit personal profiles, databases, real email exports, credentials,

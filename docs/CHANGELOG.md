@@ -29,6 +29,11 @@ See [the security review](SECURITY_REVIEW_2026-10.md) and
 - The internal header-only marker keeps its old name, because it is part of
   message fingerprints.
 
+### Platforms
+
+- CI now runs the unit tests and a package installation check on Windows and
+  macOS as well as Linux. Browser checks stay on Linux.
+
 ### Security and robustness
 
 - **Approvals are bound to their target (master plan priority 10).** Scheduled

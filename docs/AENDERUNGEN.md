@@ -31,6 +31,11 @@ Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md) und
 - Die interne Header-Markierung behält ihren alten Namen, weil sie Teil des
   Nachrichten-Fingerabdrucks ist.
 
+## Plattformen
+
+- Die CI führt die Unit-Tests und eine Installationsprüfung jetzt auch auf
+  Windows und macOS aus. Browser-Prüfungen bleiben auf Linux.
+
 ## Sicherheit und Robustheit
 
 - **Freigaben sind an ihr Ziel gebunden (Masterplan, Priorität 10).** Geplante

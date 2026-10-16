@@ -441,7 +441,8 @@ dashboard with the same additional catalog.
 ## Upgrade and tests
 
 The repository includes GitHub Actions checks for Python 3.11–3.14 on Linux,
-installation of the built package, and German/English browser regression tests.
+unit tests and a package installation check on Windows and macOS, and
+German/English browser regression tests.
 These use synthetic data and do not connect to personal mailboxes or Bitwarden.
 See [contributing](CONTRIBUTING.md) for development and
 [security reporting](SECURITY.md) for confidential vulnerability reports.
