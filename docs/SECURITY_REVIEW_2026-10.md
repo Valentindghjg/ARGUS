@@ -61,8 +61,10 @@ The new file `tests/test_review_simulations.py` covers lease renewal,
 cancellation, secret-free profile files, poison messages, read-only mbox
 originals, scheduler resilience, the start message and the OAuth2 warning.
 
-`main` is protected against direct pushes, so the changes are on the branch
-`claude/security-review-2026-10`. No pull request was opened.
+`main` is protected against direct pushes, so the changes went through the
+branch `claude/security-review-2026-10` and, with the owner's approval, pull
+request #3. It was merged after CI passed on Python 3.11–3.14 and the browser
+checks.
 
 ## Follow-up after owner decisions
 
