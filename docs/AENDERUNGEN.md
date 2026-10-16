@@ -55,6 +55,21 @@ Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md) und
   dass ARGUS nicht jeden Account finden kann. Beide READMEs nennen das
   Produktversprechen; ein Test verhindert absolute Aussagen.
 
+## Genaue Bitwarden-Vorschau und eine erklärende Demo (Masterplan B2, F6)
+
+- Download, direkte CLI-Übertragung und der geführte Schritt zeigen zuerst genau
+  die Einträge, die geschrieben werden: Name, offizielle Website, bestätigte
+  Anmeldeadresse, Notiz und Zusatzfelder sowie die Accounts, die das Protokoll
+  schon als angelegt führt. Die Bestätigung ersetzt die bisherige Browser-Abfrage
+  und verwendet Auswahl und Sprache der Vorschau. `bitwarden-export --preview`
+  zeigt dasselbe und schreibt keine Datei. Vorschau, Download und Übertragung
+  teilen sich einen Codepfad.
+- Die Demo hat jetzt zwei erfundene eigene Adressen und 18 Nachrichten. Eine
+  Erklärung in der Übersicht zeigt Newsletter, Gastbestellung und Rücksetz-Mail
+  (nur Hinweise), zwei GitHub-Accounts, Single Sign-on bei Notion und eine
+  ähnlich aussehende Absenderdomain. Ein vorhandener Demo-Ordner lässt sich
+  erneut laden.
+
 ## Sicherheit und Robustheit
 
 - **Freigaben sind an ihr Ziel gebunden (Masterplan, Priorität 10).** Geplante

@@ -221,6 +221,21 @@ class StoreTests(unittest.TestCase):
     def test_demo_expected_results(self):
         demo = Store(self.root / "demo", self.registry)
         load_demo(demo)
-        summary = demo.snapshot()["summary"]
-        self.assertEqual((summary["found"], summary["confirmed"], summary["done"]), (12,2,1))
-        self.assertEqual(len(demo.snapshot()["candidates"]), 2)
+        snapshot = demo.snapshot()
+        summary = snapshot["summary"]
+        self.assertEqual((summary["found"], summary["confirmed"], summary["done"]), (13,2,1))
+        self.assertEqual(len(snapshot["candidates"]), 2)
+        # Plan F6: the demo explains the hard cases with invented data only.
+        accounts = {account["id"]: account for account in snapshot["accounts"]}
+        github = sorted(account["identity_email"] for account in snapshot["accounts"] if account["provider_id"] == "github")
+        self.assertEqual(github, ["demo.work@example.invalid", "demo@example.invalid"])
+        self.assertEqual(accounts["github"]["identity_email"], "demo@example.invalid")
+        self.assertEqual(accounts["notion"]["login_method"], "sso")
+        for clue_only in ("zalando", "amazon", "ebay"):
+            self.assertEqual(accounts[clue_only]["classification"], "unknown")
+            self.assertEqual(accounts[clue_only]["unassigned_evidence_count"], 1)
+        self.assertIn("github.com.attacker.example", [candidate["domain"] for candidate in snapshot["candidates"]])
+        self.assertTrue(all(email.endswith("@example.invalid") for email in snapshot["emails"]))
+        # Reloading the demo in the same folder is allowed and changes nothing.
+        load_demo(demo)
+        self.assertEqual(demo.snapshot()["summary"]["found"], 13)

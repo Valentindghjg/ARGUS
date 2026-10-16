@@ -52,6 +52,19 @@ See [the security review](SECURITY_REVIEW_2026-10.md) and
   every account. Both READMEs state the product promise; a test blocks
   absolute claims.
 
+### Exact Bitwarden preview and an explaining demo (master plan B2, F6)
+
+- Download, direct CLI transfer and the guided step first show exactly the
+  items that will be written: name, official website, confirmed sign-in
+  address, note and extra fields, and the accounts the journal already records
+  as created. The confirmation replaces the former browser prompt and reuses
+  the previewed selection and language. `bitwarden-export --preview` prints the
+  same and writes no file. Preview, download and transfer share one code path.
+- The demo now has two invented own addresses and 18 messages. A guide on the
+  overview explains the newsletter, guest order and reset email (clues only),
+  two GitHub accounts, single sign-on at Notion and a look-alike sender domain.
+  An existing demo folder can be loaded again.
+
 ### Security and robustness
 
 - **Approvals are bound to their target (master plan priority 10).** Scheduled

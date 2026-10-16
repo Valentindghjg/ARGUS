@@ -52,9 +52,13 @@ python -m argus_security --data-dir .local/demo demo --serve --open
 ```
 
 Der Browser öffnet `http://127.0.0.1:8765/`. Falls er nicht automatisch öffnet,
-diese Adresse selbst aufrufen. Strg+C beendet den Server. Die Demo enthält 17
-künstliche Nachrichten, 12 gefundene Anbieter, zwei simulierte manuelle
-Bestätigungen und eine erledigte Checkliste. **Das sind keine echten Accounts.**
+diese Adresse selbst aufrufen. Strg+C beendet den Server. Die Demo enthält 18
+künstliche Nachrichten an zwei erfundene eigene Adressen: 13 gefundene Accounts
+bei 12 Anbietern, zwei simulierte manuelle Bestätigungen und eine erledigte
+Checkliste. Eine kurze Erklärung in der Übersicht zeigt die schwierigen Fälle:
+Newsletter, Gastbestellung und Rücksetz-Mail belegen keinen Account, zwei
+Accounts beim selben Dienst, Single Sign-on und eine ähnlich aussehende
+Absenderdomain. **Das sind keine echten Accounts.**
 Mit `--port 8766` lässt sich ein bereits belegter Port umgehen.
 
 Alternativ das GitHub-Repository klonen:
@@ -438,9 +442,17 @@ liest oder überschreibt keine bestehenden Einträge. Keine Aktion erhält dein
 Hauptpasswort. Folge der
 [Bitwarden-CLI-Übergabeanleitung](docs/BITWARDEN_CLI.md).
 
-Auch ein Metadaten-Export über die Kommandozeile ist möglich:
+Bevor einer der beiden Wege etwas schreibt, zeigt das Dashboard genau, was
+geschrieben wird: Name, offizielle Website, Anmeldeadresse, Notiz und Zusatzfelder
+je Eintrag sowie die Accounts, die ausgelassen werden, weil das lokale Protokoll
+sie als angelegt führt. Passwort-, TOTP-, Passkey- und Wiederherstellungsfelder
+gehören nie zu einem Eintrag.
+
+Auch ein Metadaten-Export über die Kommandozeile ist möglich. Mit `--preview`
+siehst du die Einträge vorher; dabei entsteht keine Datei:
 
 ```bash
+python -m argus_security bitwarden-export /lokaler/geschützter/pfad/argus-bitwarden.json --id github --id steam --preview
 python -m argus_security bitwarden-export /lokaler/geschützter/pfad/argus-bitwarden.json --id github --id steam
 ```
 

@@ -20,9 +20,18 @@ from . import handoffs
 # before the ARGUS rename carry the legacy name; the read-only audit accepts both.
 ACCOUNT_FIELD = "ARGUS-Account-ID"
 LEGACY_ACCOUNT_FIELDS = frozenset({ACCOUNT_FIELD, "Account-Finder-ID"})
+PROVIDER_FIELD = "ARGUS-Provider-ID"
+# Added only by the direct CLI transfer, so an unclear write can be found later.
+TRANSFER_FIELD = "ARGUS-Transfer-ID"
 
 
-def make_export(store: Store, ids: list[str], language="en"):
+def _export_plan(store: Store, ids: list[str], language="en"):
+    """Validate a selection and build its password-free items without writing.
+
+    Returns the items and the accounts left out because the journal already
+    records them as created. Download, direct transfer and preview share it,
+    so the preview shows exactly what either path writes.
+    """
     validate_language(language)
     if not isinstance(ids, list) or not ids or len(ids) > 10_000 or any(not isinstance(x, str) for x in ids):
         raise UserFacingError("An explicit selection is required")
@@ -37,9 +46,7 @@ def make_export(store: Store, ids: list[str], language="en"):
         if account["checklist"]["saved_in_bitwarden"]:
             raise UserFacingError("Export only discovered accounts not already assigned in Bitwarden")
         selected.append(account)
-    folder_id = str(uuid.uuid4())
-    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    items = []
+    items, already_created = [], []
     previous = {(entry["account_id"], entry["email"]): entry["state"]
                 for entry in handoffs.handoff_snapshot(store)}
     for account in selected:
@@ -50,22 +57,52 @@ def make_export(store: Store, ids: list[str], language="en"):
             if state in {"running", "uncertain"}:
                 raise handoffs.HandoffError("Check the unresolved Bitwarden transfer before trying again.")
             if state == "created":
+                already_created.append(account["id"])
                 continue
             items.append({
-                "id": str(uuid.uuid4()), "organizationId": None, "folderId": folder_id,
+                "id": str(uuid.uuid4()), "organizationId": None, "folderId": None,
                 "type": 1, "reprompt": 0,
                 "name": account["name"] + (" · " + account["label"] if account.get("label") else ""), "favorite": False,
                 "notes": translate("ARGUS: {classification}; review manually.\nEvidence: {reason}\nNo password exported. Generate a new password directly in Bitwarden and set it at the provider.",
                                    language, classification=translate(account["classification"], language), reason=account["reason"]),
                 "fields": [{"name": ACCOUNT_FIELD, "value": account["id"], "type": 0},
-                           {"name": "ARGUS-Provider-ID", "value": account["provider_id"], "type": 0}],
+                           {"name": PROVIDER_FIELD, "value": account["provider_id"], "type": 0}],
                 "login": {"uris": [{"match": None, "uri": account["website"]}],
                           "username": email, "password": "", "totp": None},
                 "collectionIds": [],
             })
     if not items:
         raise UserFacingError("Export only discovered accounts not already assigned in Bitwarden")
-    return {"encrypted": False, "folders": [{"id": folder_id, "name": "ARGUS · " + stamp}], "items": items}
+    return items, already_created
+
+
+def _folder_name():
+    return "ARGUS · " + datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+
+def make_export(store: Store, ids: list[str], language="en"):
+    items, _ = _export_plan(store, ids, language)
+    folder_id = str(uuid.uuid4())
+    for item in items:
+        item["folderId"] = folder_id
+    return {"encrypted": False, "folders": [{"id": folder_id, "name": _folder_name()}], "items": items}
+
+
+def preview_export(store: Store, ids: list[str], language="en", target="file"):
+    """Show exactly what a download or direct transfer would write (plan B2, F6).
+
+    Read-only: no file, journal entry or vault request. Password, TOTP and
+    recovery data are never part of an item, so the preview has none either.
+    """
+    if target not in {"file", "cli"}:
+        raise UserFacingError("Choose a download or a direct transfer")
+    items, already_created = _export_plan(store, ids, language)
+    fields = [ACCOUNT_FIELD, PROVIDER_FIELD] + ([TRANSFER_FIELD] if target == "cli" else [])
+    return {"target": target, "folder": _folder_name() if target == "file" else None,
+            "items": [{"account_id": item["fields"][0]["value"], "name": item["name"],
+                       "uri": item["login"]["uris"][0]["uri"], "username": item["login"]["username"],
+                       "fields": fields, "notes": item["notes"]} for item in items],
+            "already_created": already_created}
 
 
 def export_file(store: Store, path: Path, ids: list[str], language="en"):
@@ -215,7 +252,7 @@ def add_to_unlocked_cli(store: Store, ids: list[str], language="en", *, runner=s
             document = {
                 "type": 1, "name": item["name"], "favorite": False,
                 "notes": item["notes"], "fields": [*item["fields"],
-                    {"name": "ARGUS-Transfer-ID", "value": attempt["operation_id"], "type": 0}],
+                    {"name": TRANSFER_FIELD, "value": attempt["operation_id"], "type": 0}],
                 "login": {"uris": item["login"]["uris"], "username": item["login"]["username"],
                           "password": None, "totp": None},
             }

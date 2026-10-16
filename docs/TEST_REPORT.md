@@ -14,6 +14,11 @@ tests cover next-step hints in the CLI, the API and the dashboard (both
 languages), scan next steps, the local list of skipped files and a guard
 against absolute product promises.
 
+Step S3 (B2, F6): **221 Python tests** and **25 browser check groups**. The
+preview must match the written items field by field, write nothing and list
+journal-created accounts. The browser checks preview, cancel and download, and
+the demo guide.
+
 New simulations combine a real local store with a fake IMAP server, a fake
 keyring and a simulated clock. They cover lease renewal during long scheduled
 scans, cancellation by `disable`/`revoke`, the absence of secrets in profile

@@ -295,6 +295,12 @@ class Handler(BaseHTTPRequestHandler):
                 data = self._json()
                 result = make_export(self.server.store, data.get("ids"), data.get("language", "en"))
                 self._send(200, result, attachment="argus-bitwarden.json")
+            elif path == "/api/bitwarden/preview":
+                from .bitwarden import preview_export
+                data = self._json()
+                if set(data) != {"ids", "language", "target"}:
+                    raise UserFacingError("An explicit selection is required")
+                self._send(200, preview_export(self.server.store, data["ids"], data["language"], data["target"]))
             elif path == "/api/bitwarden/cli":
                 from .bitwarden import add_to_unlocked_cli
                 data = self._json()

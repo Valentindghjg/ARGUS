@@ -14,6 +14,11 @@ Tests prüfen Hinweise zum nächsten Schritt in CLI, API und Dashboard (beide
 Sprachen), nächste Schritte nach Scans, die lokale Liste übersprungener Dateien
 und eine Sperre gegen absolute Produktversprechen.
 
+Schritt S3 (B2, F6): **221 Python-Tests** und **25 Browser-Prüfgruppen**. Die
+Vorschau muss Feld für Feld den geschriebenen Einträgen entsprechen, nichts
+schreiben und laut Protokoll angelegte Accounts nennen. Der Browser prüft
+Vorschau, Abbrechen und Download sowie die Demo-Erklärung.
+
 Neue Simulationen verbinden einen echten lokalen Store mit einem
 Fake-IMAP-Server, einem Fake-Schlüsselbund und einer simulierten Uhr. Sie prüfen:
 die Verlängerung der Lease bei langen geplanten Scans, den Abbruch durch

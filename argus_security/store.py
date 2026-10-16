@@ -194,7 +194,7 @@ class Store:
         if not normalized:
             raise UserFacingError("At least one own email address is required")
         previous = self.meta("emails")
-        if previous and previous != normalized:
+        if previous and previous != normalized and not (demo and self.meta("demo", False)):
             raise UserFacingError("A different initial address scope requires a new data directory; use add-email to add aliases")
         self.set_meta("emails", normalized)
         self.set_meta("demo", bool(demo))
