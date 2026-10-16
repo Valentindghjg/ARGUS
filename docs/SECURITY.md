@@ -36,6 +36,11 @@ plaintext keyring backends. SQLite stores only an opaque UUID selector, interval
 and safe status metadata. `disable` stops future runs; `revoke` stops them first
 and removes the keyring entry. Each run uses the existing incremental TLS/IMAP
 path and fixed safe failure text, never a password retry list.
+The approval is bound to its target: `enable` shows and records a fingerprint
+of host, port, username, sign-in method and folders. Before any keyring read or
+connection, each run compares it with the current `imap.json`. A difference, or
+a schedule from before this binding, stops scheduling until `enable` approves
+the current settings; the stored authorization is never sent to a changed host.
 An atomic SQLite lease ensures that only one scheduled runner per profile may
 open the mailbox at a time; a stale worker cannot overwrite a later result or
 reactivate a disabled schedule. A running scan renews its lease at most every

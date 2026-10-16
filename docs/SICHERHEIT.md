@@ -42,6 +42,12 @@ Statusmetadaten. `disable` stoppt künftige Läufe; `revoke` stoppt sie zuerst u
 entfernt den Schlüsselbund-Eintrag. Jeder Lauf nutzt den vorhandenen
 inkrementellen TLS-/IMAP-Pfad und feste sichere Fehlermeldungen, niemals eine
 Passwort-Versuchsliste.
+Die Freigabe ist an ihr Ziel gebunden: `enable` zeigt einen Fingerabdruck aus
+Host, Port, Benutzername, Anmeldeart und Ordnern und speichert ihn. Vor jedem
+Zugriff auf den Schlüsselbund und jeder Verbindung vergleicht ein Lauf ihn mit
+der aktuellen `imap.json`. Bei einer Abweichung, oder bei einem Zeitplan aus der
+Zeit vor dieser Bindung, stoppen geplante Scans, bis `enable` die aktuellen
+Einstellungen freigibt; die gespeicherte Freigabe geht nie an einen geänderten Host.
 Eine atomare SQLite-Lease stellt sicher, dass nur ein geplanter Lauf pro Profil
 gleichzeitig das Postfach öffnet. Ein veralteter Worker kann weder ein neueres
 Ergebnis überschreiben noch einen deaktivierten Zeitplan wieder aktivieren. Ein

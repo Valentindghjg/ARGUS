@@ -20,6 +20,12 @@ dem Repository abgeleitet: `docs/SECURITY.md`/`SICHERHEIT.md`, `docs/PLAN_DE.md`
 Sollte die Übergabe weitere Grenzen oder Tests enthalten, ist dieser Bericht
 dagegen abzugleichen.
 
+**Nachtrag 16.10.2026:** Der Gesamtplan wurde nachgereicht und liegt unter
+[docs/strategy/](strategy/README.md). Der Abgleich ergab eine weitere Lücke:
+Geplante Scans schickten die gespeicherte Freigabe auch an einen geänderten
+Host. Sie ist geschlossen; die Freigabe ist jetzt an ihr Ziel gebunden. Den
+Umsetzungsstand aller Prioritäten führt die Strategieseite.
+
 ### Eingehaltene Sicherheitsgrenzen
 
 | Grenze | Quelle | Einhaltung in dieser Review |

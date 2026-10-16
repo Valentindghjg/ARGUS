@@ -22,6 +22,12 @@ See [the security review](SECURITY_REVIEW_2026-10.md).
 
 ### Security and robustness
 
+- **Approvals are bound to their target (master plan priority 10).** Scheduled
+  IMAP scans record a fingerprint of host, port, username, sign-in method and
+  folders at `enable`. If `imap.json` differs, a run stops before touching the
+  keyring or the network and waits for a new `enable`. Previously a changed host
+  received the stored authorization. Schedules from earlier versions need one
+  new approval.
 - Scheduled IMAP scans renew their lease between messages, so a long scan keeps
   exclusive mailbox access. `disable`, `revoke` or a replacement lease now stops
   a running scan before its next message fetch.
