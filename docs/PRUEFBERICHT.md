@@ -1,3 +1,12 @@
+# Prüfbericht – unveröffentlicht (Paket B)
+
+Schritt S8: **257 Python-Tests** und **28 Browser-Prüfgruppen**. Geprüft werden
+Regelmerkmale für Treffer in Betreff und Text, direkte, indirekte und mehrfache
+Empfänger, Newsletter, Newsletter-Anmeldungen, Weiterleitungen und unbekannte
+Domains; der Snapshot zeigt Art, Alter und Merkmale, die Datenbank enthält keinen
+Nachrichtentext; ältere Hinweise erhalten ihre Erklärung beim erneuten Import;
+der Browser zeigt die Erklärung in beiden Sprachen.
+
 # Prüfbericht – Version 2.0.0 (Paket A, noch ohne Tag)
 
 Die Änderungen der Sicherheitsreview bestehen **208 Python-Tests** (vorher 166)

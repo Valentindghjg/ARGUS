@@ -113,7 +113,7 @@ class StateModelTests(unittest.TestCase):
     def test_migration_backup_restores_the_1x_profile(self):
         self.build_v1_profile()
         Store(self.profile, Registry())
-        backups = sorted((self.profile / "backups").glob("*pre-migration-v1-to-v2*.zip"))
+        backups = sorted((self.profile / "backups").glob("*pre-migration-v1-to-v*.zip"))
         self.assertEqual(len(backups), 1)
         self.assertEqual(read_manifest(backups[0])["schema_version"], 1)
         target = self.root / "restored"

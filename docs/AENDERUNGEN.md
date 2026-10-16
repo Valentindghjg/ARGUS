@@ -1,3 +1,20 @@
+# Änderungen – unveröffentlicht (Paket B: erklärbare, korrigierbare Erkennung)
+
+## Warum ein Hinweis zählt, welche Art er hat und wie alt er ist (E1, E2, Priorität 03)
+
+- Jeder Hinweis speichert jetzt kurze Regelmerkmale statt Nachrichtentext: wo die
+  Regel traf (Betreff oder Text), ob die Mail direkt an deine Adresse ging,
+  Verteiler- oder Werbemerkmale, Weiterleitung, Auswertung nur der Kopfzeilen und
+  ob die Absenderdomain im Katalog steht. Der Accountdialog erklärt sie unter
+  „Warum das zählt“.
+- Hinweise sind nach Art (Account-Ereignis, Bestellung oder Rechnung, Werbung,
+  Rücksetz-Anfrage) und Alter gekennzeichnet. Hinweise älter als zwei Jahre sind
+  markiert; sind es alle, zeigt der Account, dass er sich geändert haben oder
+  geschlossen sein kann. Alte Hinweise werden nie gelöscht.
+- Vor dieser Version importierte Hinweise erhalten ihre Erklärung, sobald
+  dieselbe Nachricht erneut importiert wird; das Profil erhält eine neue Spalte
+  (Schemaversion 3, vorher die automatische Sicherung).
+
 # Änderungen – Version 2.0.0, Paket A: klare Zustände und kontrollierbarer Kern (noch ohne Tag)
 
 Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md) und
