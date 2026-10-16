@@ -100,7 +100,8 @@ def unclear_items(snapshot):
         if account["reconsider"]:
             items.append({"kind": "reconsider", "account_id": account["id"], "count": None})
     for candidate in snapshot["candidates"]:
-        items.append({"kind": "domain", "domain": candidate["domain"], "count": len(candidate["evidence"])})
+        items.append({"kind": "domain", "domain": candidate["domain"], "count": len(candidate["evidence"]),
+                      "shared": candidate["shared_sender"], "catalog_match": candidate["catalog_match"]})
     for entry in snapshot["exclusions"]:
         if entry["new_clues"]:
             items.append({"kind": "excluded_new", "domain": entry["domain"], "count": entry["new_clues"]})

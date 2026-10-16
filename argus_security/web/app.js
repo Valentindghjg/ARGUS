@@ -159,7 +159,7 @@ function renderState() {
   $("alias-email").disabled=state.demo;$("alias-owned").disabled=state.demo;
   if(state.demo)setMessage("alias-message","Add real own addresses in a personal profile on your computer. The demo profile stays separate.");
   renderRows();renderCandidates();renderExport();renderBitwardenAudit();renderWorklist();renderGuided();renderHandoffs();renderHistory();
-  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();
+  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();
 }
 // Plan E3, E4, A9: everything unclear in one list; exclusions stay reversible.
 const exclusionReasons={newsletter:"Newsletter",spam:"Spam",not_relevant:"Not relevant"};
@@ -172,15 +172,20 @@ function unclearItem(item){
   else if(item.kind==="reconsider"){card.append(node("strong",name),node("p",t("New, stronger evidence arrived after you rejected this account.")));actions.append(open());}
   else if(item.kind==="domain"){
     card.append(node("strong",item.domain),node("p",t("{count} clue(s) from a sender outside the catalog. A sender domain may be spoofed; it is never opened as an official website.",{count:item.count})));
+    if(item.shared)card.append(node("p",t("This is a shared sending service: it sends mail for many companies, so the actual sender stays unclear."),"small-muted"));
     const reason=node("select");reason.setAttribute("aria-label",t("Reason"));
     for(const [value,label] of Object.entries(exclusionReasons))reason.append(new Option(t(label),value));
     actions.append(reason,actionButton("Hide this domain",()=>reviewAction("/api/exclusions",{domain:item.domain,reason:reason.value},"Sender domain hidden locally.")));
+    if(item.catalog_match)card.append(node("p",t("Now in the catalog as {name}. Import the original emails again to assign these clues.",{name:item.catalog_match}),"small-muted"));
+    else if(!item.shared)actions.append(actionButton("Add to my catalog",()=>openCatalog(item.domain)));
   }
   else if(item.kind==="excluded_new"){card.append(node("strong",item.domain),node("p",t("{count} new clue(s) since you hid this domain.",{count:item.count})));actions.append(actionButton("Show again",()=>reviewAction("/api/exclusions/remove",{domain:item.domain},"Sender domain shown again.")));}
   card.append(actions);return card;
 }
 function renderUnclear(){
   $("nav-unclear-count").textContent=state.unclear.length;
+  $("catalog-reanalysis").classList.toggle("hidden",!state.catalog.reanalysis);
+  $("catalog-reanalysis").textContent=t("{count} stored clue(s) match providers you added. Re-import the original emails so ARGUS can assign them; it never stored their content.",{count:state.catalog.reanalysis});
   $("unclear-items").replaceChildren(...state.unclear.map(unclearItem));
   if(!state.unclear.length)$("unclear-items").append(node("p",t("Nothing is unclear right now.")));
   $("exclusion-items").replaceChildren(...state.exclusions.map(entry=>{
@@ -190,6 +195,31 @@ function renderUnclear(){
     card.append(actions);return card;
   }));
   if(!state.exclusions.length)$("exclusion-items").append(node("p",t("No sender domain is hidden.")));
+}
+// Plan E5: a validated, profile-only catalog addition for an unknown sender domain.
+function openCatalog(domain){
+  const root=domain.split(".").slice(-2).join(".");
+  $("catalog-form").reset();$("catalog-error").classList.add("hidden");
+  $("catalog-name").value=root.split(".")[0].replace(/^./,c=>c.toUpperCase());
+  $("catalog-website").value=`https://${root}/`;$("catalog-domains").value=domain;
+  $("catalog-category").replaceChildren(...state.catalog.categories.map(c=>new Option(t(c),c)));
+  $("catalog-dialog").showModal();
+}
+async function saveCatalog(event){
+  event.preventDefault();$("catalog-save").disabled=true;
+  const data={name:$("catalog-name").value,website:$("catalog-website").value.trim(),category:$("catalog-category").value,
+    domains:$("catalog-domains").value.split(",").map(d=>d.trim()).filter(Boolean),priority:$("catalog-priority").value};
+  try{await api("/api/catalog",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});$("catalog-dialog").close();await refresh();toast(t("Provider added to your catalog. Re-import the original emails to assign its clues."));}
+  catch(e){problem("catalog-error",e.message,e.hint);}
+  finally{$("catalog-save").disabled=false;}
+}
+function renderPersonalProviders(){
+  $("personal-providers").replaceChildren(...state.catalog.personal.map(provider=>{
+    const card=node("article",undefined,"worklist-item");card.append(node("strong",provider.name),node("p",`${provider.domains.join(", ")} · ${t(provider.category)}`));
+    const actions=node("div",undefined,"bitwarden-actions");actions.append(actionButton("Remove from my catalog",()=>reviewAction("/api/catalog/remove",{id:provider.id},"Provider removed from your catalog.")));
+    card.append(actions);return card;
+  }));
+  if(!state.catalog.personal.length)$("personal-providers").append(node("p",t("No providers added yet.")));
 }
 const relationTexts={same_mailbox:"{a} is the same mailbox as {b}.",replaced_by:"{a} was replaced by {b}."};
 function renderRelations(){
@@ -286,6 +316,17 @@ function renderScan(scan){
   $("scan-card").classList.toggle("hidden",!scan);
   $("scan-summary").textContent=scanDescription(scan);$("setup-scan-summary").textContent=scanDescription(scan);
   renderNextSteps("scan-next-steps",scan&&scan.next_steps);renderNextSteps("setup-next-steps",scan&&scan.next_steps);
+  // Plan E6: what current rules changed in this scan; decisions stay as they were.
+  const changes=(scan&&scan.rule_changes)||[];
+  $("scan-rule-changes").classList.toggle("hidden",!changes.length);
+  if(changes.length){
+    $("scan-rule-changes-title").textContent=t("Current rules changed {count} clue(s). Your decisions and steps stay as they were.",{count:scan.rule_changes_count});
+    $("scan-rule-change-items").replaceChildren(...changes.map(change=>{
+      const provider=state&&state.accounts.find(a=>a.provider_id===change.provider_id),name=provider?provider.name:change.sender_domain;
+      const after=change.new_reason?`${t(change.new_reason)} (${change.new_score})`:t("no longer counted");
+      return node("li",`${name}: ${t(change.old_reason)} (${change.old_score}) → ${after}`);
+    }));
+  }
   if(!scan)return;
   $("scan-badge").textContent=scan.running?t("Running"):({completed:t("Completed"),limited:t("Limit reached"),completed_with_gaps:t("Completed with gaps"),partial:t("Interrupted")}[scan.result]||t("Finished"));
   const maximum=scan.expected||scan.folders_total;
@@ -853,6 +894,9 @@ $("import-button").onclick=()=>{navigate("setup");$("email-files").click();};
 $("email-files").onchange=importFiles;
 $("cancel-import").onclick=cancelImport;
 $("alias-form").onsubmit=addAlias;
+$("catalog-form").onsubmit=saveCatalog;
+$("catalog-cancel").onclick=()=>$("catalog-dialog").close();
+$("catalog-close").onclick=()=>$("catalog-dialog").close();
 $("relation-form").onsubmit=event=>{event.preventDefault();reviewAction("/api/profile/relations",{address:$("relation-address").value,other:$("relation-other").value,kind:$("relation-kind").value},"Note saved locally. Accounts stay separate.");};
 document.querySelectorAll(".language-control").forEach(e=>e.onchange=()=>applyLanguage(e.value,true));
 applyLanguage(language);

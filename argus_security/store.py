@@ -157,8 +157,10 @@ class Store:
         self.path = self.data_dir / "accounts.sqlite3"
         if self.path.is_symlink():
             raise ValueError("The database must not be a symlink")
-        self.registry = registry
+        from .catalog import PERSONAL_CATALOG
+        self.registry = registry.with_personal(self.data_dir / PERSONAL_CATALOG)
         self._backup_before_migration()
+        registry = self.registry
         with self.connect() as db:
             db.executescript(CORE_SCHEMA)
             tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
@@ -272,7 +274,8 @@ class Store:
     def add_evidence(self, evidence: Evidence) -> bool:
         return self.record_analysis(evidence.fingerprint, evidence) == "new"
 
-    def record_analysis(self, fingerprint: str, evidence: Evidence | None, *, expected_emails=None):
+    def record_analysis(self, fingerprint: str, evidence: Evidence | None, *, expected_emails=None, changes=None):
+        """Store one message's analysis. ``changes`` collects what current rules changed (plan E6)."""
         if evidence and evidence.fingerprint != fingerprint:
             raise ValueError("The message fingerprint does not match")
         with self.connect() as db:
@@ -285,6 +288,10 @@ class Store:
             if evidence is None:
                 if previous:
                     db.execute("DELETE FROM evidence WHERE fingerprint=?", (fingerprint,))
+                    if changes is not None:
+                        changes.append({"provider_id": previous["provider_id"], "sender_domain": previous["sender_domain"],
+                                        "old_reason": LABELS.get(previous["signal"]), "new_reason": None,
+                                        "old_score": previous["score"], "new_score": None})
                     return "removed"
                 return "ignored"
             features = json.dumps(sorted(set(evidence.features) & FEATURES))
@@ -306,6 +313,11 @@ class Store:
                 evidence.source, evidence.caveat, ANALYSIS_VERSION, features,
             ))
             synchronize_instances(db, self.registry, {evidence.provider_id})
+            if previous and changes is not None and (previous["signal"], previous["score"], previous["provider_id"]) != (
+                    evidence.signal, evidence.score, evidence.provider_id):
+                changes.append({"provider_id": evidence.provider_id, "sender_domain": evidence.sender_domain,
+                                "old_reason": LABELS.get(previous["signal"]), "new_reason": LABELS.get(evidence.signal),
+                                "old_score": previous["score"], "new_score": evidence.score})
             return "updated" if previous else "new"
 
     def snapshot(self, language="en"):
@@ -325,6 +337,8 @@ class Store:
             related = relations(db)
             evidences = [dict(r) for r in db.execute("SELECT * FROM evidence ORDER BY score DESC,id DESC")]
             own = owned_emails(db)
+        from .catalog import categories as catalog_categories, personal_providers
+        from .registry import is_shared_sender
         from .workflow import effectively_deferred, utcnow
         moment = utcnow()
         today = moment.date().isoformat()
@@ -423,11 +437,16 @@ class Store:
         done = sum(a["status"] == "done" and not a["identity_review_required"] for a in found)
         snapshot = {
             "accounts": accounts,
-            "candidates": [{"domain": domain, "evidence": items[:10], "website": None,
+            "candidates": [{"domain": domain, "evidence": items[:10], "website": None, "shared_sender": is_shared_sender(domain),
+                            # A domain added to the catalog later stays here until its emails are imported again.
+                            "catalog_match": getattr(self.registry.match(domain), "name", None),
                             "classification": "unknown", "reason": "Unverified sender domain; extend the catalog"}
                            for domain, items in sorted(candidates.items())
                            if domain not in {entry["domain"] for entry in excluded}],
             "exclusions": excluded, "relations": related,
+            "catalog": {"personal": personal_providers(self.registry), "categories": catalog_categories(self.registry),
+                        # Plan E6: clues stored before a catalog addition need their original email again.
+                        "reanalysis": sum(1 for e in evidences if not e["provider_id"] and self.registry.match(e["sender_domain"]))},
             "summary": {"providers": len(self.registry.providers), "found": len(found),
                         "services_found": len({a["provider_id"] for a in found}), "instances_found": len(found),
                         "confirmed": sum(a["classification"] == "confirmed" for a in accounts),
@@ -655,6 +674,16 @@ class Store:
                 batch.record(account_id, "step:" + step, current, new)
                 db.execute("UPDATE account_instances SET updated=? WHERE id=?", (now(), account_id))
             return {"ok": True, "batch": batch.close()}
+
+    def add_provider(self, data):
+        """Add a provider to this profile's own catalog (plan E5)."""
+        from .catalog import add_provider
+        return {"id": add_provider(self, data)}
+
+    def remove_provider(self, ident):
+        from .catalog import remove_provider
+        remove_provider(self, ident)
+        return {"ok": True}
 
     def exclude_domain(self, domain, reason):
         """Hide clues of one sender domain outside the catalog from the review (A9)."""

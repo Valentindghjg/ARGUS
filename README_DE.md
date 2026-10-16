@@ -509,6 +509,25 @@ berücksichtigt. Keine generischen Versandplattform-Domains als Dienst hinterleg
 ein gemeinsam genutzter Mailversender beweist nicht, welcher Account gemeint ist.
 Spezifischere Subdomains gewinnen bei unterschiedlichen Katalogeinträgen.
 
+### Dienst im Dashboard ergänzen
+
+Unter „Unklares“ füllt **Zu meinem Katalog hinzufügen** ein Formular für eine
+Absenderdomain außerhalb des Katalogs vor. ARGUS prüft den Eintrag wie den
+eingebauten Katalog (eindeutige Domains, HTTPS-Website auf einer der
+Absenderdomains, vorhandene Kategorie) und speichert ihn nur in deinem Profil als
+`my-providers.json` mit privaten Rechten. Online nachgeschlagen wird nichts.
+Gemeinsam genutzte Versanddienste (Massenmail-Plattformen wie `sendgrid.net` oder
+`amazonses.com`) werden abgelehnt, weil sie für viele Firmen senden. Gespeicherte
+Hinweise behalten ihre bisherige Zuordnung, bis du die ursprünglichen E-Mails
+erneut importierst; deren Inhalt hat ARGUS nie gespeichert. Unter „Postfach &
+Import“ lässt sich eine Ergänzung entfernen, solange kein Hinweis, keine
+Entscheidung und kein Schritt darauf verweist.
+
+Nach einem erneuten Import listet das Importergebnis Hinweise, deren Bewertung
+sich mit den aktuellen Regeln geändert hat, mit alter und neuer Begründung und
+Punktzahl; die CLI nennt die Anzahl. Deine Entscheidungen und Schritte bleiben,
+wie sie waren.
+
 Für einen Passwort-Direktlink sind `password_url`, `password_source` und
 `password_verified` erforderlich. Ergänze diese nur nach Prüfung einer offiziellen
 Quelle. Danach lokal neu importieren bzw. `scan-imap --allow-imap --full-scan`

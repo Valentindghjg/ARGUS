@@ -12,6 +12,13 @@ exclusions (only domains outside the catalog, back on new clues, reversible),
 address notes (own addresses only, no merging), CLI and API shapes are covered;
 the browser hides and shows a domain and saves and removes a note.
 
+Step S10 (E5, E6): **268 Python tests** and **31 browser check groups**. Own
+catalog additions are checked for every refusal (shared sender, catalog domain,
+HTTP or foreign website, category, priority, field shape) without leaving files
+behind, for private permissions, reloading and removal rules; rule changes on
+re-import list old and new reasons while decisions stay. The browser adds a
+provider after a refused website, sees the re-import notice and removes it.
+
 # Test report — Version 2.0.0 (package A, not yet tagged)
 
 The security-review changes passed **208 Python tests** (previously 166) and

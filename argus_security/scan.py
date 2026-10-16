@@ -30,7 +30,7 @@ class ScanSession:
                       "duplicates": 0, "updated_evidence": 0, "removed_evidence": 0,
                       "ignored": 0, "skipped": 0, "errors": 0, "headers_only": 0,
                       "expected": expected, "running": True, "started": now(),
-                      "analysis_version": ANALYSIS_VERSION}
+                      "analysis_version": ANALYSIS_VERSION, "rule_changes": [], "rule_changes_count": 0}
         self.publish()
 
     def publish(self):
@@ -71,7 +71,13 @@ class ScanSession:
                 self.stats["headers_only"] += 1
             try:
                 evidence = analyze(raw, self.store.registry, self.emails, self.stats["source"])
-                outcome = self.store.record_analysis(sha256(raw).hexdigest(), evidence, expected_emails=self.emails)
+                changes = []
+                outcome = self.store.record_analysis(sha256(raw).hexdigest(), evidence, expected_emails=self.emails,
+                                                     changes=changes)
+                # Plan E6: show what current rules changed; your decisions stay as they were.
+                if changes:
+                    self.stats["rule_changes_count"] += len(changes)
+                    self.stats["rule_changes"] = (self.stats["rule_changes"] + changes)[:20]
                 if outcome == "scope_changed":
                     self.info["scope_changed"] = True
                 key = {"new": "evidence", "updated": "updated_evidence", "removed": "removed_evidence",

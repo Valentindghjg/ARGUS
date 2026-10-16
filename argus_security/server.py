@@ -263,6 +263,13 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, self.server.store.set_step(unquote(action.group(1)), data["step"],
                                                            state=data.get("state", UNCHANGED),
                                                            review_after=data.get("review_after", UNCHANGED)))
+            elif path == "/api/catalog":
+                self._send(200, self.server.store.add_provider(self._json()))
+            elif path == "/api/catalog/remove":
+                data = self._json()
+                if set(data) != {"id"}:
+                    raise UserFacingError("Only providers you added yourself can be removed")
+                self._send(200, self.server.store.remove_provider(data["id"]))
             elif path in {"/api/exclusions", "/api/exclusions/remove"}:
                 data = self._json()
                 if path.endswith("remove"):
