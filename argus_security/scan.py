@@ -9,6 +9,7 @@ import time
 import uuid
 
 from .analysis import ANALYSIS_VERSION, HEADERS_ONLY_MARKER, analyze, MAX_MESSAGE_BYTES
+from .guidance import scan_next_steps
 from .store import Store, now
 
 
@@ -44,7 +45,8 @@ class ScanSession:
         self.store.set_meta("last_scan", self.stats)
         if self.progress:
             self.progress(dict(self.stats))
-        return dict(self.stats)
+        # Derived, never stored: the advice follows the current rules.
+        return {**self.stats, "next_steps": scan_next_steps(self.stats)}
 
     def _ensure_capacity(self, count=1):
         if not self.stats["running"] or (self.stats["expected"] is not None and

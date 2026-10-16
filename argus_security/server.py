@@ -12,6 +12,7 @@ import time
 from urllib.parse import urlsplit, unquote
 
 from .errors import UserFacingError
+from .guidance import hint_for
 from .analysis import MAX_MESSAGE_BYTES
 from .background import BackgroundScanService, KeyringCredentialStore
 from .scan import ScanSession, scan_messages
@@ -143,7 +144,12 @@ class Handler(BaseHTTPRequestHandler):
             pass
 
     def _error(self, status, message):
-        self._send(status, {"error": message})
+        # The hint is looked up by the constant message; it never echoes input.
+        body = {"error": message}
+        hint = hint_for(message)
+        if hint:
+            body["hint"] = hint
+        self._send(status, body)
 
     def _gate(self, api=False):
         if self.client_address[0] != "127.0.0.1" or self.headers.get("Host") not in self.server.hosts:
@@ -206,7 +212,10 @@ class Handler(BaseHTTPRequestHandler):
                 job = self.server.active_import()
                 snapshot = self.server.store.snapshot()
                 snapshot["active_import"] = dict(job.stats) if job else None
-                snapshot["background_scan"] = self.server.background_snapshot()
+                background = self.server.background_snapshot()
+                if hint_for(background.get("last_error")):
+                    background["last_error_hint"] = hint_for(background["last_error"])
+                snapshot["background_scan"] = background
             self._send(200, snapshot)
         else:
             self._error(404, "Not found")

@@ -51,7 +51,7 @@ const titles = {
   dashboard:["Your accounts, in one place.","Find local evidence and secure your accounts with Bitwarden.","Overview"],
   accounts:["Your digital inventory.","Review your clues and keep unknown services in view.","All accounts"],
   security:["Secure the most important accounts first.","Prioritize your mailbox, finance and central services.","Security priorities"],
-  bitwarden:["A secure password for every account.","Prepare new vault items and make the changes yourself.","Prepare Bitwarden"],
+  bitwarden:["One unique password per account, kept in Bitwarden.","Prepare new vault items and make the changes yourself.","Prepare Bitwarden"],
   workflow:["Secure your accounts, one at a time.","A local worklist that remembers your progress.","Security worklist"],
   setup:["Start with your mailbox.","Import existing messages or set up read-only IMAP access.","Mailbox & Import"]
 };
@@ -65,15 +65,32 @@ function accountTitle(account){
 function reviewTitle(account){
   return state.accounts.some(a=>a.id!==account.id&&(a.provider_id||a.id)===(account.provider_id||account.id))?accountTitle(account):account.name;
 }
-function error(message) { setMessage("error",canonicalMessage(message)); $("error").classList.remove("hidden"); }
+// A problem is a constant message plus, when known, a constant next step (plan F4).
+function problem(id,message,hint){
+  const box=$(id),text=node("span");text.dataset.i18n=canonicalMessage(message);text.textContent=t(text.dataset.i18n);
+  box.replaceChildren(text);
+  if(hint){const next=node("span",undefined,"error-hint");next.dataset.i18n=hint;next.textContent=t(hint);box.append(" ",next);}
+  box.classList.remove("hidden");
+}
+function error(message,hint){problem("error",message,hint);}
+function failure(e){error(e.message,e.hint);}
 function toast(message) { setMessage("toast",canonicalMessage(message)); $("toast").classList.remove("hidden"); setTimeout(()=>$("toast").classList.add("hidden"),3000); }
+function localFailure(){
+  const failed=new Error("Local request failed.");
+  failed.hint="Check that the ARGUS terminal is still running, then reload this page.";
+  return failed;
+}
 async function api(path, options={}) {
   const headers={Authorization:`Bearer ${token}`,...(options.headers||{})};
   let response;
   // A stopped local server must not surface the browser's raw network error.
   try{response=await fetch(path,{...options,headers,cache:"no-store",credentials:"omit"});}
-  catch(_){throw new Error("Local request failed.");}
-  if(!response.ok){const result=await response.json().catch(()=>({}));throw new Error(result.error||"Local request failed.");}
+  catch(_){throw localFailure();}
+  if(!response.ok){
+    const result=await response.json().catch(()=>({}));
+    if(!result.error)throw localFailure();
+    const failed=new Error(result.error);failed.hint=result.hint;throw failed;
+  }
   return response.json();
 }
 async function refresh() {
@@ -100,6 +117,7 @@ function renderState() {
   else if(scheduled.authorized) scheduledText=t("Scheduled IMAP scans are paused. The authorization stays in your OS keyring until you revoke it.");
   else scheduledText=t("Scheduled IMAP scans are disabled. Enable them from a local terminal after configuring IMAP.");
   if(scheduled.last_error) scheduledText+=" "+t(scheduled.last_error);
+  if(scheduled.last_error_hint) scheduledText+=" "+t("Next step: ")+t(scheduled.last_error_hint);
   $("background-scan-status").textContent=scheduledText;
   const domain=(state.emails[0]||"").split("@")[1]||"your-domain.example";
   $("discover-command").textContent=`python -m argus_security discover --domain ${domain} --allow-dns`;
@@ -112,16 +130,21 @@ function renderState() {
 }
 function scanDescription(scan){
   if(!scan)return t("No scan started yet.");
-  const outcome=scan.running?t("Scan running …"):({completed:t("Completed."),limited:t("Message limit reached; run the IMAP scan again to continue."),completed_with_gaps:t("Completed with gaps; review skipped or failed messages."),partial:t("Interrupted; processed clues remain saved.")}[scan.result]||t("Finished."));
+  // How to close each gap is listed separately as next steps (plan F4).
+  const outcome=scan.running?t("Scan running …"):({completed:t("Completed."),limited:t("Message limit reached."),completed_with_gaps:t("Completed with gaps."),partial:t("Interrupted; processed clues remain saved.")}[scan.result]||t("Finished."));
   const headers=scan.headers_only?t(" {p0} messages analyzed using headers only.",{p0:(scan.headers_only)}):"";
   const folders=scan.folders_total!==undefined?t(" {p0}/{p1} selected folders checked.",{p0:(scan.folders_processed||0),p1:(scan.folders_total)}):"";
-  const scope=scan.scope_changed?t(" The address scope changed; restart the analysis."):"";
-  return t("{processed} messages processed · New clues: {evidence} · Updated: {updated} · Duplicates: {duplicates} · Skipped: {skipped} · Errors: {errors}. {outcome}{headers}{folders}{scope}", {processed:scan.processed+(scan.expected?"/"+scan.expected:""),evidence:scan.evidence,updated:scan.updated_evidence||0,duplicates:scan.duplicates,skipped:scan.skipped,errors:scan.errors,outcome,headers,folders,scope});
+  return t("{processed} messages processed · New clues: {evidence} · Updated: {updated} · Duplicates: {duplicates} · Skipped: {skipped} · Errors: {errors}. {outcome}{headers}{folders}", {processed:scan.processed+(scan.expected?"/"+scan.expected:""),evidence:scan.evidence,updated:scan.updated_evidence||0,duplicates:scan.duplicates,skipped:scan.skipped,errors:scan.errors,outcome,headers,folders});
+}
+function renderNextSteps(id,steps){
+  $(id).replaceChildren(...(steps||[]).map(step=>node("li",t(step))));
+  $(id).classList.toggle("hidden",!(steps||[]).length);
 }
 function renderScan(scan){
   displayedScan=scan;
   $("scan-card").classList.toggle("hidden",!scan);
   $("scan-summary").textContent=scanDescription(scan);$("setup-scan-summary").textContent=scanDescription(scan);
+  renderNextSteps("scan-next-steps",scan&&scan.next_steps);renderNextSteps("setup-next-steps",scan&&scan.next_steps);
   if(!scan)return;
   $("scan-badge").textContent=scan.running?t("Running"):({completed:t("Completed"),limited:t("Limit reached"),completed_with_gaps:t("Completed with gaps"),partial:t("Interrupted")}[scan.result]||t("Finished"));
   const maximum=scan.expected||scan.folders_total;
@@ -251,7 +274,7 @@ function renderDetail(){
 async function update(change){
   if(saving||addingAccount)return;saving=true;renderDetail();$("detail-error").classList.add("hidden");
   try{await api(`/api/accounts/${encodeURIComponent(selected)}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(change)});await refresh();toast(t("Change saved locally."));if(change.status==="done"&&view==="workflow"&&!state.workflow.paused&&state.workflow.current)selected=state.workflow.current;}
-  catch(e){setMessage("detail-error",canonicalMessage(e.message));$("detail-error").classList.remove("hidden");}
+  catch(e){problem("detail-error",e.message,e.hint);}
   finally{saving=false;renderDetail();}
 }
 async function addLocalAccount(event){
@@ -262,7 +285,7 @@ async function addLocalAccount(event){
   try{
     const result=await api("/api/accounts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});
     await refresh();selected=result.id;toast(t("Separate account added to your local inventory."));
-  }catch(e){setMessage("new-account-error",canonicalMessage(e.message));$("new-account-error").classList.remove("hidden");}
+  }catch(e){problem("new-account-error",e.message,e.hint);}
   finally{addingAccount=false;renderDetail();}
 }
 function renderExport(){
@@ -388,7 +411,7 @@ function renderGuided(){
 async function changeWorklist(data){
   if(workflowBusy)return false;workflowBusy=true;renderWorklist();
   try{const result=await api("/api/workflow",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});await refresh();if($("account-dialog").open)renderDetail();return result;}
-  catch(e){error(e.message);return false;}
+  catch(e){failure(e);return false;}
   finally{workflowBusy=false;renderWorklist();renderGuided();if($("account-dialog").open)renderDetail();}
 }
 async function continueWorklist(id=state.workflow.current){
@@ -422,7 +445,7 @@ async function resolveHandoff(item,created){
   if(!window.confirm(t(created?"Confirm that you found the matching item and transfer ID in Bitwarden.":"Confirm that you checked Bitwarden and this item does not exist. A new attempt may create a duplicate if the previous item exists.")))return;
   bitwardenBusy=true;renderExport();renderHandoffs();
   try{await api("/api/bitwarden/resolve",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:item.id,created,confirmed:true})});await refresh();toast(t("Transfer review saved locally."));}
-  catch(e){error(e.message);}finally{bitwardenBusy=false;renderExport();renderHandoffs();}
+  catch(e){failure(e);}finally{bitwardenBusy=false;renderExport();renderHandoffs();}
 }
 async function exportMetadata(){
   if(bitwardenBusy)return;
@@ -433,7 +456,7 @@ async function exportMetadata(){
     const result=await api("/api/bitwarden",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids,language})});
     const url=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:"application/json"}));
     const a=document.createElement("a");a.href=url;a.download="argus-bitwarden.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast(t("Metadata downloaded. No vault was changed."));
-  }catch(e){error(e.message);}finally{bitwardenBusy=false;renderExport();}
+  }catch(e){failure(e);}finally{bitwardenBusy=false;renderExport();}
 }
 function selectedBitwardenIds(){
   return Array.from($("export-selection").querySelectorAll("input:checked:not(:disabled)")).map(x=>x.value);
@@ -447,7 +470,7 @@ async function addToUnlockedBitwarden(){
   try{
     const result=await api("/api/bitwarden/cli",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids,language,confirmed:true})});
     await refresh();if(result.status==="needs_review")error(t("The transfer result is unclear. Check Bitwarden below before trying again."));else toast(t("Added {count} password-free item(s) to Bitwarden. Generate the new password in Bitwarden, use the verified provider link to change it, then test the sign-in.",{count:result.items}));
-  }catch(e){error(canonicalMessage(e.message));try{await refresh();}catch(_){} }finally{bitwardenBusy=false;renderExport();renderHandoffs();}
+  }catch(e){failure(e);try{await refresh();}catch(_){} }finally{bitwardenBusy=false;renderExport();renderHandoffs();}
 }
 async function auditUnlockedBitwarden(){
   if(bitwardenBusy||state.demo)return;
@@ -456,7 +479,7 @@ async function auditUnlockedBitwarden(){
   if(!window.confirm(t("ARGUS will ask your already-unlocked Bitwarden CLI for selected-item metadata. It returns only a match summary; no vault data is saved or shown. Continue?")))return;
   bitwardenBusy=true;renderExport();
   try{bitwardenAudit=await api("/api/bitwarden/audit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids,language,confirmed:true})});renderBitwardenAudit();}
-  catch(e){error(canonicalMessage(e.message));}finally{bitwardenBusy=false;renderExport();}
+  catch(e){failure(e);}finally{bitwardenBusy=false;renderExport();}
 }
 async function prepareGuidedBitwarden(){
   const account=state.accounts.find(item=>item.id===selected);
@@ -468,7 +491,7 @@ async function prepareGuidedBitwarden(){
     await refresh();
     if(result.status==="needs_review")error(t("The transfer result is unclear. Check Bitwarden below before trying again."));
     else toast(t("Bitwarden preparation saved locally. Generate the password in Bitwarden, then continue with the verified provider page."));
-  }catch(e){error(canonicalMessage(e.message));try{await refresh();}catch(_){} }
+  }catch(e){failure(e);try{await refresh();}catch(_){} }
   finally{bitwardenBusy=false;renderExport();renderHandoffs();if($("account-dialog").open)renderDetail();}
 }
 async function completeGuidedStep(){
@@ -480,8 +503,22 @@ async function completeGuidedStep(){
   if(!window.confirm(t(message)))return;
   await update(change);
 }
+// File names stay in this browser tab; the server only learns a skip count.
+function skipReason(file){
+  if(file.size===0)return "empty file";
+  if(!file.name.toLowerCase().endsWith(".eml"))return "not an EML file";
+  if(file.size>2*1024*1024)return "larger than 2 MiB";
+  return null;
+}
+function renderSkippedFiles(skipped){
+  const shown=skipped.slice(0,20).map(item=>node("li",`${item.name}: ${t(item.reason)}`));
+  if(skipped.length>20)shown.push(node("li",t("… and {count} more",{count:skipped.length-20})));
+  $("import-skipped-list").replaceChildren(...shown);
+  $("import-skipped").classList.toggle("hidden",!skipped.length);
+}
 async function importFiles(){
   const files=Array.from($("email-files").files);if(!files.length)return;
+  const skippedFiles=[];renderSkippedFiles(skippedFiles);
   $("import-progress").classList.remove("hidden");$("import-button").disabled=true;$("email-files").disabled=true;
   $("import-meter").value=0;
   importCancelled=false;let stats=null,failed=false;
@@ -491,22 +528,23 @@ async function importFiles(){
     renderScan(stats);$("import-status").textContent=scanDescription(stats);
     for(const file of files){
       if(importCancelled)break;
-      if(!file.name.toLowerCase().endsWith(".eml")||file.size>2*1024*1024||file.size===0){stats=await api("/api/import/skip",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:activeBatch})});}
+      const reason=skipReason(file);
+      if(reason){skippedFiles.push({name:file.name,reason});renderSkippedFiles(skippedFiles);stats=await api("/api/import/skip",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:activeBatch})});}
       else {stats=await api("/api/import",{method:"POST",headers:{"Content-Type":"message/rfc822","X-Import-ID":activeBatch},body:file});}
       $("import-meter").value=stats.processed*100/files.length;$("import-status").textContent=scanDescription(stats);renderScan(stats);
       if(stats.scope_changed){failed=true;error(t("The address scope changed during import. Restart the import."));break;}
     }
-  }catch(e){failed=true;error(e.message);}
+  }catch(e){failed=true;failure(e);}
   finally{
-    if(activeBatch){try{stats=await api("/api/import/finish",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:activeBatch,...(importCancelled||failed?{result:"partial"}:{})})});$("import-status").textContent=scanDescription(stats);renderScan(stats);}catch(e){error(e.message);}}
+    if(activeBatch){try{stats=await api("/api/import/finish",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:activeBatch,...(importCancelled||failed?{result:"partial"}:{})})});$("import-status").textContent=scanDescription(stats);renderScan(stats);}catch(e){failure(e);}}
     activeBatch=null;$("cancel-import").classList.add("hidden");$("cancel-import").disabled=false;
     $("import-button").disabled=false;$("email-files").disabled=false;$("email-files").value="";
-    try{await refresh();if(stats)toast(stats.result==="completed"?t("Local import completed."):t("Import status saved locally. Clues are preserved."));}catch(e){error(e.message);}
+    try{await refresh();if(stats)toast(stats.result==="completed"?t("Local import completed."):t("Import status saved locally. Clues are preserved."));}catch(e){failure(e);}
   }
 }
 async function cancelImport(){
   if(activeBatch){importCancelled=true;$("cancel-import").disabled=true;$("import-status").textContent=t("Stopping after the current file. Saved clues are preserved.");return;}
-  if(state.active_import){try{await api("/api/import/finish",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:state.active_import.id,result:"partial"})});await refresh();toast(t("Import canceled; clues remain saved."));}catch(e){error(e.message);}}
+  if(state.active_import){try{await api("/api/import/finish",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:state.active_import.id,result:"partial"})});await refresh();toast(t("Import canceled; clues remain saved."));}catch(e){failure(e);}}
 }
 async function addAlias(event){
   event.preventDefault();if(addingAlias)return;addingAlias=true;$("add-alias-button").disabled=true;
@@ -514,7 +552,7 @@ async function addAlias(event){
     const result=await api("/api/profile/emails",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({emails:[$("alias-email").value.trim()]})});
     await refresh();$("alias-email").value="";$("alias-owned").checked=false;
     setMessage("alias-message",result.added.length?"Own address added. Re-import older local emails or run the authorized IMAP scan again. Your checklists were preserved.":"This address was already configured. Nothing was changed.");
-  }catch(e){error(e.message);}finally{addingAlias=false;$("add-alias-button").disabled=state.demo||Boolean(activeBatch||state.active_import);}
+  }catch(e){failure(e);}finally{addingAlias=false;$("add-alias-button").disabled=state.demo||Boolean(activeBatch||state.active_import);}
 }
 document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>navigate(b.dataset.view));
 document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>navigate(b.dataset.go));
@@ -552,6 +590,6 @@ $("cancel-import").onclick=cancelImport;
 $("alias-form").onsubmit=addAlias;
 document.querySelectorAll(".language-control").forEach(e=>e.onchange=()=>applyLanguage(e.value,true));
 applyLanguage(language);
-refresh().catch(e=>error(e.message));
+refresh().catch(failure);
 // Poll only the local server; CLI scans update the same database.
-setInterval(()=>{if(!saving && !$("account-dialog").open && !$("email-files").disabled)refresh().catch(e=>error(e.message));},15000);
+setInterval(()=>{if(!saving && !$("account-dialog").open && !$("email-files").disabled)refresh().catch(failure);},15000);

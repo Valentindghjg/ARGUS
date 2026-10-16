@@ -36,6 +36,25 @@ Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md) und
 - Die CI führt die Unit-Tests und eine Installationsprüfung jetzt auch auf
   Windows und macOS aus. Browser-Prüfungen bleiben auf Linux.
 
+## Klare nächste Schritte und ein präzises Versprechen (Masterplan F4, G1)
+
+- Bekannte Probleme nennen jetzt einen konkreten nächsten Schritt: fehlendes
+  Profil oder fehlender Quellpfad, Maildir-Aufbau, vorhandene Exportdatei,
+  belegter Port oder belegte Datenbank, Schlüsselbund- und IMAP-Fehler, offene
+  Bitwarden-Übertragungen und unvollständige Checklisten. Die CLI zeigt ihn als
+  „Nächster Schritt:“, das Dashboard unter der Fehlermeldung. Die Hinweise sind
+  feste Texte und wiederholen nie Pfade, Adressen oder Mailinhalte.
+- Jedes Scan-Ergebnis nennt, was gegen seine Lücken hilft (übersprungene,
+  unlesbare oder nur über Kopfzeilen ausgewertete Nachrichten, Abbrüche,
+  Limits, geänderte Adressen). Die CLI gibt weiter JSON auf stdout aus und die
+  Schritte auf stderr.
+- Der Browser-Import listet übersprungene Dateien mit Grund (leer, keine EML,
+  über 2 MiB). Die Dateinamen bleiben im Browser-Tab.
+- Texte versprechen keine Vollständigkeit oder Sicherheit mehr: Aus „Bereits
+  abgesichert“ wird „Checklisten erledigt“, und der Fortschrittsbereich sagt,
+  dass ARGUS nicht jeden Account finden kann. Beide READMEs nennen das
+  Produktversprechen; ein Test verhindert absolute Aussagen.
+
 ## Sicherheit und Robustheit
 
 - **Freigaben sind an ihr Ziel gebunden (Masterplan, Priorität 10).** Geplante

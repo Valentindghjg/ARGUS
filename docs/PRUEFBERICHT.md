@@ -9,6 +9,11 @@ Masterplan-Schritt S1 hat den Lizenzcode samt Tests und die Prüfung der Seite
 Neue Repository-Tests lehnen Laufzeitabhängigkeiten außerhalb der
 Standardbibliothek ab und sichern die Regel für Quelldatei-Kopfzeilen.
 
+Schritt S3 (F4, G1): **215 Python-Tests** und **24 Browser-Prüfgruppen**. Neue
+Tests prüfen Hinweise zum nächsten Schritt in CLI, API und Dashboard (beide
+Sprachen), nächste Schritte nach Scans, die lokale Liste übersprungener Dateien
+und eine Sperre gegen absolute Produktversprechen.
+
 Neue Simulationen verbinden einen echten lokalen Store mit einem
 Fake-IMAP-Server, einem Fake-Schlüsselbund und einer simulierten Uhr. Sie prüfen:
 die Verlängerung der Lease bei langen geplanten Scans, den Abbruch durch

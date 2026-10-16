@@ -40,12 +40,12 @@ Hauptnutzen kommt ohne sie aus.
 
 ## Umsetzungsstand der 15 Prioritäten
 
-Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S2.
+Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S3 (F4, G1).
 
 | Nr. | Priorität | Stand | Im Code |
 | --- | --- | --- | --- |
 | 01 | Zustände sauber trennen | entworfen | [ADR-0001](../architecture/ADR-0001-zustands-und-freigabemodell.md) angenommen; Umsetzung in S5/S6 |
-| 02 | Importergebnisse und Grenzen erklären | teilweise | Scanstatistik mit Lücken, Header-only, Limit; noch keine Abdeckungsansicht (D4) |
+| 02 | Importergebnisse und Grenzen erklären | teilweise | Scanstatistik mit Lücken und nächsten Schritten (F4); noch keine Abdeckungsansicht (D4) |
 | 03 | Erkennungsbegründungen | teilweise | Hinweisart, Stärke und Einschränkung pro Beleg; nach einer Bestätigung verdeckt (ADR-0001) |
 | 04 | Mehrdeutigkeiten gesammelt prüfen | teilweise | Identitätsprüfung und nicht zugeordnete Belege je Account; keine Sammelliste |
 | 05 | Änderungen automatisch zusammenstellen | offen | – |
@@ -75,7 +75,7 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 | S0 | Entscheidungen, ADR-0001 angenommen, Arbeitsplan | – | ✅ |
 | S1 | Pro-Grundlage entfernen; Laufzeit nur mit Standardbibliothek | Entscheidung | ✅ |
 | S2 | CI auf Linux, Windows und macOS | Installation und Plattformen | ✅ |
-| S3 | Fehler mit nächstem Schritt, Exportvorschau, präzises Produktversprechen | F4, F6, B2, G1 | offen |
+| S3 | Fehler mit nächstem Schritt, Exportvorschau, präzises Produktversprechen | F4, F6, B2, G1 | F4, G1 ✅ · F6, B2 offen |
 | S4 | Profil-Sicherung und Wiederherstellung | Installation, Migration und Sicherung | offen |
 | S5 | Zustandsmodell im Store mit Migration und Rückgängig | 01, 08, F5, B4, B5, E4 (Teil) | offen |
 | S6 | Zustandsmodell im Dashboard | D2, A10 | offen |

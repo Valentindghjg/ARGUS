@@ -8,6 +8,7 @@ import sys
 from .i18n import translate, cli_language, LocalizedArgumentParser, localize_discovery
 from .registry import Registry
 from .discovery import discover, DNSError
+from .guidance import hint_for
 from .imap_client import IMAPConfig, MailboxError, load_config, save_config, imap_messages, with_keep_alive
 from .mailbox_lease import MailboxLease
 from .background import (BackgroundScanService, CredentialError, KeyringCredentialStore,
@@ -122,11 +123,11 @@ def main(argv=None):
                 serve(store, args.port, args.open, language=language)
         elif args.command == 'serve':
             if not store.meta('emails'):
-                raise ValueError(t('Run init or demo first'))
+                raise ValueError('Run init or demo first')
             serve(store, args.port, args.open, language=language)
         elif args.command == 'import':
             result = scan_messages(store, file_messages(args.path, args.format), args.format, lambda s: print(t('Processed locally: {p0}; new clues: {p1}', p0=s['processed'], p1=s['evidence']), flush=True))
-            print(json.dumps(result, ensure_ascii=False))
+            report_scan(result, t)
         elif args.command == 'report':
             print(json.dumps(store.snapshot()['summary'], ensure_ascii=False, indent=2))
         elif args.command == 'list-accounts':
@@ -140,13 +141,13 @@ def main(argv=None):
             if not domain:
                 emails = store.meta('emails', [])
                 if not emails:
-                    raise ValueError(t('Specify --domain or run init first'))
+                    raise ValueError('Specify --domain or run init first')
                 domain = emails[0].split('@', 1)[1]
             print(json.dumps(localize_discovery(discover(domain, allow_network=args.allow_dns, resolver=args.resolver), language), ensure_ascii=False, indent=2))
         elif args.command == 'setup-imap':
             emails = store.meta('emails', [])
             if not emails or store.meta('demo', False):
-                raise ValueError(t('Initialize a personal local profile with init first'))
+                raise ValueError('Initialize a personal local profile with init first')
             print(t('No connection will be opened. Verify the host in official provider documentation first.'))
             host = args.host or input(t('Verified IMAP host (TLS): ')).strip()
             username = args.username or input(t('IMAP username [{p0}]: ', p0=emails[0])).strip() or emails[0]
@@ -157,9 +158,9 @@ def main(argv=None):
             if not args.allow_imap:
                 raise MailboxError('No connection authorized; explicitly choose scan-imap --allow-imap')
             if store.meta('demo', False) or not store.meta('emails'):
-                raise ValueError(t('IMAP requires an initialized personal local profile'))
+                raise ValueError('IMAP requires an initialized personal local profile')
             if args.limit is not None and args.limit < 1:
-                raise ValueError(t('The scan limit must be positive'))
+                raise ValueError('The scan limit must be positive')
             config = load_config(store.data_dir / 'imap.json')
             print(t('Authorized TLS host: {p0}:{p1}; read-only access.', p0=config.host, p1=config.port))
             if not sys.stdin.isatty():
@@ -177,13 +178,13 @@ def main(argv=None):
                         print(folder)
                 else:
                     result = scan_messages(store, messages, 'imap', lambda s: print(t('Processed locally: {p0}; new clues: {p1}', p0=s['processed'], p1=s['evidence']), flush=True))
-                    print(json.dumps(result, ensure_ascii=False))
+                    report_scan(result, t)
             finally:
                 secret = ''
                 mailbox.release()
         elif args.command == 'background-imap':
             if store.meta('demo', False) or not store.meta('emails'):
-                raise ValueError(t('Background IMAP requires an initialized personal local profile'))
+                raise ValueError('Background IMAP requires an initialized personal local profile')
             service = BackgroundScanService(store, KeyringCredentialStore())
             if args.action == 'status':
                 print(json.dumps(service.snapshot(), ensure_ascii=False, indent=2))
@@ -195,9 +196,9 @@ def main(argv=None):
                 print(t('Scheduled IMAP scans are disabled and the IMAP authorization was removed from your OS keyring.'))
             else:
                 if not MIN_INTERVAL_SECONDS <= args.interval_minutes * 60 <= MAX_INTERVAL_SECONDS:
-                    raise ValueError(t('Scheduled scan interval must be between 15 minutes and 7 days'))
+                    raise ValueError('Scheduled scan interval must be between 15 minutes and 7 days')
                 if not 1 <= args.limit <= MAX_LIMIT:
-                    raise ValueError(t('Scheduled scan limit must be between 1 and 10000'))
+                    raise ValueError('Scheduled scan limit must be between 1 and 10000')
                 # Load and validate the existing credential-free configuration before
                 # asking for the secret. This command never opens an IMAP socket.
                 config = load_config(store.data_dir / 'imap.json')
@@ -224,14 +225,26 @@ def main(argv=None):
             print(t('Saved {p0} metadata items privately; password fields are empty. Import the file into Bitwarden yourself, only once.', p0=count))
         return 0
     except (MailboxError, DNSError, CredentialError) as exc:
-        print(t(str(exc)), file=sys.stderr)
-        return 2
+        return fail(str(exc), t)
     except FileExistsError:
-        print(t('The destination file already exists and will not be overwritten.'), file=sys.stderr)
-        return 2
+        return fail('The destination file already exists and will not be overwritten.', t)
     except (ValueError, FileNotFoundError) as exc:
-        print(t('Error: ') + t(str(exc)), file=sys.stderr)
-        return 2
+        return fail(str(exc), t, prefix=t('Error: '))
     except (OSError, KeyboardInterrupt):
-        print(t('Operation interrupted or local file access / port unavailable.'), file=sys.stderr)
-        return 2
+        return fail('Operation interrupted or local file access / port unavailable.', t)
+
+
+def fail(message, t, prefix=''):
+    """Print a constant error and, when one is known, its next step (plan F4)."""
+    print(prefix + t(message), file=sys.stderr)
+    hint = hint_for(message)
+    if hint:
+        print(t('Next step: ') + t(hint), file=sys.stderr)
+    return 2
+
+
+def report_scan(result, t):
+    """JSON on stdout for scripts; translated next steps on stderr for people."""
+    print(json.dumps(result, ensure_ascii=False))
+    for step in result.get('next_steps', []):
+        print(t('Next step: ') + t(step), file=sys.stderr)

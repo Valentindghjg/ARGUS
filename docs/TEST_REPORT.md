@@ -9,6 +9,11 @@ page check. Since then: **206 Python tests** and **23 browser check groups**.
 New repository tests reject runtime dependencies outside the standard library
 and keep the source-header rule.
 
+Step S3 (F4, G1): **215 Python tests** and **24 browser check groups**. New
+tests cover next-step hints in the CLI, the API and the dashboard (both
+languages), scan next steps, the local list of skipped files and a guard
+against absolute product promises.
+
 New simulations combine a real local store with a fake IMAP server, a fake
 keyring and a simulated clock. They cover lease renewal during long scheduled
 scans, cancellation by `disable`/`revoke`, the absence of secrets in profile

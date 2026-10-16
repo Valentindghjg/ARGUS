@@ -34,6 +34,24 @@ See [the security review](SECURITY_REVIEW_2026-10.md) and
 - CI now runs the unit tests and a package installation check on Windows and
   macOS as well as Linux. Browser checks stay on Linux.
 
+### Clear next steps and a precise promise (master plan F4, G1)
+
+- Known problems now come with one concrete next step: missing profile or
+  source path, Maildir layout, an existing export file, a busy port or
+  database, keyring and IMAP failures, unresolved Bitwarden transfers and
+  incomplete checklists. The CLI prints it as "Next step:", and the dashboard
+  shows it under the error. Hints are fixed texts and never repeat paths,
+  addresses or message content.
+- Every scan result lists what to do about its gaps (skipped, unreadable or
+  header-only messages, interruptions, limits, changed addresses). The CLI
+  keeps JSON on stdout and prints these steps on stderr.
+- The browser import lists files it skipped and why (empty, not EML, over
+  2 MiB). The file names stay in the browser tab.
+- Texts no longer suggest completeness or protection: "Already secured" is now
+  "Checklists completed", and the progress panel says that ARGUS cannot find
+  every account. Both READMEs state the product promise; a test blocks
+  absolute claims.
+
 ### Security and robustness
 
 - **Approvals are bound to their target (master plan priority 10).** Scheduled
