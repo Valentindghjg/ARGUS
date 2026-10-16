@@ -80,11 +80,13 @@ def main():
                 expect(page.locator("#identity-caution-note")).to_be_visible()
                 expect(page.locator("#shared-evidence-panel")).to_be_visible()
                 expect(page.locator("#shared-evidence .evidence-card")).to_have_count(1)
-                page.locator("#checklist input").first.check()
-                expect(page.locator("#checklist input").first).to_be_enabled()
+                page.locator("#decide-confirm").click()
+                page.locator("#checklist input.step-check").first.check()
+                expect(page.locator("#checklist input.step-check").first).to_be_enabled()
                 identities = {account["id"]: account for account in store.snapshot()["accounts"]}
-                assert identities[original[second]]["checklist"]["reviewed"]
-                assert not identities[original[first]]["checklist"]["reviewed"]
+                assert identities[original[second]]["decision"] == "confirmed"
+                assert identities[original[second]]["steps"]["identity"]["state"] == "done"
+                assert identities[original[first]]["decision"] == "undecided"
                 checks.append("Search distinguishes identities; review progress is separate; ambiguous clues stay unassigned")
 
                 page.locator("#add-account-panel summary").click()
@@ -103,7 +105,7 @@ def main():
                 siblings = [account for account in store.snapshot()["accounts"] if account["provider_id"] == "github"]
                 added = next(account for account in siblings if account["label"] == "Second work profile")
                 assert len({account["id"] for account in siblings}) == 3
-                assert not added["checklist"]["saved_in_bitwarden"]
+                assert added["steps"]["vault"]["state"] == "open"
                 checks.append("Explicit local-only separate-account form selects its new identity and preserves siblings")
 
                 page.locator("#detail-worklist").click()
@@ -146,7 +148,7 @@ def main():
                 page.locator("#registered-email").select_option(first)
                 expect(page.locator("#registered-email")).to_be_disabled()
                 expect(page.locator("#identity-review-note")).to_be_hidden()
-                expect(page.locator("#checklist input").first).to_be_checked()
+                expect(page.locator("#checklist input.step-check").first).to_be_checked()
                 expect(page.locator("#detail-bitwarden")).to_be_enabled()
                 checks.append("Legacy progress stays blocked from Bitwarden until the user explicitly confirms its identity")
 

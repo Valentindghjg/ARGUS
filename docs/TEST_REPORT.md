@@ -38,6 +38,12 @@ only raises a hint; steps and review dates are validated and dated; undo walks
 back in order, refuses to overwrite later changes and never reverses an
 external effect; API shapes and CLI commands are covered.
 
+Step S6: **247 Python tests** and **26 browser check groups**. The browser
+confirms, rejects with a reason and undoes from the toast and from the history,
+walks the guided decision and sign-in steps, completes an account only after
+every step is answered (MFA marked not used), sets a review date and checks
+both languages.
+
 New simulations combine a real local store with a fake IMAP server, a fake
 keyring and a simulated clock. They cover lease renewal during long scheduled
 scans, cancellation by `disable`/`revoke`, the absence of secrets in profile

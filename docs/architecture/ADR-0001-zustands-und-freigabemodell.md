@@ -172,6 +172,7 @@ Weitere Entscheidungen zum Gesamtplan stehen in
 2. Store/API: getrennte Felder, Änderungsprotokoll und Rückgängig für B, C und D.
    **Umgesetzt (S5b), siehe Abschnitt 8.**
 3. Dashboard: drei Marken, Verwerfen und Rückgängig, Bedeutungstabelle in der Hilfe.
+   **Umgesetzt (S6).**
 4. Jobmodell mit globaler Pause; Freigabe-Datensatz für alle externen Lesezugriffe.
 5. Fachliche Testfälle aus dem Plan: Newsletter, SSO, mehrere Identitäten,
    unklare Übergaben, Regeländerung gegen Bestätigung, dreifacher Import.

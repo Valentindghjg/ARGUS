@@ -397,21 +397,33 @@ Passwortverwaltungslinks mit Quellenbeleg sind für Google, Apple und GitHub
 hinterlegt. Andere Dienste führen auf die kuratierte offizielle Startseite;
 es wird kein unüberprüfter Passwortlink aus einer E-Mail übernommen.
 
-- **Bestätigt:** du hast „Account geprüft und vorhanden“ abgehakt.
-- **Wahrscheinlich:** mindestens ein kontobezogener lokaler Beleg mit ausreichender
-  Regelstärke; historische oder gefälschte Mails bleiben möglich.
-- **Unbekannt:** keine ausreichenden Hinweise. Das bedeutet nicht, dass kein
-  Account existiert. Newsletter, Gastbestellungen und Reset-Anforderungen zählen
-  nicht als Nachweis.
+Jeder Account zeigt drei getrennte Marken; „Was die drei Marken bedeuten“ unter
+der Liste erklärt sie:
 
-Öffne einen Account über „Prüfen“. Bestätige seine Existenz selbst, ordne bei Bedarf
-eine konfigurierte eigene Anmeldeadresse zu und wähle Passwort, SSO oder Passkey.
-Nutze einen bereits vorhandenen Bitwarden-Eintrag, wenn möglich. Erzeuge neue
-Passwörter **in Bitwarden**, ändere sie selbst beim Anbieter und teste die Anmeldung.
-MFA und Wiederherstellung werden zusätzlich empfohlen. „Erledigt“ ist erst nach
-den erforderlichen Schritten möglich; SSO/Passkeys benötigen kein separates
-Dienstpasswort. Unbekannte Katalogdienste können nach eigener Prüfung ebenfalls
-manuell bestätigt werden.
+- **Beleg** (automatisch): wahrscheinlich, schwach, älter oder keiner. Er folgt
+  deinen importierten Mails, die alt oder gefälscht sein können. „Keine Belege“
+  heißt nie „existiert nicht“. Der Wert ist eine Hinweisstärke, keine
+  Wahrscheinlichkeit.
+- **Deine Entscheidung**: offen, von dir bestätigt oder mit Grund verworfen
+  (nicht meiner, kein Account, geschlossen). Neue Belege ändern sie nie; starke
+  neue Belege nach dem Verwerfen zeigen nur einen Hinweis. Verworfene Accounts
+  verschwinden aus Listen, Arbeitsliste und Vorschlägen.
+- **Fortschritt**: deine fünf datierten Schritte. Abgeschlossen heißt, jeder
+  Schritt ist erledigt oder trifft nicht zu. Das ist keine Sicherheitsgarantie.
+
+Newsletter, Gastbestellungen und Reset-Anforderungen zählen nicht als Nachweis.
+
+Öffne einen Account über „Prüfen“, entscheide, ob er dir gehört, und arbeite dann
+die Schritte ab: Anmeldung prüfen (bei Bedarf eine eigene Adresse zuordnen), in
+Bitwarden speichern, eigenes Passwort setzen (bei SSO oder Passkey nicht nötig),
+Anmeldung testen sowie MFA und Wiederherstellung prüfen (oder als nicht angeboten
+bzw. nicht genutzt markieren). Erzeuge neue Passwörter **in Bitwarden** und ändere
+sie selbst beim Anbieter. Jeder erledigte Schritt speichert sein Datum und kann
+eine lokale Wiedervorlage bekommen. Ein von ARGUS passwortfrei angelegter Eintrag
+gilt als „vorbereitet“, bis du den Tresor-Schritt abhakst. Der Hinweis nach jeder
+Änderung und „Deine letzten Änderungen“ in der Arbeitsliste machen lokale
+Entscheidungen und Schritte rückgängig; Bitwarden-Einträge und Scans werden nie
+zurückgenommen. Katalogdienste ohne Mailbeleg kannst du ebenfalls bestätigen.
 
 Unter „Bitwarden vorbereiten“:
 

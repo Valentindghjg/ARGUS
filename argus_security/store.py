@@ -401,8 +401,10 @@ class Store:
             "last_scan": self._last_scan(),
             "stale_evidence": stale_evidence, "analysis_version": ANALYSIS_VERSION,
         }
-        from .workflow import worklist_snapshot
+        from .workflow import next_step, worklist_snapshot
         from .handoffs import handoff_snapshot
+        for account in accounts:
+            account["next_step"] = next_step(account)
         snapshot["workflow"] = worklist_snapshot(self, accounts)
         snapshot["bitwarden_handoffs"] = handoff_snapshot(self)
         from .i18n import localize_snapshot

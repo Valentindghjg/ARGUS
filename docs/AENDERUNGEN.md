@@ -120,6 +120,24 @@ Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md) und
   CLI-Befehle `argus changes` und `argus undo`. Das Dashboard folgt im nächsten
   Schritt.
 
+## Dashboard: drei Marken, Entscheidungen, datierte Schritte und Rückgängig (D2, A10, F5)
+
+- Accountliste und Dialog zeigen drei getrennte Marken: Beleg, deine
+  Entscheidung und Fortschritt. Ihre Bedeutung steht unter der Liste.
+- Der Dialog fragt „Ist das dein Account?“ mit Bestätigen, Verwerfen mit Grund
+  und Offen lassen und listet fünf datierte Schritte. MFA lässt sich als nicht
+  angeboten oder nicht genutzt markieren, erledigte Schritte können eine lokale
+  Wiedervorlage bekommen. Ein vorbereiteter Tresoreintrag ist als solcher
+  gekennzeichnet. Der Knopf „Als erledigt markieren“ entfällt: Der Abschluss
+  folgt aus den Schritten.
+- Jede Entscheidung und jeder Schritt bietet im Hinweis „Rückgängig“ an;
+  „Deine letzten Änderungen“ in der Arbeitsliste zeigt den Verlauf mit
+  Rückgängig je Änderung.
+- Filter trennen jetzt Beleg und Entscheidung (von dir bestätigt, nur Belege,
+  keine Belege, verworfen) sowie Fortschritt (nicht begonnen, in Arbeit,
+  abgeschlossen, zurückgestellt). „Zurückstellen“ plant den Account in der
+  Arbeitsliste ein.
+
 ## Sicherheit und Robustheit
 
 - **Freigaben sind an ihr Ziel gebunden (Masterplan, Priorität 10).** Geplante

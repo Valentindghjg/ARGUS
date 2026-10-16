@@ -40,18 +40,18 @@ Hauptnutzen kommt ohne sie aus.
 
 ## Umsetzungsstand der 15 Prioritäten
 
-Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S5.
+Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S6.
 
 | Nr. | Priorität | Stand | Im Code |
 | --- | --- | --- | --- |
-| 01 | Zustände sauber trennen | im Store umgesetzt | [ADR-0001](../architecture/ADR-0001-zustands-und-freigabemodell.md): getrennte Achsen, Migration mit Sicherung; Dashboard folgt in S6 |
+| 01 | Zustände sauber trennen | **umgesetzt** | [ADR-0001](../architecture/ADR-0001-zustands-und-freigabemodell.md): getrennte Achsen, Migration mit Sicherung, drei Marken im Dashboard |
 | 02 | Importergebnisse und Grenzen erklären | teilweise | Scanstatistik mit Lücken und nächsten Schritten (F4); noch keine Abdeckungsansicht (D4) |
 | 03 | Erkennungsbegründungen | teilweise | Hinweisart, Stärke und Einschränkung pro Beleg; nach einer Bestätigung verdeckt (ADR-0001) |
 | 04 | Mehrdeutigkeiten gesammelt prüfen | teilweise | Identitätsprüfung und nicht zugeordnete Belege je Account; keine Sammelliste |
 | 05 | Änderungen automatisch zusammenstellen | offen | – |
 | 06 | Unverändertes nicht erneut vorlegen | teilweise | Fingerabdruck-Deduplizierung und IMAP-Checkpoints; Oberfläche blendet noch nichts aus |
 | 07 | Jobs, Pause, Wiederaufnahme vereinheitlichen | teilweise | Importsitzungen, Leases, Abbruch zwischen Nachrichten; gemeinsames Jobmodell in ADR-0001 |
-| 08 | Korrekturen erhalten und rückgängig machen | im Store umgesetzt | Entscheidungen überstehen Neuauswertung; Protokoll und Rückgängig für Entscheidung, Schritte und Planung (CLI/API; Dashboard in S6) |
+| 08 | Korrekturen erhalten und rückgängig machen | **umgesetzt** | Entscheidungen überstehen Neuauswertung; Protokoll und Rückgängig für Entscheidung, Schritte und Planung in Dashboard, API und CLI |
 | 09 | Nächste Aufgabe begründet vorbereiten | weitgehend | geführter Ablauf, Arbeitsliste, Prioritätsvorschau |
 | 10 | Freigaben vor externen Jobs prüfen | **umgesetzt** für geplante Scans | Zielbindung aus Host, Port, Benutzer, Anmeldeart und Ordnern; allgemeines Muster in ADR-0001 |
 | 11 | Bitwarden-Vorschau und Übergabestatus | weitgehend | Übergabejournal und Status; genaue Vorschau vor jedem Schreiben (B2) |
@@ -78,7 +78,7 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 | S3 | Fehler mit nächstem Schritt, Exportvorschau, präzises Produktversprechen | F4, F6, B2, G1 | ✅ |
 | S4 | Profil-Sicherung und Wiederherstellung | Installation, Migration und Sicherung | ✅ |
 | S5 | Zustandsmodell im Store mit Migration und Rückgängig | 01, 08, F5, B4, B5, E4 (Teil) | ✅ |
-| S6 | Zustandsmodell im Dashboard | D2, A10 | offen |
+| S6 | Zustandsmodell im Dashboard | D2, A10 | ✅ |
 | S7 | Drei Einstiegswege, ehrliche Ergebniszusammenfassung, klare nächste Aufgabe → **2.0.0** | F2, F3, D1, 02, 09 | offen |
 | S8 | Erkennungsbegründungen, Hinweisarten und Alter | E1, E2, 03 | offen |
 | S9 | Mehrdeutigkeitsliste, Ausschlüsse, Alias-Beziehungen | E3, E4, A9, 04 | offen |

@@ -41,6 +41,12 @@ Schritte und Wiedervorlagen werden geprüft und datiert; Rückgängig geht der
 Reihe nach zurück, überschreibt keine späteren Änderungen und nimmt nie einen
 externen Vorgang zurück; API-Formen und CLI-Befehle sind abgedeckt.
 
+Schritt S6: **247 Python-Tests** und **26 Browser-Prüfgruppen**. Der Browser
+bestätigt, verwirft mit Grund und macht über den Hinweis und den Verlauf
+rückgängig, geht die geführten Schritte Entscheidung und Anmeldung durch,
+schließt einen Account erst ab, wenn jeder Schritt beantwortet ist (MFA als
+nicht genutzt), setzt eine Wiedervorlage und prüft beide Sprachen.
+
 Neue Simulationen verbinden einen echten lokalen Store mit einem
 Fake-IMAP-Server, einem Fake-Schlüsselbund und einer simulierten Uhr. Sie prüfen:
 die Verlängerung der Lease bei langen geplanten Scans, den Abbruch durch
