@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Opt-in local scheduling for incremental, read-only IMAP scans.
 
 This module deliberately has no daemon or import-time side effects.  A caller

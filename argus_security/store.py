@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Private SQLite storage of evidence metadata, never message bodies or secrets."""
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -17,6 +19,57 @@ CHECKLIST = ("reviewed", "saved_in_bitwarden", "password_changed", "login_tested
 
 def now():
     return datetime.now(timezone.utc).isoformat()
+
+
+CORE_SCHEMA = """
+CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS evidence (
+  id INTEGER PRIMARY KEY,
+  provider_id TEXT,
+  sender_domain TEXT NOT NULL,
+  registered_email TEXT,
+  signal TEXT NOT NULL,
+  score INTEGER NOT NULL,
+  fingerprint TEXT NOT NULL,
+  date TEXT,
+  source TEXT NOT NULL,
+  caveat TEXT,
+  rule_version INTEGER NOT NULL DEFAULT 1,
+  UNIQUE(fingerprint, sender_domain, signal)
+);
+CREATE INDEX IF NOT EXISTS evidence_provider ON evidence(provider_id);
+"""
+
+# Provider-wide progress tables from before 1.9. New profiles never create
+# them; migrate_instances reads them once from older profiles.
+LEGACY_SCHEMA = """
+CREATE TABLE IF NOT EXISTS accounts (
+  provider_id TEXT PRIMARY KEY,
+  confirmed INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'pending',
+  checklist TEXT NOT NULL DEFAULT '{}',
+  priority_override TEXT,
+  login_method TEXT NOT NULL DEFAULT 'password',
+  manual_email TEXT,
+  updated TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS work_queue (
+  provider_id TEXT PRIMARY KEY,
+  position INTEGER NOT NULL,
+  deferred INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS bitwarden_handoffs (
+  id TEXT PRIMARY KEY,
+  provider_id TEXT NOT NULL,
+  email TEXT NOT NULL,
+  state TEXT NOT NULL,
+  operation_id TEXT NOT NULL,
+  lease_until REAL NOT NULL DEFAULT 0,
+  vault_item_id TEXT,
+  updated TEXT NOT NULL,
+  UNIQUE(provider_id, email)
+);
+"""
 
 
 UNCHANGED = object()
@@ -76,54 +129,15 @@ class Store:
             raise ValueError("The database must not be a symlink")
         self.registry = registry
         with self.connect() as db:
-            db.executescript("""
-              CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
-              CREATE TABLE IF NOT EXISTS accounts (
-                provider_id TEXT PRIMARY KEY,
-                confirmed INTEGER NOT NULL DEFAULT 0,
-                status TEXT NOT NULL DEFAULT 'pending',
-                checklist TEXT NOT NULL DEFAULT '{}',
-                priority_override TEXT,
-                login_method TEXT NOT NULL DEFAULT 'password',
-                manual_email TEXT,
-                updated TEXT NOT NULL
-              );
-              CREATE TABLE IF NOT EXISTS evidence (
-                id INTEGER PRIMARY KEY,
-                provider_id TEXT,
-                sender_domain TEXT NOT NULL,
-                registered_email TEXT,
-                signal TEXT NOT NULL,
-                score INTEGER NOT NULL,
-                fingerprint TEXT NOT NULL,
-                date TEXT,
-                source TEXT NOT NULL,
-                caveat TEXT,
-                rule_version INTEGER NOT NULL DEFAULT 1,
-                UNIQUE(fingerprint, sender_domain, signal)
-              );
-              CREATE INDEX IF NOT EXISTS evidence_provider ON evidence(provider_id);
-              CREATE TABLE IF NOT EXISTS work_queue (
-                provider_id TEXT PRIMARY KEY,
-                position INTEGER NOT NULL,
-                deferred INTEGER NOT NULL DEFAULT 0
-              );
-              CREATE TABLE IF NOT EXISTS bitwarden_handoffs (
-                id TEXT PRIMARY KEY,
-                provider_id TEXT NOT NULL,
-                email TEXT NOT NULL,
-                state TEXT NOT NULL,
-                operation_id TEXT NOT NULL,
-                lease_until REAL NOT NULL DEFAULT 0,
-                vault_item_id TEXT,
-                updated TEXT NOT NULL,
-                UNIQUE(provider_id, email)
-              );
-            """)
-            # Additive migration for inventories created by earlier local versions.
-            columns = {row["name"] for row in db.execute("PRAGMA table_info(accounts)")}
-            if "manual_email" not in columns:
-                db.execute("ALTER TABLE accounts ADD COLUMN manual_email TEXT")
+            db.executescript(CORE_SCHEMA)
+            tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            if "accounts" in tables:
+                # A pre-1.9 profile keeps its original tables as the one-time
+                # migration source; complete any that older versions lacked.
+                db.executescript(LEGACY_SCHEMA)
+                columns = {row["name"] for row in db.execute("PRAGMA table_info(accounts)")}
+                if "manual_email" not in columns:
+                    db.execute("ALTER TABLE accounts ADD COLUMN manual_email TEXT")
             evidence_columns = {row["name"] for row in db.execute("PRAGMA table_info(evidence)")}
             if "rule_version" not in evidence_columns:
                 db.execute("ALTER TABLE evidence ADD COLUMN rule_version INTEGER NOT NULL DEFAULT 1")

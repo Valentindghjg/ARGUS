@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Cross-process exclusivity for the mailbox session of one profile.
 
 Manual ``scan-imap`` runs and scheduled scans both hold this lease while they

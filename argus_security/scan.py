@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Streaming local file imports and synthetic examples."""
 from email.message import EmailMessage
 from hashlib import sha256

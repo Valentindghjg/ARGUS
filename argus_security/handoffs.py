@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Durable Bitwarden creation attempts. An ambiguous write is never retried blindly."""
 import json
 import time

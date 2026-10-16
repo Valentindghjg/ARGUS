@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Optional browser regression for local identities; synthetic addresses and mail only."""
 import argparse
 import json
@@ -11,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from argus_security.registry import Registry
 from argus_security.scan import scan_messages, synthetic_mail
 from argus_security.server import DashboardServer
-from argus_security.store import Store, now
+from argus_security.store import LEGACY_SCHEMA, Store, now
 
 
 def main():
@@ -33,6 +35,7 @@ def main():
         store.configure([first, second])
         # Recreate an earlier version's reviewed row with no identified address.
         with store.connect() as db:
+            db.executescript(LEGACY_SCHEMA)
             db.execute("INSERT INTO accounts(provider_id,confirmed,status,checklist,updated) VALUES (?,?,?,?,?)",
                        ("steam", 1, "in_progress", json.dumps({"reviewed": True}), now()))
             db.execute("DELETE FROM meta WHERE key='account_instances_migrated'")

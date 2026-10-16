@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Simulations for the follow-up fixes R-14 to R-16 of the 2026-10 review.
 
 Synthetic only: a real local Store, FakeIMAP, a fake keyring, a controllable

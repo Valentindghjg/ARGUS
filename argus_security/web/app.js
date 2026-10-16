@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 ARGUS contributors
 "use strict";
 const $ = id => document.getElementById(id);
 let language;

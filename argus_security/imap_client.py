@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """TLS-only IMAP ingestion. All selected mailboxes are opened read-only."""
 from dataclasses import dataclass, asdict
 import base64

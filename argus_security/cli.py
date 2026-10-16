@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Terminal interface; passwords are never command-line arguments."""
 import getpass
 import json

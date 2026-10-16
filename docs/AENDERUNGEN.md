@@ -2,6 +2,26 @@
 
 Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md).
 
+## Inkompatibel: Das Projekt heißt jetzt überall ARGUS
+
+- Paket `argus_security` (`python -m argus_security`), Distribution
+  `argus-account-security` und Befehl `argus`. `python -m account_finder` und
+  `account-finder` funktionieren weiter, zeigen aber einen Hinweis, dass sie
+  veraltet sind.
+- Das Standardprofil wird einmalig und atomar von `~/.local/share/account-finder`
+  nach `~/.local/share/argus` verschoben, mit allen Dateien und Rechten. Ein
+  ausdrückliches `--data-dir` wird nie verschoben. Schlüsselbund-Einträge müssen
+  nicht migriert werden.
+- Die Editionen heißen **ARGUS Free/Pro**; die Produkt-ID für Pro-Lizenzen ist
+  `argus-pro`. Unter der alten ID wurde keine Lizenz ausgestellt.
+- Neue Bitwarden-Einträge tragen das Feld `ARGUS-Account-ID`; die nur lesende
+  Prüfung erkennt weiterhin `Account-Finder-ID`. Die Sprachwahl im Dashboard
+  wechselt beim ersten Aufruf auf einen neuen Browser-Speicherschlüssel.
+- Die interne Header-Markierung behält ihren alten Namen, weil sie Teil des
+  Nachrichten-Fingerabdrucks ist.
+
+## Sicherheit und Robustheit
+
 - Geplante IMAP-Scans verlängern ihre Lease zwischen Nachrichten. So bleibt auch
   ein langer Scan exklusiv. `disable`, `revoke` oder eine ersetzte Lease beenden
   einen laufenden Scan vor dem nächsten Nachrichtenabruf.
@@ -24,6 +44,24 @@ Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md).
   Dependabot überwacht zusätzlich pip-Abhängigkeiten.
 - Dokumentation korrigiert, die dem aktuellen Verhalten widersprach; toter Code
   entfernt.
+- Manuelle `scan-imap`-Läufe und geplante Scans teilen sich eine
+  prozessübergreifende Postfach-Lease; ein manueller Scan wird während eines
+  geplanten Laufs noch vor der Passwortabfrage abgelehnt.
+- Bitwarden-Metadaten gelangen über die Standardeingabe an `bw create item`,
+  nicht mehr über die Prozessliste.
+- Das Dashboard zeigt feste, konkrete Regelmeldungen (etwa eine Adresse, die
+  schon zu einem anderen Account gehört) statt eines allgemeinen Fehlers; andere
+  Fehler bleiben allgemein.
+- Zurückgestellte Accounts werden im geführten Ablauf nicht mehr vorgeschlagen.
+- Der Browser-Begleiter hat eine deutsche Oberfläche, baut seinen Katalog über
+  die Prüfung der Anwendung und wird mit simulierten Browser-APIs getestet.
+- Neue Profile legen die Tabellen aus der Zeit vor 1.9 nicht mehr an; ältere
+  Profile werden weiterhin übernommen.
+- Jede Quelldatei trägt eine MPL-2.0-SPDX-Kopfzeile; LICENSING.md umfasst Daten,
+  Dokumentation und Bilder. Sicherheitsmeldungen laufen nur über die private
+  Meldefunktion von GitHub.
+- 22 ungenutzte Übersetzungen entfernt, mit Regressionstest; deutsche README und
+  Änderungsliste vervollständigt; Werkzeugversionen in der CI festgelegt.
 - End-to-End-Simulationen mit Fake-IMAP-Server, Fake-Schlüsselbund und
   simulierter Uhr ergänzt.
 
@@ -250,4 +288,91 @@ Ergebnis gespeichert. Originaldateien erneut importieren oder einen IMAP-Scan
 ausdrücklich freigeben. Checklisten und manuelle Bestätigungen bleiben erhalten.
 „Unbekannt“ bedeutet nie, dass kein Account existiert.
 
-Die vollständige Versionsgeschichte steht im englischen Änderungsprotokoll.
+---
+
+# Änderungen – Version 1.5.0 (14. Oktober 2026)
+
+- Lokale Edition **Account Compass Free** (heute ARGUS Free) und eine Seite
+  „Pläne“ im Dashboard mit einer transparenten, nicht erhältlichen Pro-Vorschau.
+- Produktangaben sind lokal und durch Tests abgedeckt. Kein Checkout, keine
+  Zahlungsdaten, keine Telemetrie, kein Online-Konto, keine Lizenzaktivierung.
+- Englische und deutsche Freemium-Dokumentation sowie eine Checkliste für die
+  kommerzielle Veröffentlichung. Bevor kostenpflichtige Funktionen erscheinen,
+  braucht es einen echten Verkäufer, Lizenz, Rechtstexte, Zahlungsanbieter und
+  ein signiertes Berechtigungsmodell.
+- Bestehende Profile, Erkennung, Datenschema und Free-Funktionen bleiben unverändert.
+
+# Änderungen – Version 1.4.0 (14. Oktober 2026)
+
+- Katalog von 372 auf **527** Dienste erweitert. Der Katalog prüft eindeutige
+  Domains und den Vorrang spezifischer Subdomains; es kamen keine
+  Account-Abfragen bei Anbietern hinzu.
+- Unterlagen für ein öffentliches Projekt: Katalogrichtlinie,
+  Veröffentlichungs-Checkliste, Hilfe, Verhaltenskodex, Issue-Vorlagen und
+  Dependabot-Konfiguration.
+- Paketmetadaten nennen Projekt, unterstützte Python-Versionen und
+  Repository-Adressen. Die Lizenzwahl blieb bewusst dem Inhaber überlassen.
+- README für Erstnutzer neu gegliedert: Zweck, Grenzen, Update-Anleitung und
+  Projektlinks.
+- Bestehende Profile bleiben kompatibel. Für neue Katalogdomains Originalmails
+  erneut importieren oder einen ausdrücklich freigegebenen vollständigen IMAP-Scan
+  ausführen.
+
+# Änderungen – Version 1.3.0 (14. Oktober 2026)
+
+- Sprachauswahl im Dashboard-Kopf und in offenen Account-Checklisten;
+  Browsersprache als Ausgangswert, Auswahl wird lokal gemerkt.
+- Beide Sprachen für Navigation, Filter, Kategorien, Erklärungen, Checklisten,
+  Datumsangaben, Importe, Einrichtung, Validierung und passwortfreie
+  Bitwarden-Notizen.
+- Das CLI folgt der Systemsprache; global wählbar mit `--language en|de`.
+- Filter, Checklisten, Anmeldeadressen, Exportauswahl und Importfortschritt
+  bleiben beim Sprachwechsel erhalten. Jeder Browser wählt unabhängig.
+- Vollständige englische und deutsche Anleitungen; gemeinsamer lokaler
+  Übersetzungskatalog. Keine Übersetzungsdienste, keine neuen Abhängigkeiten.
+- Erkennungsversion bleibt 2; ein erneuter Import aus 1.1/1.2 ist dafür nicht nötig.
+- 97 Python-Tests und 14 Browser-Prüfgruppen bestehen mit künstlichen Daten.
+
+# Änderungen – Version 1.2.0 (14. Oktober 2026)
+
+- Englische Oberfläche: Dashboard, Navigation, Checklisten, Filter,
+  Scan-Zusammenfassungen, Fehler, Einrichtung, CLI-Eingaben und -Hilfe,
+  Erklärungen, Kategorien, Bitwarden-Notizen, Beispiele und Dokumentation.
+- Anzeigename **Account Compass** (heute ARGUS); Paket, Befehle, Anbieter-IDs,
+  Ordner und Datenbankkennungen blieben damals kompatibel.
+- Ältere deutsche Programmhinweise werden auf Englisch angezeigt, ohne
+  gespeicherte Daten oder manuelle Bestätigungen zu ändern.
+- Englische Datums- und Suchformate. Eigennamen und Nutzertexte bleiben erhalten.
+- Die deutschen und englischen Erkennungsregeln sind unverändert. Keine neuen
+  Abhängigkeiten; Profile aus 1.1 brauchen dafür keinen neuen Mailimport.
+- 86 automatische Tests und acht Browserprüfungen bestehen mit künstlichen Daten.
+
+# Änderungen – Version 1.1.0 (14. Oktober 2026)
+
+- Eine Kontoerstellung wird nicht mehr durch einen Abmeldelink oder ein
+  Newsletter-Angebot nach der Hauptnachricht verdeckt. Reine Newsletter-Anmeldungen
+  bleiben „Unbekannt“.
+- Mehr deutsche und englische Aktivierungs- und Bestätigungsformulierungen;
+  verneinte Ereignisse werden verworfen. Betreff und Text werden nicht zu einem
+  künstlichen Ereignis verbunden.
+- Mehrere eigene Empfänger führen nicht zu einer willkürlichen Adresszuordnung.
+- Eine erneute Auswertung aktualisiert den ursprünglichen Fingerabdruck, auch bei
+  geändertem Hinweistyp oder neu katalogisierter Domain. Veraltete automatische
+  Belege bleiben nicht als zweiter Hinweis bestehen; manuelle Checklisten bleiben.
+- Eigene Aliasadressen über das Dashboard oder `add-email` ergänzen. Bestehende
+  Aliasse setzen den Scanfortschritt nicht zurück; Demo und persönliche Profile
+  bleiben getrennt.
+- Dauerhafte Statistik für mehrere Dateien, Importabbruch, Ablauf verlassener
+  Importsitzungen, Schutz vor parallelen Importen und erhaltene
+  Bitwarden-Auswahl.
+- Der Scanstatus unterscheidet Nachrichtenlimit, Unterbrechung, Fehler,
+  übersprungene Nachrichten und reine Header-Auswertung. Eine geänderte
+  Adressauswahl unterbricht einen laufenden Scan sicher.
+- 85 automatische Tests und acht Browserprüfungen bestehen.
+
+# Änderungen – Version 1.0.0 (13. Oktober 2026)
+
+Katalog mit 372 Diensten, lokale Mailbelege, Dashboard und Checklisten, lokale
+Dateiimporte, nur lesendes TLS-IMAP, ausdrücklich freigegebene MX-Hinweise und
+passwortfreier Bitwarden-Metadatenexport. 56 automatische Tests und sechs
+Browser-Prüfgruppen bestehen mit künstlichen Daten.

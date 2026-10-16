@@ -495,6 +495,15 @@ python scripts/browser_multi_account.py --browser /usr/bin/chromium
 | `argus_security/discovery.py` | Explicitly authorized MX hints |
 | `argus_security/bitwarden.py` | Official metadata-only import format |
 | `argus_security/server.py`, `web/` | Local dashboard |
+| `argus_security/cli.py` | Command line (`argus`), default profile and its one-time move |
+| `argus_security/scan.py` | EML, mbox and Maildir import sessions and the synthetic demo |
+| `argus_security/registry.py` | Strict provider-catalog validation and domain matching |
+| `argus_security/workflow.py` | Local security worklist and guided next step |
+| `argus_security/handoffs.py` | Durable Bitwarden transfer journal |
+| `argus_security/mailbox_lease.py` | One mailbox session per profile across processes |
+| `argus_security/errors.py` | Fixed, translatable messages that may reach the dashboard |
+| `argus_security/licensing.py`, `product.py` | Offline Pro-license verification and edition facts |
+| `account_finder/` | Deprecated alias for `python -m account_finder` and `account-finder` |
 | `tests/` | Automated regression tests |
 | `browser-companion/` | Minimal unpacked Chromium domain/settings-link companion |
 | [Catalog policy](docs/CATALOG.md) | Scope, review standards and how to propose providers |

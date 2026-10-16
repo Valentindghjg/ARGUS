@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """End-to-end simulations added by the 2026-10 security review.
 
 Everything is synthetic: a real local Store, the in-memory FakeIMAP server from

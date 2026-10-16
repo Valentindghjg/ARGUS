@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Account identity isolation, local manual entry, and conservative v1 migration."""
 from dataclasses import replace
 import json
@@ -9,7 +11,7 @@ from unittest.mock import patch
 from argus_security.analysis import analyze
 from argus_security.registry import Registry
 from argus_security.scan import scan_messages, synthetic_mail
-from argus_security.store import CHECKLIST, Store
+from argus_security.store import CHECKLIST, LEGACY_SCHEMA, Store
 
 
 class InstanceTests(unittest.TestCase):
@@ -42,6 +44,7 @@ class InstanceTests(unittest.TestCase):
     def restore_legacy(self, *, manual=None, done=True, handoffs=()):
         """Convert the fixture to the exact pre-instance persisted model."""
         with self.store.connect() as db:
+            db.executescript(LEGACY_SCHEMA)
             db.execute("DELETE FROM account_instances")
             db.execute("DELETE FROM meta WHERE key='account_instances_migrated'")
             db.execute("""INSERT INTO accounts(provider_id,confirmed,status,checklist,manual_email,updated)
@@ -243,6 +246,7 @@ class InstanceTests(unittest.TestCase):
     def test_interrupted_migration_rolls_back_state_and_can_restart(self):
         self.scan()
         with self.store.connect() as db:
+            db.executescript(LEGACY_SCHEMA)
             db.execute("DELETE FROM account_instances")
             db.execute("DELETE FROM meta WHERE key='account_instances_migrated'")
             db.execute("""INSERT INTO accounts(provider_id,confirmed,status,checklist,updated)
@@ -262,6 +266,28 @@ class InstanceTests(unittest.TestCase):
             self.assertEqual(db.execute("SELECT COUNT(*) FROM evidence").fetchone()[0], 1)
         self.store = Store(self.directory, self.registry)
         self.assertEqual(self.rows()[0]["status"], "done")
+        self.assertEqual(self.rows()[0]["identity_email"], self.primary)
+
+    def test_new_profiles_have_no_legacy_tables(self):
+        with self.store.connect() as db:
+            tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        self.assertFalse({"accounts", "work_queue", "bitwarden_handoffs"} & tables)
+        self.scan()
+        self.store = Store(self.directory, self.registry)
+        self.assertEqual(self.rows()[0]["identity_email"], self.primary)
+
+    def test_partial_legacy_schema_without_queue_or_journal_still_migrates(self):
+        self.scan()
+        with self.store.connect() as db:
+            db.execute("DELETE FROM account_instances")
+            db.execute("DELETE FROM meta WHERE key='account_instances_migrated'")
+            db.execute("""CREATE TABLE accounts (provider_id TEXT PRIMARY KEY, confirmed INTEGER NOT NULL DEFAULT 0,
+                          status TEXT NOT NULL DEFAULT 'pending', checklist TEXT NOT NULL DEFAULT '{}',
+                          priority_override TEXT, login_method TEXT NOT NULL DEFAULT 'password', updated TEXT NOT NULL)""")
+            db.execute("INSERT INTO accounts(provider_id,confirmed,status,checklist,updated) VALUES ('github',1,'in_progress',?,'legacy')",
+                       (json.dumps({"reviewed": True}),))
+        self.store = Store(self.directory, self.registry)
+        self.assertTrue(self.rows()[0]["checklist"]["reviewed"])
         self.assertEqual(self.rows()[0]["identity_email"], self.primary)
 
 

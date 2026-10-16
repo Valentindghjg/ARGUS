@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Regression tests for 1.1: real account clues, rescan, aliases and scan accounting."""
 from dataclasses import replace
 import http.client

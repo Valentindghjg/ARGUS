@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """The ARGUS rename must keep existing profiles, vault links and commands working."""
 from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO

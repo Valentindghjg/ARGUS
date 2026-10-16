@@ -1,7 +1,7 @@
 # Test report — unreleased security review (2026-10)
 
-The security-review changes passed **178 Python tests** (previously 166) and
-**23 Chromium browser check groups**, with zero page errors and zero external
+The security-review changes passed **202 Python tests** (previously 166) and
+**24 Chromium browser check groups**, with zero page errors and zero external
 browser requests.
 
 New simulations combine a real local store with a fake IMAP server, a fake
@@ -17,6 +17,15 @@ Further checks:
 - The companion validator checks all 527 providers and the HTTPS-only labelling.
 - The wheel was built and smoke-tested in a clean virtual environment.
 - 30,000 mutated MIME messages raised no unhandled exception type.
+- Follow-up simulations cover the one-time profile move (including a concurrent
+  move and a symlinked old folder), the deprecated command alias, the shared
+  mailbox lease between manual and scheduled scans, Bitwarden payloads via
+  stdin, user-facing rule messages over the loopback API, deferred accounts in
+  the guided step and the absence of pre-1.9 tables in new profiles.
+- The browser check also covers moving a pre-rename language preference.
+- The companion validator runs `popup.js` with simulated browser APIs in English
+  and German against lookalike domains, third-party subdomains and non-HTTPS pages.
+- Every source file carries the MPL-2.0 SPDX header, and no translation is unused.
 
 Only Python 3.13 ran locally; GitHub Actions covers 3.11–3.14. No real mailbox,
 provider, password, keyring or Bitwarden vault was used.
@@ -320,5 +329,7 @@ unsupported-language fallback, blocked preference storage and switching during
 an active import without losing progress or releasing import locks. The unknown
 provider count is derived from the catalog at test time, so the browser suite also
 covers the expanded catalog without a hard-coded provider total. **14 browser
-groups passed, zero page errors and zero external browser requests.** German previews:
+groups passed, zero page errors and zero external browser requests.** (This
+count was carried over from the 1.3 language report; the 1.6 run above counted
+15 groups, as the German report also states. Note added in the 2026-10 review.) German previews:
 [desktop](preview/dashboard-de.png) and [mobile](preview/mobile-de.png).

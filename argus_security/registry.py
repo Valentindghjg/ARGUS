@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Extensible, strictly validated provider catalogue; never follows email links."""
 from dataclasses import asdict, dataclass
 import json

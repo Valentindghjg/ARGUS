@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Persistent, secret-free worklist. Account checklists remain the source of truth."""
 from datetime import date, datetime, time, timedelta, timezone
 import json
@@ -76,7 +78,8 @@ def recommended_accounts(accounts, *, excluded=(), limit=None):
     candidates = [account for account in accounts
                   if account["id"] not in excluded
                   and account["classification"] in CLASSIFICATION_RANK
-                  and account["status"] != "done"]
+                  # "skipped" is shown as Deferred: the user chose to postpone it.
+                  and account["status"] not in {"done", "skipped"}]
     ranked = sorted(candidates, key=lambda account: (
         PRIORITY_RANK[account["priority"]],
         CLASSIFICATION_RANK[account["classification"]],

@@ -31,7 +31,8 @@ publish itself.
    workflow needs more. This project’s CI needs only `contents: read`.
 3. In **Branches**, require the “Checks” workflow before merging into `main` if
    you use pull requests. Consider requiring review before merge.
-4. In **Security**, enable private vulnerability reporting and Dependabot alerts
+4. In **Security**, enable private vulnerability reporting (required: SECURITY.md
+   and CODE_OF_CONDUCT.md name it as the only private channel) and Dependabot alerts
    if they are available for the selected visibility and plan.
 5. In **General → Danger Zone**, change visibility to Public only after the
    preceding review. GitHub may show an irreversible-effects confirmation.

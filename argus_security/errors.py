@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Errors whose fixed message may be shown to the user (CLI or dashboard)."""
 
 

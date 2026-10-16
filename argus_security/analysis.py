@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Deterministic, entirely local MIME classification. Mail is untrusted input."""
 from dataclasses import dataclass
 from datetime import timezone

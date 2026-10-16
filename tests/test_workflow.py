@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Persistent progress, manual completion and ambiguous external writes."""
 import base64
 from datetime import datetime, timedelta, timezone
@@ -64,8 +66,8 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
     def test_additive_migration_preserves_earlier_checklists(self):
         self.store.update_account('github', {'checklist':{'reviewed':True}})
         with self.store.connect() as db:
-            db.execute('DROP TABLE work_queue')
-            db.execute('DROP TABLE bitwarden_handoffs')
+            db.execute('DROP TABLE IF EXISTS work_queue')
+            db.execute('DROP TABLE IF EXISTS bitwarden_handoffs')
         restarted = Store(self.root, Registry())
         account = next(a for a in restarted.snapshot()['accounts'] if a['id'] == 'github')
         self.assertTrue(account['checklist']['reviewed'])
@@ -178,6 +180,14 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
         workflow = self.queue()
         self.assertEqual(workflow['current'], 'github')
         self.assertEqual(workflow['suggested'], 'discord')
+
+    def test_deferred_accounts_are_never_suggested_or_prioritized(self):
+        self.store.update_account('discord', {'priority': 'critical', 'status': 'skipped'})
+        self.assertEqual(change_worklist(self.store, {'action': 'start'})['current'], 'github')
+        workflow = self.queue()
+        self.assertNotIn('discord', workflow['priority_preview'])
+        self.assertNotEqual(workflow['suggested'], 'discord')
+        self.assertNotIn('discord', change_worklist(self.store, {'action': 'prioritize'})['added'])
 
     def test_priority_builder_adds_available_accounts_without_changing_progress(self):
         self.store.update_account('github', {'priority': 'normal'})

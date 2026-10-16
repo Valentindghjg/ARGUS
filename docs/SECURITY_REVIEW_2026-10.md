@@ -35,24 +35,26 @@ access or publication.
 | R-11 | UI | The translation lookup could hit object prototype keys | low | fixed |
 | R-12 | Import | The mbox import had a misleading read-only comment and an unused handle | low | fixed |
 | R-13 | Companion | Matching depended on bundle order, and the validator checked too little | low | fixed |
-| R-14 | Bitwarden | `bw create item <base64>` exposes metadata (no password) in the process list | low | open: use stdin after a manual vault test |
-| R-15 | IMAP | A manual `scan-imap` does not take the scheduler lease | low | open: documented |
-| R-16 | Server/UI | Specific validation errors are replaced by generic messages | low | open: add `UserFacingError` |
+| R-14 | Bitwarden | `bw create item <base64>` exposes metadata (no password) in the process list | low | fixed (stdin); confirm once with a test vault |
+| R-15 | IMAP | A manual `scan-imap` does not take the scheduler lease | low | fixed (shared mailbox lease) |
+| R-16 | Server/UI | Specific validation errors are replaced by generic messages | low | fixed (`UserFacingError`) |
+| R-17/18 | Companion/i18n | English-only companion popup; 22 unused translations | info | fixed |
 | D-01 | Docs | Claims contradicted the code (dependencies, stored secrets, vault access, activation path) | medium | fixed |
 | D-02/03 | Packaging | `pyproject.toml` pointed to another repository and had no license metadata | medium | fixed (PEP 639 `MPL-2.0`) |
 | D-04 | Keys | `data/*.pem` was packaged, private keys were not ignored, and the key generator wrote anywhere | medium | fixed |
 | D-05/06/07 | Docs/CI/code | MPL switch missing from changelog, pip missing from Dependabot, dead code | low | fixed |
-| D-08–D-12 | Owner | Stale Dependabot branches, a personal domain in history, copyright holder and data license, naming, reporting contact | low–medium | open (owner decision) |
+| D-08/09 | Owner | Stale Dependabot branches; a personal domain in Git history | medium | open: owner actions on GitHub |
+| D-10–D-13 | Owner/docs | Copyright and data license, naming, reporting contact, doc parity | low | fixed after owner decisions |
 
 ## Verification
 
 | Check | Result |
 | --- | --- |
-| Unit tests | 178 passed (previously 166) |
+| Unit tests | 202 passed (previously 166) |
 | `node --check` | passed |
 | Companion validator | passed |
 | Wheel build and clean install smoke test | passed |
-| Chromium browser checks | 23 groups, 0 page errors, 0 external requests |
+| Chromium browser checks | 24 groups, 0 page errors, 0 external requests |
 | MIME fuzzing | 30,000 mutated messages, no unhandled exception type |
 
 The new file `tests/test_review_simulations.py` covers lease renewal,
@@ -61,3 +63,23 @@ originals, scheduler resilience, the start message and the OAuth2 warning.
 
 `main` is protected against direct pushes, so the changes are on the branch
 `claude/security-review-2026-10`. No pull request was opened.
+
+## Follow-up after owner decisions
+
+- **Copyright:** "ARGUS contributors", with an SPDX MPL-2.0 header in every
+  source file.
+- **License scope:** MPL-2.0 covers code, data, documentation and images.
+- **Reporting:** GitHub private vulnerability reporting is the only private
+  channel.
+- **Rename:** The project is now ARGUS throughout:
+  - package `argus_security`, distribution `argus-account-security` and command
+    `argus`, with deprecated `account_finder` aliases;
+  - a one-time atomic move of the default profile to `~/.local/share/argus`;
+  - the Bitwarden field `ARGUS-Account-ID`, with the old field still recognized;
+  - the license product `argus-pro`.
+
+New tests are `tests/test_rename_migration.py` and
+`tests/test_followup_simulations.py`; a popup behavior simulation runs in
+`browser-companion/tests/validate.py`.
+
+Details are in section 11 of the German report.

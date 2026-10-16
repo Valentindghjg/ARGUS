@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Independent security work and vault handoffs for sibling service accounts."""
 import base64
 from contextlib import redirect_stdout

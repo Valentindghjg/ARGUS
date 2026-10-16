@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """User language choices must not alter detection, accounts or password safety."""
 from contextlib import redirect_stdout, redirect_stderr
 from io import StringIO
@@ -146,6 +148,30 @@ class LanguageTests(unittest.TestCase):
                     if message not in catalog()["de"] and message not in publisher_only:
                         missing.append(f"{path.name}:{node.lineno}: {message}")
         self.assertEqual(missing, [])
+
+    def test_translation_catalog_has_no_unused_entries(self):
+        """Every German entry must match a literal in code, markup or a catalog category.
+
+        If a message is composed at runtime, keep its full English text as a
+        literal next to the composition so this check (and translators) can find it.
+        """
+        import ast
+        import html
+        root = Path(__file__).resolve().parents[1]
+        literals = set()
+        for path in [*(root / "argus_security").glob("*.py"), *(root / "account_finder").glob("*.py")]:
+            literals |= {node.value for node in ast.walk(ast.parse(path.read_text(encoding="utf-8")))
+                         if isinstance(node, ast.Constant) and isinstance(node.value, str)}
+        script = (root / "argus_security" / "web" / "app.js").read_text(encoding="utf-8")
+        for match in re.finditer(r'"((?:[^"\\\n]|\\.)*)"', script):
+            literals.add(json.loads('"' + match.group(1) + '"'))
+        literals |= {match.group(1) for match in re.finditer(r"`([^`]*)`", script)}
+        page = (root / "argus_security" / "web" / "index.html").read_text(encoding="utf-8")
+        literals |= {html.unescape(value) for value in re.findall(r'data-i18n(?:-[a-z-]+)?="([^"]*)"', page)}
+        for path in (root / "argus_security" / "data" / "providers.json", root / "examples" / "providers-extra.json"):
+            data = json.loads(path.read_text(encoding="utf-8"))
+            literals |= {row["category"] for row in (data["providers"] if isinstance(data, dict) else data)}
+        self.assertEqual(sorted(set(catalog()["de"]) - literals), [])
 
 
 if __name__ == "__main__":

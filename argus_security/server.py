@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Loopback-only dashboard with memory-only bearer token and strict origins."""
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import hmac

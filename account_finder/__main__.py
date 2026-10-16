@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Forward the old entry point to ARGUS with a one-line deprecation notice."""
 import sys
 

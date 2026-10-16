@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Offline Ed25519 entitlement verification; no checkout or customer data."""
 from __future__ import annotations
 

@@ -68,11 +68,11 @@ Wirkung; **niedrig** = Härtung/Konsistenz; **info** = Hinweis.
 | R-11 | UI | Übersetzungslookup traf Prototyp-Schlüssel (`constructor` u. a.) | niedrig | **behoben** |
 | R-12 | Import | Irreführender Kommentar und ungenutzter Datei-Handle beim mbox-Import | niedrig | **behoben** |
 | R-13 | Begleiter | Treffer hing von Sortierreihenfolge ab; Validator prüfte zu wenig | niedrig | **behoben** |
-| R-14 | Bitwarden | `bw create item <base64>` legt Metadaten (Name, Anmeldeadresse) in der Prozessliste offen | niedrig | offen (Empfehlung) |
-| R-15 | IMAP | Manueller `scan-imap` nutzt die Scheduler-Lease nicht | niedrig | offen (dokumentiert) |
-| R-16 | Server/UI | Spezifische Validierungsfehler werden durch generische Meldungen ersetzt | niedrig | offen (Empfehlung) |
-| R-17 | Begleiter | Subdomain-Hinweis und Popup nur auf Englisch | info | offen |
-| R-18 | i18n | 22 ungenutzte Übersetzungsschlüssel | info | offen (siehe 6) |
+| R-14 | Bitwarden | `bw create item <base64>` legt Metadaten (Name, Anmeldeadresse) in der Prozessliste offen | niedrig | **behoben** (Nachbesserung, siehe 11) |
+| R-15 | IMAP | Manueller `scan-imap` nutzt die Scheduler-Lease nicht | niedrig | **behoben** (siehe 11) |
+| R-16 | Server/UI | Spezifische Validierungsfehler werden durch generische Meldungen ersetzt | niedrig | **behoben** (siehe 11) |
+| R-17 | Begleiter | Subdomain-Hinweis und Popup nur auf Englisch | info | **behoben** (siehe 11) |
+| R-18 | i18n | 22 ungenutzte Übersetzungsschlüssel | info | **behoben** (siehe 11) |
 | D-01 | Doku | Aussagen widersprachen dem Code: „keine Laufzeitabhängigkeiten“, „IMAP-Secrets nie gespeichert“, „kein Tresorzugriff“, „ohne bestehende Einträge zu lesen“, „kein Aktivierungspfad“ | mittel | **behoben** |
 | D-02 | Paket | `pyproject.toml` verwies auf ein anderes Repository (`account-compass`) | mittel | **behoben** |
 | D-03 | Lizenz | Keine Lizenz-Metadaten im Paket (PyPI hätte keine Lizenz gezeigt) | mittel | **behoben** |
@@ -82,10 +82,10 @@ Wirkung; **niedrig** = Härtung/Konsistenz; **info** = Hinweis.
 | D-07 | Code | Toter Code und ungenutzte Importe; ResourceWarning in einem Test | niedrig | **behoben** |
 | D-08 | GitHub | Dependabot-Branches basieren auf einem Stand vor MPL/1.7 | mittel | offen (Owner) |
 | D-09 | GitHub | Eine früher entfernte persönliche Domain ist noch in der Git-Historie | mittel | offen (Owner) |
-| D-10 | Lizenz | Kein Copyright-Inhaber, keine SPDX-Kopfzeilen; Lizenz für Katalogdaten, Doku und Bilder ungeklärt | niedrig | offen (Owner) |
-| D-11 | Projekt | Sechs Namen (ARGUS, Account Compass, Account-Finder, …) | niedrig | offen (Owner) |
-| D-12 | GitHub | Melde- und Kontaktweg hängt an optionalen GitHub-Funktionen | niedrig | offen (Owner) |
-| D-13 | Doku | Lücken zwischen englischer und deutscher Doku, veraltete Screenshots | niedrig | offen |
+| D-10 | Lizenz | Kein Copyright-Inhaber, keine SPDX-Kopfzeilen; Lizenz für Katalogdaten, Doku und Bilder ungeklärt | niedrig | **behoben** nach Owner-Entscheidung (siehe 11) |
+| D-11 | Projekt | Sechs Namen (ARGUS, Account Compass, Account-Finder, …) | niedrig | **behoben** nach Owner-Entscheidung (siehe 11) |
+| D-12 | GitHub | Melde- und Kontaktweg hängt an optionalen GitHub-Funktionen | niedrig | **behoben** nach Owner-Entscheidung; Aktivierung in GitHub durch den Owner |
+| D-13 | Doku | Lücken zwischen englischer und deutscher Doku, veraltete Screenshots | niedrig | **behoben** bis auf Release-Screenshots (siehe 11) |
 | D-14 | `main` | Der Branch `main` ist serverseitig gegen direkte Pushes geschützt | info | siehe 9 |
 
 ## 4. Befunde im Detail
@@ -98,7 +98,7 @@ pro Nachricht mindestens 25 Minuten. Danach konnte ein zweiter Dashboard-Prozess
 desselben Profils die Lease übernehmen und das Postfach parallel öffnen. Die
 Sicherheitsdokumentation sagte das Gegenteil zu.
 
-**Fix** (`account_finder/background.py`): Die Service-Klasse gibt dem Runner
+**Fix** (`background.py`): Die Service-Klasse gibt dem Runner
 einen `keep_alive`-Callback. Er verlängert die Lease zwischen zwei Nachrichten
 atomar, höchstens alle 15 s (`LEASE_RENEW_SECONDS`). Der Standard-Runner hüllt
 den IMAP-Stream in `_with_keep_alive`. `close()` wird weitergereicht, sodass
@@ -201,7 +201,7 @@ PRIVACY.md keine.
 
 `scripts/generate_license_keys.py` erzeugt PEM-Dateien. `.gitignore` ignoriert
 jetzt `*.pem` und `*.key`, außer dem öffentlichen Schlüssel
-`account_finder/data/license_public_key.pem`, der ausgeliefert werden darf.
+`argus_security/data/license_public_key.pem`, der ausgeliefert werden darf.
 
 ### R-11 bis R-13 – behoben
 
@@ -329,7 +329,7 @@ Tokens.
 - `sqlite3.connect` in `tests/test_improvements.py` wird jetzt geschlossen; die
   ResourceWarning entfällt
 
-**Bewusst belassen, als Schulden dokumentiert:**
+**Ursprünglich belassen; Stand nach der Nachbesserung in Abschnitt 11:**
 
 - **Legacy-Tabellen:** `accounts`, `work_queue` und `bitwarden_handoffs` werden
   in jedem neuen Profil angelegt. Gelesen werden sie nur einmal, von
@@ -440,13 +440,175 @@ das Mergen entscheidet der Owner.
 
 ## 10. Empfohlene nächste Schritte
 
+Stand nach der Nachbesserung (Abschnitt 11):
+
 1. Den Branch `claude/security-review-2026-10` prüfen und in `main` übernehmen.
    Die CI mit Python 3.11–3.14 und Browserchecks läuft dann automatisch.
-2. Owner-Entscheidungen D-08 bis D-12 treffen. Die Grundlage dafür ist
-   [PUBLISHING.md](PUBLISHING.md).
-3. Die Übergabe `docs/CLAUDE_CODE_HANDOFF.md` und das Strategie-PDF ins
-   Repository legen. Danach diesen Bericht gegen die dort genannten Grenzen und
-   Tests abgleichen.
-4. Die Empfehlungen R-14 (stdin für `bw create`, mit Test-Tresor prüfen), R-15
-   (Lease auch für den manuellen Scan) und R-16 (`UserFacingError`) als
-   getrennte, kleine Änderungen umsetzen.
+   Wegen der Umbenennung sollte die nächste Version eine neue Hauptversion sein
+   (2.0.0).
+2. In GitHub unter **Settings → Security** die private Meldefunktion aktivieren.
+   SECURITY.md und CODE_OF_CONDUCT.md nennen sie als einzigen privaten Weg.
+3. D-08: Auf den beiden Dependabot-PRs `@dependabot rebase` kommentieren, dann
+   die Release Notes von v6 → v7 prüfen.
+4. D-09: Entscheiden, ob die Git-Historie vor einer Veröffentlichung
+   umgeschrieben wird. Das braucht einen Force-Push auf den geschützten Branch
+   `main` und gehört nicht in eine automatische Sitzung.
+5. Die Bitwarden-Übergabe über die Standardeingabe (R-14) einmal manuell mit
+   einem leeren Test-Tresor bestätigen.
+6. Beim nächsten Release die Vorschaubilder neu erzeugen; die aktuellen
+   Release-Bilder zeigen noch „Account Compass“.
+7. Die Übergabe `docs/CLAUDE_CODE_HANDOFF.md` und das Strategie-PDF ins
+   Repository legen und diesen Bericht dagegen abgleichen.
+
+## 11. Nachbesserung
+
+Nach der Review wurden auf Wunsch alle offenen Punkte bearbeitet, die sich
+innerhalb der Sicherheitsgrenzen beheben ließen. Die Owner-Fragen wurden vorher
+geklärt:
+
+| Frage | Entscheidung |
+| --- | --- |
+| Copyright-Inhaber | „ARGUS contributors“ mit SPDX-Kopfzeile in jeder Quelldatei |
+| Lizenz für Daten, Doku, Bilder | Alles MPL-2.0 |
+| Projektnamen | Komplett auf ARGUS: Paket `argus_security`, Distribution `argus-account-security`, Befehl `argus` |
+| Meldeweg | Nur die private Meldefunktion von GitHub |
+
+### Umbenennung (D-11)
+
+- **Paket und Befehle:** Das Paket heißt `argus_security`; `python -m argus_security`
+  und der Befehl `argus` lösen `account_finder` ab. Ein schmales
+  Alias-Paket `account_finder` hält `python -m account_finder` und
+  `account-finder` mit Hinweis lauffähig. Es soll in einer späteren Version
+  entfallen.
+- **Distributionsname:** `argus-account-security`, weil `argus` auf PyPI vergeben
+  ist. Ein Python-Paket `argus` hätte sich mit dem fremden Paket überschrieben.
+- **Profilordner:** Das Standardprofil wandert einmalig und atomar per
+  `rename` von `~/.local/share/account-finder` nach `~/.local/share/argus`.
+  Dateien und Rechte bleiben gleich. Behandelte Sonderfälle:
+  - ein bereits vorhandener neuer Ordner;
+  - ein Symlink als Altordner, der nicht verfolgt wird;
+  - zwei gleichzeitig startende Prozesse;
+  - eine fehlgeschlagene Verschiebung.
+
+  Ein ausdrückliches `--data-dir` wird nie verschoben. Der Dienstname im
+  Schlüsselbund hieß bereits „ARGUS IMAP authorization“ und braucht keine
+  Migration.
+- **Editionen und Lizenz:** Die Editionen heißen ARGUS Free/Pro, die
+  Lizenzprodukt-ID ist `argus-pro`. Unter der alten ID war mangels
+  öffentlichem Schlüssel noch keine Lizenz ausstellbar.
+- **Bitwarden:** Neue Einträge tragen das Feld `ARGUS-Account-ID`, Ordner und
+  Notizen beginnen mit „ARGUS“. Die nur lesende Prüfung erkennt weiterhin das
+  alte Feld `Account-Finder-ID`.
+- **Browser-Sprache:** Der Speicherschlüssel `account-finder.language` wird
+  einmal gelesen und durch `argus.language` ersetzt.
+- **Bewusst unverändert:** die interne Markierung
+  `X-Account-Finder-Headers-Only`. Sie ist Teil des Nachrichten-Fingerabdrucks;
+  eine Änderung hätte Belege großer Nachrichten verdoppelt.
+
+### Sicherheitspunkte
+
+- **R-14:**
+  - `_run_cli` übergibt Eintragsdaten per `input=` an `bw create item`;
+    Statusabfragen erhalten weiterhin `stdin=DEVNULL`.
+  - Tests prüfen, dass die Befehlszeile nur `bw create item` enthält.
+  - Laut offizieller Doku liest die CLI den kodierten Inhalt von stdin. Eine
+    manuelle Bestätigung mit einem Test-Tresor steht noch aus (Schritt 5 in 10).
+- **R-15:** Neues Modul `mailbox_lease.py`: eine prozessübergreifende
+  Postfach-Lease aus Token, Art und Ablaufzeit. Ihre Grundlage ist die neue,
+  gemeinsame Funktion `atomic_meta_update` in `store.py`; der Zeitplan nutzt
+  dieselbe Funktion statt eigenem Transaktionscode.
+  - Ein manueller Scan nimmt die Lease vor der Passwortabfrage.
+  - Ein geplanter Lauf gibt seinen Anspruch unverändert zurück, wenn das
+    Postfach belegt ist.
+  - Beide verlängern die Lease zwischen Nachrichten und brechen ab, wenn sie
+    verloren geht.
+  - Abgelaufene oder beschädigte Einträge blockieren nie.
+- **R-16:** Neue Klasse `UserFacingError(ValueError)` in `errors.py`.
+  `LicenseError`, `HandoffError` und `BitwardenCliError` erben davon.
+  - Feste Regelmeldungen aus Store, Arbeitsliste, Bitwarden und Server reicht das
+    Dashboard jetzt durch und übersetzt sie.
+  - Andere Fehler bleiben allgemein.
+  - Ein AST-Test verlangt für jede dieser Meldungen einen konstanten Text mit
+    deutschem Eintrag; Nutzerdaten können so nicht hineingeraten.
+  - Netzwerkfehler des Browsers erscheinen jetzt als „Lokale Anfrage
+    fehlgeschlagen“.
+- **R-17:** Der Begleiter nutzt `_locales/en|de` und `chrome.i18n`, also keine
+  zusätzliche Berechtigung. Er baut seinen Katalog über die `Registry` der
+  Anwendung. `validate.py` führt `popup.js` unter Node mit simulierten
+  Browser-APIs aus, auf Deutsch und Englisch, gegen:
+  - Lookalike-Domains;
+  - fremde Subdomains;
+  - `http:`, `file:` und Browserseiten;
+  - verschachtelte Katalogdomains.
+- **R-18:** Die 22 Schlüssel stammten weder aus gespeicherten Belegen noch aus
+  Hinweisen; sie wurden entfernt. Ein neuer Test verhindert ungenutzte Einträge.
+  Dabei fiel ein doppelter JSON-Schlüssel („Ready“) auf; er ist ebenfalls
+  bereinigt.
+
+### Technische Schulden aus Abschnitt 6
+
+- **Legacy-Tabellen:** Neue Profile legen sie nicht mehr an (`CORE_SCHEMA` und
+  `LEGACY_SCHEMA` sind getrennt). `migrate_instances` prüft vorhandene
+  Alttabellen selbst, auch unvollständige Altstände. Bestehende Alttabellen
+  werden nicht geleert; sie bleiben als Quelle für ein Zurückgehen auf eine
+  ältere Version.
+- **Aliasse:** `start`/`stop` sind entfernt; `configure`/`disable` bleiben.
+- **Doppelter Code:** `write_new` liegt jetzt einmal in
+  `scripts/publisher_files.py`.
+- **Version:** Es gibt eine einzige Quelle, `argus_security.__version__`.
+  `pyproject.toml` liest sie dynamisch, und das Dashboard setzt sie zur Laufzeit
+  ein.
+- **Platzhaltertexte:** Die Karte „Secure your next account“ hat jetzt
+  `data-i18n` und deutsche Texte.
+- **Zurückgestellte Accounts:** Status „skipped“ (Anzeige „Zurückgestellt“)
+  schlägt der geführte Ablauf nicht mehr vor.
+- **Bewusst belassen:**
+  - `Store.snapshot()` sperrt beim Lesen für Schreibzugriffe, weil dabei Accounts
+    synchronisiert werden. Ein verzögerter Lock-Aufstieg könnte unter Last
+    `SQLITE_BUSY` statt eines Wartens auslösen; die Konsistenz geht vor.
+  - `Store.add_evidence` bleibt als kleine, getestete API.
+
+### Lizenz, Kontakt und Doku
+
+- **Lizenz:**
+  - Alle 51 Quelldateien tragen `SPDX-License-Identifier: MPL-2.0` und
+    „Copyright (c) 2026 ARGUS contributors“.
+  - Ein Test erzwingt das für neue Dateien.
+  - `LICENSING.md` stellt Daten, Doku und Bilder unter MPL-2.0 und grenzt fremde
+    Marken ab.
+  - Der Katalog heißt nicht mehr „public-domain catalog“.
+- **Kontakt:** SECURITY.md und CODE_OF_CONDUCT.md nennen nur noch die private
+  Meldefunktion von GitHub. Fehlt sie, gibt es eine Regel ohne Details;
+  PUBLISHING.md markiert die Aktivierung als Pflicht.
+- **Doku:**
+  - README_DE hat jetzt CI-Badge, Vorschau und die Tabellenzeilen zu
+    Datenschutz und Hilfe; beide Modultabellen sind vollständig.
+  - AENDERUNGEN enthält 1.0–1.5, die 1.6-Zählung im TEST_REPORT ist erläutert.
+- **CI:**
+  - `build==1.6.1` und `playwright==1.64.0` sind festgelegt.
+  - `cancel-in-progress` gilt nur noch für Pull Requests.
+  - Der Paket-Smoke-Test prüft zusätzlich die Befehle `argus` und `account-finder`.
+
+### Nachweis
+
+Durchgeführt wurden:
+
+- 202 Python-Tests (vorher 178), auch mit `ResourceWarning` als Fehler
+- `ruff check --select F`, ohne Befund
+- `node --check` für alle Skripte
+- Begleiter-Validierung mit Verhaltenssimulation
+- Wheel-Build mit Installation und Smoke-Test in einer sauberen Umgebung
+- 24 Chromium-Prüfgruppen (vorher 23), ohne Seitenfehler und ohne externe
+  Anfragen; neu ist die Übernahme der alten Sprachwahl
+
+Neue Testdateien:
+
+- `tests/test_rename_migration.py`
+- `tests/test_followup_simulations.py`
+
+Erweitert wurden `test_i18n`, `test_instances`, `test_licensing`,
+`test_workflow` und `test_store`.
+
+Testschlüssel für die Herausgeber-Werkzeuge entstanden nur im temporären
+Scratchpad und wurden gelöscht. Es gab keine echten Postfächer, Tresore,
+Anbieter oder Veröffentlichungen.

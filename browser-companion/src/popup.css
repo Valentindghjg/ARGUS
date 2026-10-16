@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: MPL-2.0 · Copyright (c) 2026 ARGUS contributors */
 :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
 body { margin: 0; min-width: 330px; background: #101827; color: #f5f8ff; }
 main { padding: 18px; }

@@ -2,9 +2,20 @@
 
 Deutsch · [English](README.md)
 
-Ein Python-Programm mit **deutscher und englischer Weboberfläche**, **527
+[![Checks](https://github.com/Valentindghjg/ARGUS/actions/workflows/ci.yml/badge.svg)](https://github.com/Valentindghjg/ARGUS/actions/workflows/ci.yml)
+
+ARGUS ist ein lokales Python-Programm mit **deutscher und englischer Weboberfläche**, **527
 erweiterbaren Diensten**, lokaler E-Mail-Analyse und einer Checkliste zum
-Absichern mit Bitwarden. Die Nutzer wählen ihre Sprache selbst.
+Absichern mit Bitwarden. Die Nutzer wählen ihre Sprache selbst. Die Erkennung von
+Mails funktioniert unabhängig davon immer auf Deutsch und Englisch.
+
+## Vorschau
+
+Die Bilder zeigen ausschließlich die mitgelieferten künstlichen Demodaten.
+
+| Dashboard | Sicherheits-Arbeitsliste |
+| --- | --- |
+| [![ARGUS-Dashboard](https://github.com/Valentindghjg/ARGUS/releases/download/v1.16.0/argus-dashboard-demo.png)](https://github.com/Valentindghjg/ARGUS/releases/tag/v1.16.0) | [![ARGUS-Sicherheits-Arbeitsliste](https://github.com/Valentindghjg/ARGUS/releases/download/v1.16.0/argus-worklist-demo.png)](https://github.com/Valentindghjg/ARGUS/releases/tag/v1.16.0) |
 
 Die Anwendung findet **Hinweise in deinen eigenen Nachrichten**. Ein fehlender
 Hinweis bedeutet „Unbekannt“ und beweist nicht, dass kein Account existiert.
@@ -526,6 +537,15 @@ Spracherkennung und mobile Ansichten.
 | `argus_security/discovery.py` | Ausdrücklich aktivierte MX-Hinweise |
 | `argus_security/bitwarden.py` | Offizielles Metadaten-Importformat |
 | `argus_security/server.py`, `web/` | Lokales Dashboard |
+| `argus_security/cli.py` | Befehlszeile (`argus`), Standardprofil und dessen einmalige Verschiebung |
+| `argus_security/scan.py` | EML-, mbox- und Maildir-Importe sowie die künstliche Demo |
+| `argus_security/registry.py` | Strenge Katalogprüfung und Domainabgleich |
+| `argus_security/workflow.py` | Lokale Sicherheits-Arbeitsliste und geführter nächster Schritt |
+| `argus_security/handoffs.py` | Dauerhaftes Journal für Bitwarden-Übertragungen |
+| `argus_security/mailbox_lease.py` | Eine Postfachsitzung pro Profil über Prozesse hinweg |
+| `argus_security/errors.py` | Feste, übersetzbare Meldungen, die das Dashboard zeigen darf |
+| `argus_security/licensing.py`, `product.py` | Offline-Prüfung von Pro-Lizenzen und Editionsangaben |
+| `account_finder/` | Veralteter Alias für `python -m account_finder` und `account-finder` |
 | `tests/` | Automatisierte Regressionstests |
 | `browser-companion/` | Minimaler entpackter Chromium-Begleiter für Domain- und Einstellungslinks |
 | [Katalogrichtlinie](docs/KATALOG.md) | Umfang, Qualitätsmaßstäbe und neue Dienste vorschlagen |
@@ -535,6 +555,8 @@ Spracherkennung und mobile Ansichten.
 | [Veröffentlichungs-Checkliste](docs/PUBLISHING.md) | Schritte, die der Inhaber vor der Veröffentlichung selbst prüft |
 | [Technischer Plan](docs/PLAN_DE.md) | Reihenfolge und Architektur |
 | [Sicherheitsmodell](docs/SICHERHEIT.md) | Datenschutz, Grenzen und Schutzmaßnahmen |
+| [Datenschutzerklärung](PRIVACY.md) | Was die lokale App verarbeitet und wann sie sich verbindet |
+| [Hilfe](SUPPORT.md) | Discussions, Issues und sichere Meldewege |
 | [Prüfbericht](docs/PRUEFBERICHT.md) | Tatsächlich ausgeführte Prüfungen |
 | [Offizielle Quellen](docs/QUELLEN.md) | Bitwarden, Passwortlinks und Mailanbieter |
 

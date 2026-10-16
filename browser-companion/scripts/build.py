@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Create a self-contained, unpacked Chromium extension from safe catalogue fields."""
 from __future__ import annotations
 
@@ -6,44 +8,21 @@ import argparse
 import json
 from pathlib import Path
 import shutil
-from urllib.parse import urlsplit
+import sys
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SOURCE = ROOT / "argus_security" / "data" / "providers.json"
 COMPANION = ROOT / "browser-companion"
-
-
-def matches(host: str, root: str) -> bool:
-    return host == root or host.endswith("." + root)
-
-
-def checked_link(value: str, domains: list[str]) -> str:
-    parts = urlsplit(value)
-    if parts.scheme != "https" or not parts.hostname or parts.username or parts.password or parts.port not in (None, 443):
-        raise ValueError("provider link is not an HTTPS URL")
-    host = parts.hostname.lower().rstrip(".")
-    if not any(matches(host, domain) for domain in domains):
-        raise ValueError("provider link is outside its declared domains")
-    return value
+sys.path.insert(0, str(ROOT))
+from argus_security.registry import Registry  # noqa: E402  (after sys.path setup)
 
 
 def bundle() -> list[dict[str, object]]:
-    rows = json.loads(SOURCE.read_text(encoding="utf-8"))["providers"]
-    result = []
-    for row in rows:
-        domains = [str(domain).lower().rstrip(".") for domain in row["domains"]]
-        password_url = row.get("password_url")
-        if password_url is not None:
-            password_url = checked_link(str(password_url), domains)
-        result.append({
-            "id": row["id"],
-            "name": row["name"],
-            "website": checked_link(str(row["website"]), domains),
-            "domains": domains,
-            "password_url": password_url,
-        })
-    return sorted(result, key=lambda provider: max(map(len, provider["domains"])), reverse=True)
+    """Reuse the application's catalogue validation: HTTPS links inside each
+    provider's domains, IDNA-normalized and unambiguous domains."""
+    return [{"id": provider.id, "name": provider.name, "website": provider.website,
+             "domains": list(provider.domains), "password_url": provider.password_url}
+            for provider in Registry().providers.values()]
 
 
 def main() -> int:

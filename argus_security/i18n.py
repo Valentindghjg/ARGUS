@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 ARGUS contributors
 """Local presentation translations. Machine identifiers and stored evidence stay stable."""
 import argparse
 from functools import lru_cache

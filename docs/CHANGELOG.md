@@ -4,6 +4,24 @@
 
 See [the security review](SECURITY_REVIEW_2026-10.md).
 
+### Breaking: the project is now ARGUS everywhere
+
+- Package `argus_security` (`python -m argus_security`), distribution
+  `argus-account-security` and command `argus`. `python -m account_finder` and
+  `account-finder` still work but print a deprecation notice.
+- The default profile moves once, atomically, from `~/.local/share/account-finder`
+  to `~/.local/share/argus`, with all files and permissions. An explicit
+  `--data-dir` is never moved. Keyring entries need no migration.
+- Editions are **ARGUS Free/Pro**; the Pro license product ID is `argus-pro`.
+  No license had been issued under the old ID.
+- New Bitwarden items carry the field `ARGUS-Account-ID`; the read-only audit
+  still recognizes the older `Account-Finder-ID`. The dashboard language
+  preference moves to a new browser storage key on first use.
+- The internal header-only marker keeps its old name, because it is part of
+  message fingerprints.
+
+### Security and robustness
+
 - Scheduled IMAP scans renew their lease between messages, so a long scan keeps
   exclusive mailbox access. `disable`, `revoke` or a replacement lease now stops
   a running scan before its next message fetch.
@@ -26,6 +44,22 @@ See [the security review](SECURITY_REVIEW_2026-10.md).
   repository. Dependabot also monitors pip dependencies.
 - Corrected documentation that contradicted current behavior, and removed dead
   code.
+- Manual `scan-imap` runs and scheduled scans share one cross-process mailbox
+  lease; a manual scan is refused before its password prompt while a scheduled
+  scan runs.
+- Bitwarden item metadata reaches `bw create item` through stdin instead of the
+  process list.
+- The dashboard now shows specific, fixed rule messages (for example an address
+  that already belongs to another account) instead of a generic error; other
+  errors stay generic.
+- Deferred accounts are no longer suggested by the guided next step.
+- The browser companion has a German interface, builds its catalogue through
+  the application's validation and is behavior-tested under simulated APIs.
+- New profiles no longer create the pre-1.9 tables; older profiles still migrate.
+- Every source file carries an MPL-2.0 SPDX header; LICENSING.md covers data,
+  documentation and images. Security reports use GitHub private reporting only.
+- 22 unused translations removed, with a regression test; German README and
+  change log brought to parity; CI tool versions pinned.
 - Added end-to-end simulations with a fake IMAP server, fake keyring and
   simulated clock.
 
