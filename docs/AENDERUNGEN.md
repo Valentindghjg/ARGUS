@@ -104,6 +104,22 @@ Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md) und
   `checklist` bleiben bis zur nächsten Hauptversion in der API, abgeleitet aus
   den neuen Feldern.
 
+## Verwerfen, datierte Wiedervorlage und Rückgängig (ADR-0001, F5, A9, Grundlage für A10)
+
+- Ein Account lässt sich mit Grund verwerfen (nicht meiner, kein Account,
+  geschlossen). Ein verworfener Account verschwindet aus Listen, Arbeitsliste und
+  Vorschlägen; neue starke Belege zeigen nur einen Hinweis und kehren deine
+  Entscheidung nie um.
+- Jeder Sicherheitsschritt kann ein lokales Wiedervorlagedatum tragen; fällige
+  Wiedervorlagen werden je Account aufgeführt.
+- Rückgängig nimmt deine letzte lokale Änderung zurück, wiederholt auch ältere.
+  Ein später erneut geänderter Wert wird nie überschrieben, externe Vorgänge
+  (Bitwarden-Einträge, Scans) werden nie zurückgenommen. Arbeitslisten-Aktionen
+  gehören zum Verlauf.
+- Neue API-Routen für Entscheidungen, Schritte, Rückgängig und Verlauf; neue
+  CLI-Befehle `argus changes` und `argus undo`. Das Dashboard folgt im nächsten
+  Schritt.
+
 ## Sicherheit und Robustheit
 
 - **Freigaben sind an ihr Ziel gebunden (Masterplan, Priorität 10).** Geplante

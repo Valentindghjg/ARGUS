@@ -34,6 +34,13 @@ lässt das 1.x-Profil unverändert; die automatische Sicherung stellt das
 ändern nur die Belegachse; jede Änderung wird je Aktion protokolliert, das
 Protokoll behält ganze Vorgänge.
 
+Schritt S5 (Entscheidungen und Rückgängig): **247 Python-Tests**. Verwerfen
+blendet einen Account überall aus, ein Rückgängig stellt ihn samt
+Arbeitslistenzeile wieder her; starke neue Belege lösen nur einen Hinweis aus;
+Schritte und Wiedervorlagen werden geprüft und datiert; Rückgängig geht der
+Reihe nach zurück, überschreibt keine späteren Änderungen und nimmt nie einen
+externen Vorgang zurück; API-Formen und CLI-Befehle sind abgedeckt.
+
 Neue Simulationen verbinden einen echten lokalen Store mit einem
 Fake-IMAP-Server, einem Fake-Schlüsselbund und einer simulierten Uhr. Sie prüfen:
 die Verlängerung der Lease bei langen geplanten Scans, den Abbruch durch

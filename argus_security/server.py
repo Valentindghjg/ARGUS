@@ -5,6 +5,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import hmac
 import json
 from pathlib import Path
+import re
 import secrets
 import sqlite3
 import threading
@@ -19,6 +20,7 @@ from .scan import ScanSession, scan_messages
 from .store import Store
 
 WEB = Path(__file__).with_name("web")
+ACCOUNT_ACTION = re.compile(r"/api/accounts/([^/]+)/(decision|steps)")
 
 
 class ImportBusy(Exception):
@@ -207,6 +209,8 @@ class Handler(BaseHTTPRequestHandler):
         elif path in {"/app.js", "/style.css"}:
             kind = "text/javascript; charset=utf-8" if path.endswith(".js") else "text/css; charset=utf-8"
             self._send(200, (WEB / path[1:]).read_bytes(), kind)
+        elif path == "/api/changes":
+            self._send(200, {"changes": self.server.store.recent_changes()})
         elif path == "/api/accounts":
             with self.server.import_lock:
                 job = self.server.active_import()
@@ -242,9 +246,28 @@ class Handler(BaseHTTPRequestHandler):
             return
         path = urlsplit(self.path).path
         try:
+            action = ACCOUNT_ACTION.fullmatch(path)
             if path == "/api/accounts":
                 account_id = self.server.store.create_account(self._json())
                 self._send(201, {"id": account_id})
+            elif action and action.group(2) == "decision":
+                data = self._json()
+                if set(data) - {"decision", "reason"} or "decision" not in data:
+                    raise UserFacingError("Choose confirmed, rejected or undecided")
+                self._send(200, self.server.store.decide(unquote(action.group(1)), data["decision"], data.get("reason")))
+            elif action:
+                from .store import UNCHANGED
+                data = self._json()
+                if "step" not in data or set(data) - {"step", "state", "review_after"} or len(data) < 2:
+                    raise UserFacingError("Choose a valid security step")
+                self._send(200, self.server.store.set_step(unquote(action.group(1)), data["step"],
+                                                           state=data.get("state", UNCHANGED),
+                                                           review_after=data.get("review_after", UNCHANGED)))
+            elif path == "/api/undo":
+                data = self._json()
+                if set(data) != {"batch"} or (data["batch"] is not None and not isinstance(data["batch"], str)):
+                    raise UserFacingError("There is no local change to undo")
+                self._send(200, self.server.store.undo(data["batch"]))
             elif path == "/api/import":
                 if self.headers.get_content_type() not in {"message/rfc822", "application/octet-stream"}:
                     raise ValueError("EML is required")

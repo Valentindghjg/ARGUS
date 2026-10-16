@@ -104,6 +104,9 @@ def parser(language="en"):
     export.add_argument('path', type=Path)
     export.add_argument('--id', action='append', required=True, help=t('Account ID from list-accounts; may be repeated'))
     export.add_argument('--preview', action='store_true', help=t('Show the items that would be written; create no file'))
+    sub.add_parser('changes', help=t('Show your recent local changes to decisions, steps and the worklist'))
+    undo = sub.add_parser('undo', help=t('Undo your latest local change; external actions are never undone'))
+    undo.add_argument('--batch', help=t('Undo this change instead of the latest one'))
     backup = sub.add_parser('backup', help=t('Save a private, unencrypted copy of this profile'))
     backup.add_argument('--output', type=Path, help=t('Folder for the backup file (default: backups in the profile)'))
     backup.add_argument('--list', action='store_true', help=t('List the backups in the profile folder'))
@@ -232,6 +235,11 @@ def main(argv=None):
                 print(t('Scheduled read-only IMAP scans are enabled. They run only while the local ARGUS dashboard is running.'))
                 if config.auth == 'oauth2':
                     print(t('Note: OAuth2 access tokens usually expire within hours. Scheduled scans fail safely once it expires; run enable again with a fresh token or use a provider-supported app password.'))
+        elif args.command == 'changes':
+            print(json.dumps(store.recent_changes(), ensure_ascii=False, indent=2))
+        elif args.command == 'undo':
+            result = store.undo(args.batch)
+            print(t('Undid one local change affecting {p0} account(s). Run undo again to go further back.', p0=len(result['accounts'])))
         elif args.command == 'bitwarden-export' and args.preview:
             print(json.dumps(preview_export(store, args.id, language), ensure_ascii=False, indent=2))
         elif args.command == 'bitwarden-export':

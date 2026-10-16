@@ -15,7 +15,10 @@ Progress and the next step are derived for display and never stored. A
 completed progress records only the person's own steps; it is no security
 guarantee.
 """
+from datetime import date, datetime, timedelta, timezone
 import json
+
+from .errors import UserFacingError
 
 DECISIONS = ("undecided", "confirmed", "rejected")
 REJECT_REASONS = ("not_mine", "not_an_account", "closed")
@@ -43,6 +46,20 @@ def valid_step_state(step, state):
         # Only a sign-in without a separate password, or no MFA offered, can skip a step.
         return step in {"password", "mfa_recovery"}
     return True
+
+
+def review_date(value, today=None):
+    """A local review date for a step (A10): a calendar day within the next five years."""
+    today = today or datetime.now(timezone.utc).date()
+    if not isinstance(value, str):
+        raise UserFacingError("Choose a review date within the next five years")
+    try:
+        chosen = date.fromisoformat(value)
+    except ValueError as exc:
+        raise UserFacingError("Choose a review date within the next five years") from exc
+    if not today < chosen <= today + timedelta(days=5 * 366):
+        raise UserFacingError("Choose a review date within the next five years")
+    return chosen.isoformat()
 
 
 def default_steps(login_method="password"):
