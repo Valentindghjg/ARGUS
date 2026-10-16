@@ -282,6 +282,12 @@ only. The first scan is due when the dashboard starts, then it resumes from the
 normal IMAP UID checkpoints. It never runs when ARGUS is closed, does not do a
 full rescan, does not change mail, and backs off after a safe fixed error.
 
+The approval covers exactly the settings shown by `enable` (host, port,
+username, sign-in method and folders). If `imap.json` changes later, scheduled
+scans stop before using the stored authorization; run `background-imap enable`
+again to approve the new settings. Schedules created before this check also ask
+for one new approval.
+
 Check, pause, or remove the authorization with:
 
 ```bash
@@ -511,6 +517,7 @@ python scripts/browser_multi_account.py --browser /usr/bin/chromium
 | [Commercial-release checklist](docs/COMMERCIAL_RELEASE.md) | Owner decisions before accepting a Pro payment |
 | [License implementation](docs/LICENSE_IMPLEMENTATION.md) | Signed offline Pro licenses and publisher key handling |
 | [Publishing checklist](docs/PUBLISHING.md) | Owner-controlled steps before making the repository public |
+| [Product strategy (German)](docs/strategy/README.md) | Master plan for features and safe automation, with implementation status |
 | [Technical plan](docs/PLAN.md) | Architecture and development sequence |
 | [Security model](docs/SECURITY.md) | Privacy, protections and limits |
 | [Privacy statement](PRIVACY.md) | What the local app processes and when it connects |

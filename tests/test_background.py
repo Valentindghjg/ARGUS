@@ -69,7 +69,7 @@ class BackgroundScanTests(unittest.TestCase):
         secret = "APP-PASSWORD-DO-NOT-STORE"
         selector = self.credentials.save(secret)
         service = self.service()
-        service.configure(credential_id=selector)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint())
         saved = self.store.values[SCHEDULE_META_KEY]
         self.assertNotIn(secret, repr(saved))
         self.assertEqual(service.run_due(), {"status": "authorization_required"})
@@ -83,7 +83,7 @@ class BackgroundScanTests(unittest.TestCase):
             received.append((store, config, secret, limit))
             return {"result": "completed", "processed": 3, "evidence": 1}
         service = self.service(runner)
-        service.configure(credential_id=selector, interval_seconds=900, limit=10)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint(), interval_seconds=900, limit=10)
         self.assertEqual(service.run_due(allow_network=True),
                          {"status": "completed", "result": "completed", "processed": 3, "evidence": 1})
         self.assertEqual(received, [(self.store, self.config, "APP-PASSWORD-DO-NOT-STORE", 10)])
@@ -95,7 +95,7 @@ class BackgroundScanTests(unittest.TestCase):
         def broken(*args, **kwargs):
             raise OSError("server rejected " + secret)
         service = self.service(broken)
-        service.configure(credential_id=selector, interval_seconds=900)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint(), interval_seconds=900)
         result = service.run_due(allow_network=True)
         self.assertEqual(result["status"], "failed")
         self.assertNotIn(secret, result["error"])
@@ -112,7 +112,7 @@ class BackgroundScanTests(unittest.TestCase):
     def test_disable_preserves_selector_but_stops_runs(self):
         selector = self.credentials.save("APP-PASSWORD")
         service = self.service()
-        service.configure(credential_id=selector)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint())
         service.disable()
         self.assertEqual(service.schedule().credential_id, selector)
         self.assertEqual(service.run_due(allow_network=True), {"status": "disabled"})
@@ -120,7 +120,7 @@ class BackgroundScanTests(unittest.TestCase):
     def test_revoke_stops_scans_and_removes_the_keyring_secret(self):
         selector = self.credentials.save("APP-PASSWORD")
         service = self.service()
-        service.configure(credential_id=selector)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint())
         result = service.revoke()
         self.assertFalse(result.enabled)
         self.assertIsNone(result.credential_id)
@@ -130,7 +130,7 @@ class BackgroundScanTests(unittest.TestCase):
     def test_expired_lease_replaces_stale_worker_without_old_completion_winning(self):
         selector = self.credentials.save("APP-PASSWORD")
         service = self.service()
-        service.configure(credential_id=selector)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint())
         first = service._claim_due()
         self.assertEqual(first["status"], "claimed")
         self.assertEqual(service._claim_due(), {"status": "running"})
@@ -155,7 +155,7 @@ class BackgroundScanTests(unittest.TestCase):
                                           config_loader=lambda: self.config, scan_runner=runner)
             second = BackgroundScanService(store, self.credentials,
                                            config_loader=lambda: self.config, scan_runner=runner)
-            first.configure(credential_id=selector)
+            first.configure(credential_id=selector, target=self.config.target_fingerprint())
             result = []
             worker = threading.Thread(target=lambda: result.append(first.run_due(allow_network=True)))
             worker.start()
@@ -169,7 +169,7 @@ class BackgroundScanTests(unittest.TestCase):
     def test_disable_while_running_prevents_late_completion_from_reenabling(self):
         selector = self.credentials.save("APP-PASSWORD")
         service = self.service()
-        service.configure(credential_id=selector)
+        service.configure(credential_id=selector, target=self.config.target_fingerprint())
         claim = service._claim_due()
         service.disable()
         self.assertFalse(service._finish_claim(claim["run_id"], outcome="completed"))
@@ -211,10 +211,13 @@ class BackgroundCliTests(unittest.TestCase):
         credentials = KeyringCredentialStore(self.keyring)
         selector = credentials.save("APP-PASSWORD")
         service = BackgroundScanService(Store(self.data_dir, Registry()), credentials)
-        service.configure(credential_id=selector)
+        target = IMAPConfig("imap.example.invalid", "person@example.invalid").target_fingerprint()
+        service.configure(credential_id=selector, target=target)
         snapshot = service.snapshot()
         self.assertTrue(snapshot["enabled"])
         self.assertTrue(snapshot["authorized"])
+        self.assertTrue(snapshot["target_confirmed"])
+        self.assertNotIn("target", snapshot)
         self.assertNotIn("credential_id", snapshot)
         service.disable()
         self.assertFalse(service.snapshot()["enabled"])

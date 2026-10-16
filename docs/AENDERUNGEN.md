@@ -22,6 +22,12 @@ Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md).
 
 ## Sicherheit und Robustheit
 
+- **Freigaben sind an ihr Ziel gebunden (Masterplan, Priorität 10).** Geplante
+  IMAP-Scans speichern bei `enable` einen Fingerabdruck aus Host, Port,
+  Benutzername, Anmeldeart und Ordnern. Weicht `imap.json` ab, stoppt ein Lauf,
+  bevor er Schlüsselbund oder Netzwerk berührt, und wartet auf ein neues
+  `enable`. Bisher erhielt ein geänderter Host die gespeicherte Freigabe.
+  Zeitpläne aus früheren Versionen brauchen einmal eine neue Freigabe.
 - Geplante IMAP-Scans verlängern ihre Lease zwischen Nachrichten. So bleibt auch
   ein langer Scan exklusiv. `disable`, `revoke` oder eine ersetzte Lease beenden
   einen laufenden Scan vor dem nächsten Nachrichtenabruf.

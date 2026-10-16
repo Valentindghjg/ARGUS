@@ -206,13 +206,19 @@ def main(argv=None):
                 config = load_config(store.data_dir / 'imap.json')
                 if not sys.stdin.isatty():
                     raise MailboxError('Enter credentials only in an interactive terminal; no pipes or command-line passwords')
+                # The approval covers exactly these settings; any later change
+                # to imap.json stops scheduled scans until enable runs again.
+                folders = t('all selectable folders') if config.folders == ('*',) else ', '.join(config.folders)
+                print(t('Scheduled scans will be approved only for {p0}:{p1} as {p2} ({p3}).',
+                        p0=config.host, p1=config.port, p2=config.username, p3=folders))
                 schedule = service.schedule()
                 secret = getpass.getpass(t('Separate IMAP app password / OAuth2 token for OS keyring: '))
                 try:
                     selector = service.credentials.save(secret, schedule.credential_id)
                 finally:
                     secret = ''
-                service.configure(credential_id=selector, interval_seconds=args.interval_minutes * 60, limit=args.limit)
+                service.configure(credential_id=selector, target=config.target_fingerprint(),
+                                  interval_seconds=args.interval_minutes * 60, limit=args.limit)
                 print(t('Scheduled read-only IMAP scans are enabled. They run only while the local ARGUS dashboard is running.'))
                 if config.auth == 'oauth2':
                     print(t('Note: OAuth2 access tokens usually expire within hours. Scheduled scans fail safely once it expires; run enable again with a fresh token or use a provider-supported app password.'))

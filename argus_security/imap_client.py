@@ -46,6 +46,15 @@ class IMAPConfig:
             raise ValueError("Choose all folders or explicit folder names")
         return self
 
+    def target_fingerprint(self) -> str:
+        """Digest of where a scan connects and what it may read; never a secret.
+
+        A scheduled-scan authorization is bound to this value, so a changed
+        host, port, username, sign-in method or folder selection needs a new,
+        explicit approval before any stored authorization is used again.
+        """
+        return sha256(json.dumps(asdict(self.validate()), sort_keys=True).encode("utf-8")).hexdigest()
+
 
 def load_config(path: Path):
     data = json.loads(path.read_text(encoding="utf-8"))
