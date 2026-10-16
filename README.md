@@ -361,6 +361,26 @@ guide.
 See the [worklist guide](docs/WORKLIST.md) and
 [interrupted-transfer guidance](docs/BITWARDEN_CLI.md).
 
+## Unclear items, hidden domains and address notes
+
+“Unclear items” collects everything your emails cannot settle, so you decide
+once instead of in many places: accounts that need their sign-in address,
+services with clues that name no clear account, rejected accounts with new
+evidence and sender domains outside the catalog. ARGUS never picks an address
+or merges accounts for you.
+
+A sender domain outside the catalog can be hidden with a reason (newsletter,
+spam, not relevant). New clues from it bring it back, and “Show again” undoes
+the exclusion. Under “Mailbox & Import” you can note how two of your own
+addresses relate (same mailbox, or replaced by); the note appears on the
+affected accounts and never merges them. The CLI offers the same:
+
+```bash
+python -m argus_security unclear
+python -m argus_security exclude newsletter-sender.example --reason newsletter
+python -m argus_security relate old@example.org new@example.org --kind replaced_by
+```
+
 ## Review and secure accounts with Bitwarden
 
 Each sign-in identity has its own entry, checklist, worklist and Bitwarden

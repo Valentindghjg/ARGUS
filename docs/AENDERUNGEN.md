@@ -15,6 +15,19 @@
   dieselbe Nachricht erneut importiert wird; das Profil erhält eine neue Spalte
   (Schemaversion 3, vorher die automatische Sicherung).
 
+## Unklares in einer Liste, umkehrbare Ausschlüsse, Adressnotizen (E3, E4, A9)
+
+- Die neue Ansicht „Unklares“ listet Accounts ohne Anmeldeadresse, Dienste mit
+  Hinweisen ohne eindeutigen Account, verworfene Accounts mit neuen Belegen und
+  Absenderdomains außerhalb des Katalogs.
+- Absenderdomains außerhalb des Katalogs lassen sich mit Grund ausblenden; neue
+  Hinweise holen sie zurück, „Wieder anzeigen“ hebt es auf. Domains im Katalog
+  lassen sich nicht ausblenden; verwirf dafür den Account.
+- Notizen zwischen zwei eigenen Adressen (dasselbe Postfach, ersetzt durch)
+  erscheinen bei den betroffenen Accounts und führen nie Accounts zusammen.
+- Neue CLI-Befehle `unclear`, `exclude` und `relate`; Schemaversion 4 ergänzt
+  zwei Tabellen nach der automatischen Sicherung.
+
 # Änderungen – Version 2.0.0, Paket A: klare Zustände und kontrollierbarer Kern (noch ohne Tag)
 
 Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md) und

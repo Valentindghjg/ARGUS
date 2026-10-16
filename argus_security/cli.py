@@ -104,6 +104,16 @@ def parser(language="en"):
     export.add_argument('path', type=Path)
     export.add_argument('--id', action='append', required=True, help=t('Account ID from list-accounts; may be repeated'))
     export.add_argument('--preview', action='store_true', help=t('Show the items that would be written; create no file'))
+    sub.add_parser('unclear', help=t('List everything ARGUS cannot decide for you, in one place'))
+    exclude = sub.add_parser('exclude', help=t('Hide clues of a sender domain outside the catalog; reversible'))
+    exclude.add_argument('domain')
+    exclude.add_argument('--reason', choices=['newsletter', 'spam', 'not_relevant'], default='not_relevant')
+    exclude.add_argument('--remove', action='store_true', help=t('Show the domain again'))
+    relate = sub.add_parser('relate', help=t('Note how two of your own addresses relate; accounts stay separate'))
+    relate.add_argument('address')
+    relate.add_argument('other')
+    relate.add_argument('--kind', choices=['same_mailbox', 'replaced_by'], default='same_mailbox')
+    relate.add_argument('--remove', action='store_true', help=t('Forget this relation'))
     sub.add_parser('changes', help=t('Show your recent local changes to decisions, steps and the worklist'))
     undo = sub.add_parser('undo', help=t('Undo your latest local change; external actions are never undone'))
     undo.add_argument('--batch', help=t('Undo this change instead of the latest one'))
@@ -237,6 +247,23 @@ def main(argv=None):
                 print(t('Scheduled read-only IMAP scans are enabled. They run only while the local ARGUS dashboard is running.'))
                 if config.auth == 'oauth2':
                     print(t('Note: OAuth2 access tokens usually expire within hours. Scheduled scans fail safely once it expires; run enable again with a fresh token or use a provider-supported app password.'))
+        elif args.command == 'unclear':
+            snapshot = store.snapshot()
+            print(json.dumps({'unclear': snapshot['unclear'], 'exclusions': snapshot['exclusions'],
+                              'relations': snapshot['relations']}, ensure_ascii=False, indent=2))
+        elif args.command == 'exclude':
+            if args.remove:
+                store.remove_exclusion(args.domain)
+                print(t('The sender domain is shown again.'))
+            else:
+                store.exclude_domain(args.domain, args.reason)
+                print(t('Clues from this sender domain are hidden from the review. New clues bring it back.'))
+        elif args.command == 'relate':
+            if args.remove:
+                store.remove_relation(args.address, args.other)
+            else:
+                store.relate_addresses(args.address, args.other, args.kind)
+            print(t('Saved locally. Accounts stay separate; a relation is only a note.'))
         elif args.command == 'changes':
             print(json.dumps(store.recent_changes(), ensure_ascii=False, indent=2))
         elif args.command == 'undo':

@@ -13,6 +13,7 @@ from .analysis import ANALYSIS_VERSION, FEATURES, KINDS, LABELS, Evidence, engli
 from .instances import (SCHEMA as INSTANCE_SCHEMA, defer_in_queue, direct_identity, insert_instance, migrate_instances,
                         owned_emails, read_steps, rebuild_from_v1, synchronize_instances, write_step)
 from .registry import Registry
+from .review import SCHEMA as REVIEW_SCHEMA
 from .changes import ChangeBatch, planning
 from .states import (DECISIONS, LEGACY_CHECKLIST, LEGACY_STEPS, REJECT_REASONS, STEPS, default_steps,
                      evidence_level, legacy_checklist, legacy_classification, legacy_status, progress,
@@ -26,7 +27,8 @@ CHECKLIST = LEGACY_CHECKLIST
 #   1: account identities, rule versions, unique fingerprints, snoozes (1.9-1.16)
 #   2: ADR-0001 axes: decision, dated steps, planning only in the worklist, change log
 #   3: rule features per clue (plan E1); older clues gain them on their next import
-SCHEMA_VERSION = 3
+#   4: reversible sender-domain exclusions and relations between own addresses (E4, A9)
+SCHEMA_VERSION = 4
 
 
 def now():
@@ -178,6 +180,7 @@ class Store:
                 db.execute("DELETE FROM evidence WHERE id NOT IN (SELECT MIN(id) FROM evidence GROUP BY fingerprint)")
                 db.execute("CREATE UNIQUE INDEX evidence_fingerprint ON evidence(fingerprint)")
             db.executescript(INSTANCE_SCHEMA)
+            db.executescript(REVIEW_SCHEMA)
             queue_columns = {row["name"] for row in db.execute("PRAGMA table_info(instance_work_queue)")}
             if "resume_after" not in queue_columns:
                 db.execute("ALTER TABLE instance_work_queue ADD COLUMN resume_after TEXT")
@@ -317,6 +320,9 @@ class Store:
                 step_rows.setdefault(row["account_id"], {})[row["step"]] = {
                     "state": row["state"], "done_at": row["done_at"], "review_after": row["review_after"]}
             queue = {row["account_id"]: dict(row) for row in db.execute("SELECT * FROM instance_work_queue")}
+            from .review import exclusions, relations
+            excluded = exclusions(db)
+            related = relations(db)
             evidences = [dict(r) for r in db.execute("SELECT * FROM evidence ORDER BY score DESC,id DESC")]
             own = owned_emails(db)
         from .workflow import effectively_deferred, utcnow
@@ -419,7 +425,9 @@ class Store:
             "accounts": accounts,
             "candidates": [{"domain": domain, "evidence": items[:10], "website": None,
                             "classification": "unknown", "reason": "Unverified sender domain; extend the catalog"}
-                           for domain, items in sorted(candidates.items())],
+                           for domain, items in sorted(candidates.items())
+                           if domain not in {entry["domain"] for entry in excluded}],
+            "exclusions": excluded, "relations": related,
             "summary": {"providers": len(self.registry.providers), "found": len(found),
                         "services_found": len({a["provider_id"] for a in found}), "instances_found": len(found),
                         "confirmed": sum(a["classification"] == "confirmed" for a in accounts),
@@ -440,6 +448,11 @@ class Store:
         snapshot["workflow"] = worklist_snapshot(self, accounts)
         snapshot["bitwarden_handoffs"] = handoff_snapshot(self)
         from .summary import next_task, result_summary
+        from .review import unclear_items
+        for account in accounts:
+            email = account["identity_email"]
+            account["related_addresses"] = [entry for entry in related if email and email in {entry["address"], entry["other"]}]
+        snapshot["unclear"] = unclear_items(snapshot)
         snapshot["result"] = result_summary(snapshot)
         snapshot["next_task"] = next_task(snapshot)
         from .i18n import localize_snapshot
@@ -642,6 +655,40 @@ class Store:
                 batch.record(account_id, "step:" + step, current, new)
                 db.execute("UPDATE account_instances SET updated=? WHERE id=?", (now(), account_id))
             return {"ok": True, "batch": batch.close()}
+
+    def exclude_domain(self, domain, reason):
+        """Hide clues of one sender domain outside the catalog from the review (A9)."""
+        from .review import exclude_domain
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            return {"domain": exclude_domain(db, domain, reason, now())}
+
+    def remove_exclusion(self, domain):
+        from .review import remove_exclusion
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            remove_exclusion(db, domain)
+        return {"ok": True}
+
+    def relate_addresses(self, address, other, kind):
+        """Record how two own addresses relate (E4); accounts stay separate."""
+        from .review import relate
+        if not isinstance(address, str) or not isinstance(other, str):
+            raise UserFacingError("Relate two different addresses of your own")
+        address, other = normalize_email(address), normalize_email(other)
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            relate(db, address, other, kind, owned_emails(db), now())
+        return {"ok": True}
+
+    def remove_relation(self, address, other):
+        from .review import remove_relation
+        if not isinstance(address, str) or not isinstance(other, str):
+            raise UserFacingError("These addresses have no saved relation")
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            remove_relation(db, normalize_email(address), normalize_email(other))
+        return {"ok": True}
 
     def undo(self, batch=None):
         """Revert one logged local change (ADR-0001, rule 3); external effects stay."""

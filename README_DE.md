@@ -380,6 +380,27 @@ Bei Prüfung, Passwortwechsel, Anmeldetest sowie MFA/Wiederherstellung speichert
 **Ich habe diesen Schritt erledigt** deine ausdrückliche lokale Bestätigung und
 führt danach direkt mit dem nächsten Schritt weiter.
 
+## Unklares, ausgeblendete Domains und Adressnotizen
+
+„Unklares“ sammelt alles, was deine Mails nicht klären, damit du einmal statt an
+vielen Stellen entscheidest: Accounts ohne Anmeldeadresse, Dienste mit Hinweisen
+ohne eindeutigen Account, verworfene Accounts mit neuen Belegen und
+Absenderdomains außerhalb des Katalogs. ARGUS wählt nie eine Adresse für dich
+und führt keine Accounts zusammen.
+
+Eine Absenderdomain außerhalb des Katalogs lässt sich mit Grund ausblenden
+(Newsletter, Spam, nicht relevant). Neue Hinweise holen sie zurück, „Wieder
+anzeigen“ hebt den Ausschluss auf. Unter „Postfach & Import“ kannst du notieren,
+wie zwei eigene Adressen zusammenhängen (dasselbe Postfach oder ersetzt durch);
+die Notiz erscheint bei den betroffenen Accounts und führt sie nie zusammen. Die
+CLI bietet dasselbe:
+
+```bash
+python -m argus_security unclear
+python -m argus_security exclude newsletter-absender.example --reason newsletter
+python -m argus_security relate alt@example.org neu@example.org --kind replaced_by
+```
+
 ## Accounts prüfen und mit Bitwarden absichern
 
 Jede Anmeldezuordnung erhält einen eigenen Eintrag, eine eigene Checkliste,

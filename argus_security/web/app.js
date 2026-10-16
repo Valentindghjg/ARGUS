@@ -69,7 +69,8 @@ const titles = {
   security:["Secure the most important accounts first.","Prioritize your mailbox, finance and central services.","Security priorities"],
   bitwarden:["One unique password per account, kept in Bitwarden.","Prepare new vault items and make the changes yourself.","Prepare Bitwarden"],
   workflow:["Secure your accounts, one at a time.","A local worklist that remembers your progress.","Security worklist"],
-  setup:["Start with your mailbox.","Import existing messages or set up read-only IMAP access.","Mailbox & Import"]
+  setup:["Start with your mailbox.","Import existing messages or set up read-only IMAP access.","Mailbox & Import"],
+  unclear:["Unclear items in one place.","Check what ARGUS cannot decide for you, then decide once.","Unclear items"]
 };
 function node(tag, text, className) { const e=document.createElement(tag); if(text!==undefined)e.textContent=text; if(className)e.className=className; return e; }
 function accountEmail(account){return account.identity_email||account.manual_email||account.registered_emails[0]||"";}
@@ -158,7 +159,54 @@ function renderState() {
   $("alias-email").disabled=state.demo;$("alias-owned").disabled=state.demo;
   if(state.demo)setMessage("alias-message","Add real own addresses in a personal profile on your computer. The demo profile stays separate.");
   renderRows();renderCandidates();renderExport();renderBitwardenAudit();renderWorklist();renderGuided();renderHandoffs();renderHistory();
-  renderStart();renderResult();renderNextTask();
+  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();
+}
+// Plan E3, E4, A9: everything unclear in one list; exclusions stay reversible.
+const exclusionReasons={newsletter:"Newsletter",spam:"Spam",not_relevant:"Not relevant"};
+function unclearItem(item){
+  const card=node("article",undefined,"worklist-item"),actions=node("div",undefined,"bitwarden-actions");
+  const account=state.accounts.find(a=>a.id===item.account_id),name=account?accountTitle(account):"";
+  const open=()=>actionButton("Open",()=>openDetail(item.account_id));
+  if(item.kind==="identity"){card.append(node("strong",name),node("p",t("Choose the sign-in address of this account. Its older progress waits for it.")));actions.append(open());}
+  else if(item.kind==="unassigned"){card.append(node("strong",account?account.name:""),node("p",t("{count} clue(s) concern this service but name no clear account. Check whether they belong to one of your accounts here.",{count:item.count})));actions.append(open());}
+  else if(item.kind==="reconsider"){card.append(node("strong",name),node("p",t("New, stronger evidence arrived after you rejected this account.")));actions.append(open());}
+  else if(item.kind==="domain"){
+    card.append(node("strong",item.domain),node("p",t("{count} clue(s) from a sender outside the catalog. A sender domain may be spoofed; it is never opened as an official website.",{count:item.count})));
+    const reason=node("select");reason.setAttribute("aria-label",t("Reason"));
+    for(const [value,label] of Object.entries(exclusionReasons))reason.append(new Option(t(label),value));
+    actions.append(reason,actionButton("Hide this domain",()=>reviewAction("/api/exclusions",{domain:item.domain,reason:reason.value},"Sender domain hidden locally.")));
+  }
+  else if(item.kind==="excluded_new"){card.append(node("strong",item.domain),node("p",t("{count} new clue(s) since you hid this domain.",{count:item.count})));actions.append(actionButton("Show again",()=>reviewAction("/api/exclusions/remove",{domain:item.domain},"Sender domain shown again.")));}
+  card.append(actions);return card;
+}
+function renderUnclear(){
+  $("nav-unclear-count").textContent=state.unclear.length;
+  $("unclear-items").replaceChildren(...state.unclear.map(unclearItem));
+  if(!state.unclear.length)$("unclear-items").append(node("p",t("Nothing is unclear right now.")));
+  $("exclusion-items").replaceChildren(...state.exclusions.map(entry=>{
+    const card=node("article",undefined,"worklist-item");
+    card.append(node("strong",entry.domain),node("p",`${t(exclusionReasons[entry.reason])} · ${t("hidden on {date}",{date:localDate(entry.created_at)})} · ${t("{count} clue(s)",{count:entry.clues})}`));
+    const actions=node("div",undefined,"bitwarden-actions");actions.append(actionButton("Show again",()=>reviewAction("/api/exclusions/remove",{domain:entry.domain},"Sender domain shown again.")));
+    card.append(actions);return card;
+  }));
+  if(!state.exclusions.length)$("exclusion-items").append(node("p",t("No sender domain is hidden.")));
+}
+const relationTexts={same_mailbox:"{a} is the same mailbox as {b}.",replaced_by:"{a} was replaced by {b}."};
+function renderRelations(){
+  for(const id of ["relation-address","relation-other"]){
+    const select=$(id),previous=select.value;
+    select.replaceChildren(...state.emails.map(e=>new Option(e,e)));if(state.emails.includes(previous))select.value=previous;
+  }
+  $("relation-save").disabled=state.demo||state.emails.length<2;
+  $("relation-items").replaceChildren(...state.relations.map(entry=>{
+    const card=node("article",undefined,"worklist-item");card.append(node("p",t(relationTexts[entry.kind],{a:entry.address,b:entry.other})));
+    const actions=node("div",undefined,"bitwarden-actions");actions.append(actionButton("Remove note",()=>reviewAction("/api/profile/relations/remove",{address:entry.address,other:entry.other},"Note removed locally.")));
+    card.append(actions);return card;
+  }));
+}
+async function reviewAction(path,body,message){
+  try{await api(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});await refresh();toast(t(message));}
+  catch(e){failure(e);}
 }
 // Plan F2: three separate ways in, shown until the profile has its first evidence.
 function renderStart(){
@@ -254,6 +302,7 @@ function navigate(next,clearError=true){
   $("bitwarden-view").classList.toggle("hidden",next!=="bitwarden");
   $("setup-view").classList.toggle("hidden",next!=="setup");
   $("workflow-view").classList.toggle("hidden",next!=="workflow");
+  $("unclear-view").classList.toggle("hidden",next!=="unclear");
   $("list-title").textContent=next==="security"?t("High-priority accounts"):t("Your account inventory");
   if(state)renderRows();
 }
@@ -398,6 +447,7 @@ function renderDetail(){
   const meta=[node("p",`${t(a.category)} · ${a.registered_emails.join(", ")||t("Sign-in address not known from evidence")}`),node("p",t(a.evidence_reason))];
   if(a.latest_clue_at)meta.push(node("p",t("Latest clue: {date}",{date:localDate(a.latest_clue_at)})));
   if(a.historical)meta.push(node("p",t("All clues are older than two years. The account may have changed or been closed since."),"notice"));
+  for(const entry of a.related_addresses||[])meta.push(node("p",t("Note: ")+t(relationTexts[entry.kind],{a:entry.address,b:entry.other})+" "+t("This does not mean it is the same account."),"small-muted"));
   $("detail-meta").replaceChildren(...meta);
   const decided=a.decided_at?localDate(a.decided_at):"";
   $("decision-status").textContent=a.decision==="confirmed"?t("Confirmed by you on {date}.",{date:decided}):a.decision==="rejected"?t("Rejected on {date}: {reason}.",{date:decided,reason:t(reasonLabels[a.decision_reason])}):t("Not decided yet. Evidence alone never confirms an account.");
@@ -803,6 +853,7 @@ $("import-button").onclick=()=>{navigate("setup");$("email-files").click();};
 $("email-files").onchange=importFiles;
 $("cancel-import").onclick=cancelImport;
 $("alias-form").onsubmit=addAlias;
+$("relation-form").onsubmit=event=>{event.preventDefault();reviewAction("/api/profile/relations",{address:$("relation-address").value,other:$("relation-other").value,kind:$("relation-kind").value},"Note saved locally. Accounts stay separate.");};
 document.querySelectorAll(".language-control").forEach(e=>e.onchange=()=>applyLanguage(e.value,true));
 applyLanguage(language);
 refresh().catch(failure);

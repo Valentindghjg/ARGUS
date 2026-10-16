@@ -263,6 +263,26 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, self.server.store.set_step(unquote(action.group(1)), data["step"],
                                                            state=data.get("state", UNCHANGED),
                                                            review_after=data.get("review_after", UNCHANGED)))
+            elif path in {"/api/exclusions", "/api/exclusions/remove"}:
+                data = self._json()
+                if path.endswith("remove"):
+                    if set(data) != {"domain"}:
+                        raise UserFacingError("This sender domain is not hidden")
+                    self._send(200, self.server.store.remove_exclusion(data["domain"]))
+                else:
+                    if set(data) != {"domain", "reason"}:
+                        raise UserFacingError("Choose why this sender domain should be hidden")
+                    self._send(200, self.server.store.exclude_domain(data["domain"], data["reason"]))
+            elif path in {"/api/profile/relations", "/api/profile/relations/remove"}:
+                data = self._json()
+                if path.endswith("remove"):
+                    if set(data) != {"address", "other"}:
+                        raise UserFacingError("These addresses have no saved relation")
+                    self._send(200, self.server.store.remove_relation(data["address"], data["other"]))
+                else:
+                    if set(data) != {"address", "other", "kind"}:
+                        raise UserFacingError("Choose how the two addresses are related")
+                    self._send(200, self.server.store.relate_addresses(data["address"], data["other"], data["kind"]))
             elif path == "/api/undo":
                 data = self._json()
                 if set(data) != {"batch"} or (data["batch"] is not None and not isinstance(data["batch"], str)):
