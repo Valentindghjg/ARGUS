@@ -1,3 +1,12 @@
+# Test report — unreleased (package B)
+
+Step S8: **257 Python tests** and **28 browser check groups**. Rule features are
+checked for subject and body matches, direct, indirect and multiple recipients,
+newsletters, subscriptions, forwarding and unknown domains; the snapshot shows
+kind, age and features and the database holds no message text; older clues gain
+their explanation on re-import; the browser shows the explanation in both
+languages.
+
 # Test report — Version 2.0.0 (package A, not yet tagged)
 
 The security-review changes passed **208 Python tests** (previously 166) and

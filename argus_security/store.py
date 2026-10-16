@@ -9,7 +9,7 @@ from pathlib import Path
 import sqlite3
 
 from .errors import UserFacingError
-from .analysis import ANALYSIS_VERSION, Evidence, LABELS, english_caveat, normalize_email
+from .analysis import ANALYSIS_VERSION, FEATURES, KINDS, LABELS, Evidence, english_caveat, normalize_email
 from .instances import (SCHEMA as INSTANCE_SCHEMA, defer_in_queue, direct_identity, insert_instance, migrate_instances,
                         owned_emails, read_steps, rebuild_from_v1, synchronize_instances, write_step)
 from .registry import Registry
@@ -25,11 +25,27 @@ CHECKLIST = LEGACY_CHECKLIST
 # an automatic backup; a profile from a newer ARGUS is never opened.
 #   1: account identities, rule versions, unique fingerprints, snoozes (1.9-1.16)
 #   2: ADR-0001 axes: decision, dated steps, planning only in the worklist, change log
-SCHEMA_VERSION = 2
+#   3: rule features per clue (plan E1); older clues gain them on their next import
+SCHEMA_VERSION = 3
 
 
 def now():
     return datetime.now(timezone.utc).isoformat()
+
+
+# Plan E2: a clue older than two years may describe an account that changed or
+# was closed since. It is only labelled, never deleted.
+HISTORICAL_DAYS = 730
+
+
+def clue_age_days(value):
+    try:
+        moment = datetime.fromisoformat(value)
+    except (TypeError, ValueError):
+        return None
+    if moment.tzinfo is None:
+        moment = moment.replace(tzinfo=timezone.utc)
+    return max(0, (datetime.now(timezone.utc) - moment).days)
 
 
 CORE_SCHEMA = """
@@ -46,6 +62,7 @@ CREATE TABLE IF NOT EXISTS evidence (
   source TEXT NOT NULL,
   caveat TEXT,
   rule_version INTEGER NOT NULL DEFAULT 1,
+  features TEXT,
   UNIQUE(fingerprint, sender_domain, signal)
 );
 CREATE INDEX IF NOT EXISTS evidence_provider ON evidence(provider_id);
@@ -153,6 +170,8 @@ class Store:
             evidence_columns = {row["name"] for row in db.execute("PRAGMA table_info(evidence)")}
             if "rule_version" not in evidence_columns:
                 db.execute("ALTER TABLE evidence ADD COLUMN rule_version INTEGER NOT NULL DEFAULT 1")
+            if "features" not in evidence_columns:
+                db.execute("ALTER TABLE evidence ADD COLUMN features TEXT")
             # A message's raw fingerprint is its identity across rule/catalogue revisions.
             indexes = {row["name"] for row in db.execute("PRAGMA index_list(evidence)")}
             if "evidence_fingerprint" not in indexes:
@@ -265,21 +284,23 @@ class Store:
                     db.execute("DELETE FROM evidence WHERE fingerprint=?", (fingerprint,))
                     return "removed"
                 return "ignored"
-            fields = ("provider_id", "sender_domain", "registered_email", "signal", "score", "date", "caveat", "rule_version")
+            features = json.dumps(sorted(set(evidence.features) & FEATURES))
+            fields = ("provider_id", "sender_domain", "registered_email", "signal", "score", "date", "caveat",
+                      "rule_version", "features")
             values = (evidence.provider_id, evidence.sender_domain, evidence.registered_email,
-                      evidence.signal, evidence.score, evidence.date, evidence.caveat, ANALYSIS_VERSION)
+                      evidence.signal, evidence.score, evidence.date, evidence.caveat, ANALYSIS_VERSION, features)
             if previous and tuple(previous[f] for f in fields) == values:
                 return "duplicate"
             db.execute("""INSERT INTO evidence
-              (provider_id,sender_domain,registered_email,signal,score,fingerprint,date,source,caveat,rule_version)
-              VALUES (?,?,?,?,?,?,?,?,?,?) ON CONFLICT(fingerprint) DO UPDATE SET
+              (provider_id,sender_domain,registered_email,signal,score,fingerprint,date,source,caveat,rule_version,features)
+              VALUES (?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(fingerprint) DO UPDATE SET
                 provider_id=excluded.provider_id, sender_domain=excluded.sender_domain,
                 registered_email=excluded.registered_email, signal=excluded.signal,
                 score=excluded.score, date=excluded.date, caveat=excluded.caveat,
-                rule_version=excluded.rule_version""", (
+                rule_version=excluded.rule_version, features=excluded.features""", (
                 evidence.provider_id, evidence.sender_domain, evidence.registered_email,
                 evidence.signal, evidence.score, evidence.fingerprint, evidence.date,
-                evidence.source, evidence.caveat, ANALYSIS_VERSION,
+                evidence.source, evidence.caveat, ANALYSIS_VERSION, features,
             ))
             synchronize_instances(db, self.registry, {evidence.provider_id})
             return "updated" if previous else "new"
@@ -309,6 +330,14 @@ class Store:
             identity = direct_identity(e, own)
             e.pop("fingerprint")
             e["caveat"] = english_caveat(e["caveat"])
+            # Plan E1/E2: why it counts, what kind of clue it is and how old it is.
+            e["kind"] = KINDS.get(e["signal"], "account")
+            try:
+                e["features"] = [item for item in json.loads(e["features"] or "null") or [] if item in FEATURES]
+            except (TypeError, ValueError):
+                e["features"] = []
+            e["age_days"] = clue_age_days(e["date"])
+            e["historical"] = e["age_days"] is not None and e["age_days"] > HISTORICAL_DAYS
             e["outdated"] = e["rule_version"] < ANALYSIS_VERSION
             if e["outdated"]:
                 stale_evidence += 1
@@ -370,6 +399,8 @@ class Store:
                     "in_worklist": bool(planned), "deferred": deferred,
                     "registered_emails": [email] if email else [], "manual_email": state["manual_email"],
                     "evidence": found[:30], "evidence_count": len(found),
+                    "latest_clue_at": max((e["date"] for e in found if e["date"]), default=None),
+                    "historical": bool(found) and all(e["historical"] for e in found),
                     "unassigned_evidence": provider_clues[:30], "unassigned_evidence_count": len(provider_clues),
                     "priority": state["priority_override"] or provider.priority,
                     "login_method": state["login_method"], "updated": state["updated"],

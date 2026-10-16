@@ -31,6 +31,19 @@ LABELS = {
     "order_only": "Order / invoice; guest checkout possible",
     "newsletter": "Newsletter / advertising; not evidence of an account",
 }
+# Plan E2: what a clue says about an account, separate from its strength.
+KINDS = {
+    "account_created": "account", "email_verified": "account", "password_changed": "account",
+    "login_activity": "account", "verification_requested": "account", "welcome_account": "account",
+    "reset_requested": "reset", "order_only": "order", "newsletter": "marketing",
+}
+# Plan E1: short codes for the rule features behind a clue. They are stored
+# instead of message text and explained in the dashboard.
+FEATURES = frozenset({
+    "matched_subject", "matched_body", "recipient_to", "recipient_indirect", "multiple_recipients",
+    "catalog_domain", "unknown_domain", "mailing_list_header", "advertising_words", "subscription_wording",
+    "forwarded", "headers_only", "generic_welcome",
+})
 # Specific completed events outrank generic welcome/verification wording.
 LEGACY_CAVEATS = {
     "Allgemeine Begrüßung mit Werbemerkmalen; manuell prüfen": "Generic welcome with advertising indicators; review manually",
@@ -111,6 +124,7 @@ class Evidence:
     date: str | None
     source: str
     caveat: str | None = None
+    features: tuple[str, ...] = ()
 
 
 def _addresses(message, fields):
@@ -186,11 +200,18 @@ def analyze(raw: bytes, registry: Registry, own_emails: list[str], source="eml")
     text = subject_text + "\n" + body_text
     marketing = bool(message.get("List-Unsubscribe") or message.get("List-Id") or PROMOTION.search(text))
     signal, score = "newsletter", 0
+    features = set()
     for candidate, strength, pattern in PATTERNS:
-        matches = list(pattern.finditer(subject_text)) + list(pattern.finditer(body_text))
-        if any(not NEGATED.search(match.group(0)) for match in matches):
+        in_subject = any(not NEGATED.search(match.group(0)) for match in pattern.finditer(subject_text))
+        in_body = any(not NEGATED.search(match.group(0)) for match in pattern.finditer(body_text))
+        if in_subject or in_body:
             signal, score = candidate, strength
+            features.add("matched_subject" if in_subject else "matched_body")
             break
+    if message.get("List-Unsubscribe") or message.get("List-Id"):
+        features.add("mailing_list_header")
+    if PROMOTION.search(text):
+        features.add("advertising_words")
     if signal == "newsletter" and not marketing:
         return None
     caveat = None
@@ -206,16 +227,23 @@ def analyze(raw: bytes, registry: Registry, own_emails: list[str], source="eml")
         advertising = bool(message.get("List-Id") or AD_OFFER.search(subject_text + " " + body_text[:700]))
         if subscription or (advertising and signal in {"welcome_account", "verification_requested"}):
             signal, score = "newsletter", 0
+            if subscription:
+                features.add("subscription_wording")
         elif marketing and signal == "welcome_account" and not context:
             score = 35
             caveat = "Generic welcome with advertising indicators; review manually"
+            features.add("generic_welcome")
     forwarded = bool(FORWARDED.search(subject) or FORWARDED.search(body) or
                      any(message.get(name) for name in ("Resent-From", "Resent-To")))
+    if forwarded:
+        features.add("forwarded")
+    features.add("multiple_recipients" if len(direct) > 1 else "recipient_to" if direct else "recipient_indirect")
     if forwarded or len(direct) != 1:
         score = min(score, 35)
         ambiguity = "Multiple own recipients; sign-in address uncertain" if len(direct) > 1 else "Forwarding / recipient association uncertain"
         caveat = caveat + "; " + ambiguity if caveat else ambiguity
     if message.get(HEADERS_ONLY_MARKER.decode("ascii")):
+        features.add("headers_only")
         score = min(score, 70)
         header_note = "Only headers analyzed (message exceeds size limit)"
         caveat = caveat + "; " + header_note if caveat else header_note
@@ -224,6 +252,7 @@ def analyze(raw: bytes, registry: Registry, own_emails: list[str], source="eml")
         if score < 60:
             return None
         caveat = "Provider domain not in the catalog; review manually"
+    features.add("catalog_domain" if provider else "unknown_domain")
     date = None
     try:
         parsed = parsedate_to_datetime(str(message.get("Date", "")))
@@ -233,4 +262,4 @@ def analyze(raw: bytes, registry: Registry, own_emails: list[str], source="eml")
         pass
     return Evidence(provider.id if provider else None, domain,
                     next(iter(direct)) if len(direct) == 1 and not forwarded and provider and score >= 60 else None,
-                    signal, score, sha256(raw).hexdigest(), date, source, caveat)
+                    signal, score, sha256(raw).hexdigest(), date, source, caveat, tuple(sorted(features)))

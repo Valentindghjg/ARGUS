@@ -305,10 +305,34 @@ function link(text,url){
   const a=node("a",text);a.href=url;a.target="_blank";a.rel="noopener noreferrer";return a;
 }
 function openDetail(id){selected=id;renderDetail();$("account-dialog").showModal();}
+// Plan E1/E2: each clue explains its rule features, its kind and its age.
+const kindLabels={account:"Account event",order:"Order or invoice",marketing:"Advertising",reset:"Reset request"};
+const featureTexts={
+  matched_subject:"The subject matches this rule.",
+  matched_body:"The message text matches this rule.",
+  recipient_to:"It was sent directly to one of your own addresses.",
+  recipient_indirect:"Your address appears only in Cc or a delivery header, so the sign-in address is uncertain.",
+  multiple_recipients:"Several of your own addresses received it, so the sign-in address is uncertain.",
+  catalog_domain:"The sender domain {domain} belongs to a provider in the catalog.",
+  unknown_domain:"The sender domain {domain} is not in the catalog.",
+  mailing_list_header:"It carries mailing-list headers, which newsletters use.",
+  advertising_words:"It contains advertising words.",
+  subscription_wording:"It reads like a newsletter subscription, not an account.",
+  forwarded:"It looks forwarded or replied, so the original recipient is uncertain.",
+  headers_only:"It was larger than 2 MiB, so only its headers were analyzed.",
+  generic_welcome:"A generic welcome with advertising indicators counts only weakly."
+};
 function evidenceCard(e){
-  const card=node("div",t(e.reason),"evidence-card");let date=t("Date unknown");
+  const card=node("div",undefined,"evidence-card"),head=node("div",undefined,"evidence-head");
+  head.append(node("span",t(e.reason)),node("span",t(kindLabels[e.kind]||"Account event"),`chip mark kind-${e.kind}`));card.append(head);
+  let date=t("Date unknown");
   if(e.date){const parsed=new Date(e.date);if(!Number.isNaN(parsed.getTime()))date=parsed.toLocaleDateString(language==="de"?"de-DE":"en-GB",{day:"numeric",month:"short",year:"numeric"});}
-  card.append(node("small",`${e.sender_domain} · ${date} · ${e.source} · ${t("Strength {score}/100",{score:e.score})}${e.caveat?" · "+translateCaveat(e.caveat):""}`));return card;
+  card.append(node("small",`${e.sender_domain} · ${date}${e.historical?" · "+t("older than two years"):""} · ${e.source} · ${t("Strength {score}/100",{score:e.score})}${e.caveat?" · "+translateCaveat(e.caveat):""}`));
+  const why=node("ul",undefined,"evidence-why");
+  for(const feature of e.features||[])if(featureTexts[feature])why.append(node("li",t(featureTexts[feature],{domain:e.sender_domain})));
+  if(why.childNodes.length){card.append(node("small",t("Why it counts:"),"evidence-why-title"),why);}
+  else card.append(node("small",t("Import this message again to see why it counts."),"evidence-why-title"));
+  return card;
 }
 function stepMeta(a,step){
   const value=a.steps[step];
@@ -371,7 +395,10 @@ function renderDetail(){
   $("identity-bound-note").classList.toggle("hidden",!a.identity_email);
   $("identity-caution-note").classList.toggle("hidden",!state.accounts.some(other=>other.id!==a.id&&(other.provider_id||other.id)===(a.provider_id||a.id)));
   $("detail-marks").replaceChildren(evidenceMark(a),decisionMark(a),node("span",progressText(a),`chip mark soft`));
-  $("detail-meta").replaceChildren(node("p",`${t(a.category)} · ${a.registered_emails.join(", ")||t("Sign-in address not known from evidence")}`),node("p",t(a.evidence_reason)));
+  const meta=[node("p",`${t(a.category)} · ${a.registered_emails.join(", ")||t("Sign-in address not known from evidence")}`),node("p",t(a.evidence_reason))];
+  if(a.latest_clue_at)meta.push(node("p",t("Latest clue: {date}",{date:localDate(a.latest_clue_at)})));
+  if(a.historical)meta.push(node("p",t("All clues are older than two years. The account may have changed or been closed since."),"notice"));
+  $("detail-meta").replaceChildren(...meta);
   const decided=a.decided_at?localDate(a.decided_at):"";
   $("decision-status").textContent=a.decision==="confirmed"?t("Confirmed by you on {date}.",{date:decided}):a.decision==="rejected"?t("Rejected on {date}: {reason}.",{date:decided,reason:t(reasonLabels[a.decision_reason])}):t("Not decided yet. Evidence alone never confirms an account.");
   $("reconsider-note").classList.toggle("hidden",!a.reconsider);

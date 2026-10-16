@@ -1,5 +1,22 @@
 # Change log
 
+## Unreleased — Package B: explainable, correctable detection
+
+### Why a clue counts, what kind it is and how old (E1, E2, priority 03)
+
+- Each clue now stores short rule features instead of any message text: where
+  the rule matched (subject or text), whether the mail went directly to your
+  address, mailing-list or advertising signs, forwarding, header-only analysis
+  and whether the sender domain is in the catalog. The account dialog explains
+  them under “Why it counts”.
+- Clues are labelled by kind (account event, order or invoice, advertising,
+  reset request) and age. Clues older than two years are marked; if all are,
+  the account shows that it may have changed or been closed. Old clues are
+  never deleted.
+- Clues imported before this version gain their explanation when the same
+  message is imported again; the profile gets one new column (schema version
+  3, with the automatic backup first).
+
 ## 2.0.0 — Package A: clear states and a controllable core (not yet tagged)
 
 See [the security review](SECURITY_REVIEW_2026-10.md) and
