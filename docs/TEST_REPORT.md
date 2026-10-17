@@ -1,4 +1,4 @@
-# Test report — unreleased (package D)
+# Test report — Version 2.3.0 (package D, not yet tagged)
 
 Step S13a: **301 Python tests** and **35 browser check groups**. New tests cover
 job states for imports, failures, cancellations and interrupted jobs, counts
@@ -29,6 +29,14 @@ together with `--again`, retrying only failed items (and none left afterwards),
 numbered mbox items, the pre-check without jobs or clues, and that the dashboard
 sees only the number of failed items. The browser shows the last terminal
 import with its commands.
+
+Step S15: **318 Python tests** and **37 browser check groups**. New tests cover
+the folder rules (root, home, hidden, missing, file, profile, parent of the
+profile, network paths, links, interval), imports of new files only from the
+folder itself, quiet passes, unchanged touched files, the pause, the per-pass
+limit, a missing folder, disabling with activity entries, and the CLI and
+control API. The browser shows the watch as a permission and a waiting job and
+stops it.
 
 # Test report — Version 2.2.0 (package C, not yet tagged)
 

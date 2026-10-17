@@ -475,6 +475,19 @@ def main():
                 expect(page.locator("#last-import")).to_contain_text("MBOX from /home/person/Mail/archive.mbox")
                 expect(page.locator("#last-import-retry")).to_be_visible()
                 checks.append("Last terminal import with repeat and retry commands")
+                watched = root / "watched-exports"
+                watched.mkdir()
+                from argus_security.watch import enable as enable_watch
+                store.set_meta("demo", False)
+                enable_watch(store, watched)
+                page.locator('[data-view="control"]').click()
+                page.evaluate("refresh()")
+                expect(page.locator("#approval-items")).to_contain_text("Subfolders are not read")
+                expect(page.locator("#job-items")).to_contain_text("Folder watch")
+                page.locator("#approval-items").get_by_role("button", name="Stop watching").click()
+                expect(page.locator("#approval-items")).to_contain_text("Folder watch · Disabled")
+                page.locator('[data-view="setup"]').click()
+                checks.append("Folder watch shown as a permission and a waiting job, and stopped from the dashboard")
 
                 page.set_viewport_size({"width":390,"height":844})
                 expect(page.locator("#page-title")).to_be_visible()

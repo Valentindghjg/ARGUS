@@ -46,7 +46,8 @@ class ScanSession:
         # Plan A16: keys of local items that were skipped or failed, for a targeted retry.
         self.failed_items = []
         self.new_work = {"messages": 0, "bytes": 0}
-        self.kind = "scheduled_scan" if trigger == "scheduled" else "imap_scan" if source == "imap" else "import"
+        self.kind = {"scheduled": "scheduled_scan", "watch": "folder_watch"}.get(
+            trigger, "imap_scan" if source == "imap" else "import")
         with store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             jobs.require_running(db)

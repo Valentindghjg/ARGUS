@@ -757,8 +757,12 @@ class Store:
     def control_overview(self, schedule=None):
         """Jobs, waiting work, the pause and recent activity in one place (plan D5)."""
         from .jobs import overview
+        from .watch import status
+        watch = status(self)
         with self.connect() as db:
-            return overview(db, schedule)
+            control = overview(db, schedule, watch=watch)
+        control["watch"] = watch
+        return control
 
     def set_review_rule(self, months, scope=None):
         """Save the person's rule for proposing review dates (plan A10); None switches it off."""

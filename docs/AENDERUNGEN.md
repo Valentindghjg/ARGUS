@@ -1,4 +1,4 @@
-# Änderungen – unveröffentlicht (Paket D: verlässliche Automatik)
+# Änderungen – Version 2.3.0, Paket D: verlässliche Automatik (noch ohne Tag)
 
 ## Vorgänge, Aktivitätsprotokoll und eine Pause für alles (A24, A25, A27, D5, Priorität 07)
 
@@ -55,6 +55,20 @@
   mbox-Nummer vermerkt, und `import --retry-failed` liest nur diese.
 - `import --check` zählt Nachrichten, Größe, neue, unveränderte und zu große
   Elemente einer Quelle, ohne zu importieren oder auszuwerten.
+
+## Einen Exportordner überwachen (A12, Priorität 14)
+
+- `watch-folder enable PFAD` gibt genau einen vorhandenen lokalen Ordner frei;
+  solange das Dashboard läuft, werden neue oder geänderte `*.eml`-Dateien direkt
+  darin über den normalen Import mit seinem Index eingelesen. Unterordner werden
+  nie gelesen, Dateien nie verändert. Abgelehnt werden das Wurzelverzeichnis, der
+  Benutzerordner, versteckte Ordner, Verknüpfungen, Netzwerkpfade und der
+  Profilordner.
+- Die Überwachung ist in der Kontrolle Berechtigung und wartender Vorgang, ein
+  Vorgang `folder_watch` mit Protokolleinträgen, folgt der globalen Pause,
+  verarbeitet höchstens 500 Dateien je Durchgang und meldet einen fehlenden
+  Ordner. Das Dashboard nennt sie beim Start und kann sie beenden
+  (`POST /api/watch/disable`).
 
 # Änderungen – Version 2.2.0, Paket C: lokale Vorarbeit (noch ohne Tag)
 
