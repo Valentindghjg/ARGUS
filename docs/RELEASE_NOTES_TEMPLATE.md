@@ -37,6 +37,10 @@ Compare the files with `SHA256SUMS` from this release, for example
 workflow run for this tag lists the same checksums in its summary; the wheel is
 built reproducibly, so a local build of the tag gives the same wheel checksum.
 
+The same run attested where the files come from. With the GitHub CLI:
+`gh attestation verify <file> --repo Valentindghjg/ARGUS`. It succeeds only for
+a file built by the "Release files" workflow of this repository.
+
 ## Limits that stay / Grenzen, die bleiben
 
 Clues in emails are no proof of an account, and an unknown account is not an

@@ -5,6 +5,13 @@ shortened job list and checks that runs and messages still count, that a
 message read again unchanged counts once and that other job kinds leave no
 totals.
 
+Build provenance: **403 Python tests**. The release workflow test now checks
+that the build job keeps read access, that only the tag-only `attest` job holds
+`id-token` and `attestations` write access and runs no project code, that it
+attests the wheel and the source archive and that every action is pinned to a
+full commit. `actionlint` 1.7 accepts both workflows. The attestation itself
+runs only for a tag pushed by the owner and was not triggered here.
+
 # Test report — Version 2.6.1 (review fixes, not yet tagged)
 
 Review fixes, part 1: **359 Python tests**. New regression tests reproduce each

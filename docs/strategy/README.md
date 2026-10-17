@@ -7,7 +7,7 @@ first, then more local automation. External access and writes need separate,
 target-bound approvals. Free stays a complete, safe workflow. The plan is a
 strategy paper, not an implementation order. This page tracks how far the code
 follows it. Since step S21 every plan item is implemented, deliberately limited, partly
-done (G6: signatures still to come) or dropped by an owner decision; the
+done or dropped by an owner decision; the
 coverage table at the end names where.
 
 ## Einordnung
@@ -100,7 +100,7 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 ## Abdeckung aller Plan-Punkte
 
 Stand nach S21: Jeder Punkt des Plans ist umgesetzt, bewusst begrenzt, teilweise
-umgesetzt (G6: Signaturen folgen) oder per Entscheidung entfallen. „Wo“ nennt den Einstieg im Code oder in der Oberfläche;
+umgesetzt oder per Entscheidung entfallen. „Wo“ nennt den Einstieg im Code oder in der Oberfläche;
 die Grenzen aus dem Plan gelten weiter.
 
 ### Fundament
@@ -200,4 +200,4 @@ die Grenzen aus dem Plan gelten weiter.
 | G3 | Anbieter-Vorlage mit Prüfkriterien | umgesetzt | S10 | `.github/ISSUE_TEMPLATE/provider.yml` |
 | G4 | Datensparsame Fehlerberichte und FAQ | umgesetzt | S20 | `argus about`, Fehlerformular, `docs/FAQ_DE.md` |
 | G5 | Synthetischer Qualitätsbenchmark | umgesetzt | S10 | `scripts/benchmark.py`, `benchmarks/` |
-| G6 | Vertrauenswürdige Releases | teilweise | S20 | Release-Prüfung, Prüfsummen, Release-Hinweise; Signaturen folgen später |
+| G6 | Vertrauenswürdige Releases | umgesetzt | S20, 2.7.0 | Release-Prüfung, Prüfsummen, Release-Hinweise; signierte Herkunftsbestätigung je Tag (`release.yml`, Job `attest`) |

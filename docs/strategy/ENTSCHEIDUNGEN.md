@@ -167,8 +167,8 @@ Wird während der Umsetzung fortgeschrieben.
   Migration auslöst. Sie enthält nur Versionen, System und Zahlen.
 - **S21, Abschluss und was offen bleibt:** Alle Plan-Punkte sind einem Schritt
   zugeordnet und in der Abdeckungstabelle der [Strategie-Übersicht](README.md)
-  mit Ort im Code belegt. Bewusst offen bleiben: Signaturen für Releases (G6),
-  ein vollständiges WCAG-Audit über die geprüften Grundlagen hinaus (D6) sowie
+  mit Ort im Code belegt. Bewusst offen bleiben: Signaturen für Releases (G6,
+  in 2.7.0 nachgeholt), ein vollständiges WCAG-Audit über die geprüften Grundlagen hinaus (D6) sowie
   Tags und Releases selbst, die nach der Entscheidung „Version erhöhen, kein
   Release“ beim Owner liegen. P6 entfällt nach „alles als Free“. Die Grenzen aus
   dem Plan (keine Logins, keine Passwortänderungen, keine unbestätigten
@@ -221,3 +221,14 @@ Regressionstest, der vor dem Fix fehlschlug. Dabei getroffene Entscheidungen:
   Abdeckung (`coverage.py`), das Kürzen bleibt im Jobmodell. Schema 11 statt
   einer stillen Tabelle, damit ältere Versionen das Profil nicht öffnen und
   ohne Übernahme kürzen. Bereits gelöschte Jobs sind nicht rekonstruierbar.
+- **Release-Herkunft statt eigener Schlüssel (G6):** Signiert wird schlüssellos
+  mit einer Build-Provenance-Attestierung über Sigstore; es gibt keinen privaten
+  Schlüssel, der verloren gehen oder gestohlen werden kann. Verwendet wird
+  `actions/attest` direkt (seit v4 ist `actions/attest-build-provenance` nur
+  noch eine Hülle darum), wie alle Actions per Commit-SHA gepinnt. Die Rechte
+  `id-token: write` und `attestations: write` hat nur ein eigener Job, der nur
+  bei Tags läuft, keinen Projektcode ausführt und nur die vom Build-Job
+  hochgeladenen Dateien bestätigt; der Build-Job bleibt bei Leserechten, damit
+  eine Build-Abhängigkeit nie eine Signatur anfordern kann. Dafür ist ein
+  Artefakt-Upload nötig (Entscheidung aus S20 revidiert). Ein Lauf von Hand
+  baut und prüft nur, er lädt nichts hoch und bestätigt nichts.

@@ -11,6 +11,16 @@
   backup before the migration as usual. Jobs an older version already removed
   cannot be recovered.
 
+### Build provenance for releases (G6)
+
+- For a version tag, the "Release files" workflow records a signed build
+  provenance attestation for the wheel and the source archive (keyless,
+  through Sigstore). `gh attestation verify <file> --repo Valentindghjg/ARGUS`
+  confirms that a file was built by this workflow from the tag. Only a separate
+  job that runs no project code may request the signing identity; the build job
+  keeps read access. The files are kept as the run's `release-files` artifact
+  for the owner's hand-made release. Still no workflow creates a release.
+
 ## 2.6.1 — Fixes from the review of 2.0–2.6 (not yet tagged)
 
 ### Change log, undo, backups and migrations

@@ -5,6 +5,14 @@ aus einer verkürzten Jobliste fallen und prüft, dass Läufe und Nachrichten
 weiter zählen, dass eine unverändert erneut gelesene Nachricht einmal zählt und
 dass andere Jobarten keine Summen hinterlassen.
 
+Herkunftsbestätigung: **403 Python-Tests**. Der Test des Release-Workflows prüft
+jetzt, dass der Build-Job bei Leserechten bleibt, dass nur der Job `attest`, der
+nur bei Tags läuft, Schreibrechte für `id-token` und `attestations` hat und
+keinen Projektcode ausführt, dass er Rad und Quellarchiv bestätigt und dass jede
+Action auf einen vollständigen Commit gepinnt ist. `actionlint` 1.7 akzeptiert
+beide Workflows. Die Bestätigung selbst läuft nur bei einem vom Owner gepushten
+Tag und wurde hier nicht ausgelöst.
+
 # Prüfbericht – Version 2.6.1 (Korrekturen aus dem Review, noch ohne Tag)
 
 Review-Korrekturen, Teil 1: **359 Python-Tests**. Neue Regressionstests

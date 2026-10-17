@@ -7,6 +7,7 @@ import importlib.util
 from io import StringIO
 import json
 from pathlib import Path
+import re
 import tempfile
 import unittest
 
@@ -65,12 +66,24 @@ class ReleaseCheckTests(unittest.TestCase):
         self.assertEqual(lines, [f"{sha256(b'also synthetic').hexdigest()}  argus-2.6.0-py3-none-any.whl",
                                  f"{sha256(b'synthetic').hexdigest()}  argus-2.6.0.tar.gz"])
 
-    def test_release_workflow_only_reads_and_publishes_nothing(self):
+    def test_release_workflow_publishes_nothing_and_only_the_attestation_may_sign(self):
         workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
-        self.assertIn("contents: read", workflow)
-        self.assertNotIn(": write", workflow)
+        build, attest = workflow.split("\n  attest:\n")
+        self.assertIn("contents: read", build)
+        self.assertNotIn(": write", build)
+        self.assertIn("scripts/release_check.py", build)
         self.assertNotIn("gh release", workflow)
-        self.assertIn("scripts/release_check.py", workflow)
+        # The signing identity belongs to a tag-only job that runs no project code.
+        self.assertIn("if: github.ref_type == 'tag'", attest)
+        self.assertEqual(sorted(re.findall(r"^ +([a-z-]+): write$", attest, re.M)), ["attestations", "id-token"])
+        self.assertNotIn("run:", attest)
+        self.assertNotIn("actions/checkout", attest)
+        self.assertIn("subject-path: 'dist/*.whl, dist/*.tar.gz'", attest)
+        # Every action is pinned to a full commit.
+        actions = re.findall(r"uses: (\S+)", workflow)
+        self.assertIn("actions/attest", " ".join(actions))
+        for action in actions:
+            self.assertRegex(action, r"^[\w.-]+/[\w.-]+@[0-9a-f]{40}$")
 
 
 class AboutTests(unittest.TestCase):
