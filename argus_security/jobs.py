@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS activity (
 );
 """
 PAUSE = "automation_paused"
-KINDS = ("import", "imap_scan", "scheduled_scan", "bitwarden_check", "bitwarden_write")
+KINDS = ("import", "imap_scan", "scheduled_scan", "folder_watch", "bitwarden_check", "bitwarden_write")
 # "uncertain" marks an external write whose result is unknown; it blocks a blind retry (priority 12).
 STATES = ("running", "paused", "completed", "completed_with_gaps", "failed", "cancelled", "needs_approval", "uncertain")
 EVENTS = ("job_finished", "automation_paused", "automation_resumed", "approval_granted", "approval_revoked",
@@ -128,7 +128,7 @@ def single(db, kind, outcome, counts=None):
     finish(db, job_id, outcome, counts or {})
 
 
-def overview(db, schedule=None, limit=20):
+def overview(db, schedule=None, limit=20, watch=None):
     """Jobs, waiting work, pause state and recent activity for the control view (D5)."""
     now = datetime.now(timezone.utc)
     jobs = []
@@ -143,6 +143,9 @@ def overview(db, schedule=None, limit=20):
     if schedule and schedule.get("enabled") and schedule.get("next_run_at"):
         waiting.append({"kind": "scheduled_scan", "next_run_at": datetime.fromtimestamp(
             schedule["next_run_at"], timezone.utc).isoformat()})
+    if watch and watch.get("enabled") and watch.get("next_run_at"):
+        waiting.append({"kind": "folder_watch", "next_run_at": datetime.fromtimestamp(
+            watch["next_run_at"], timezone.utc).isoformat()})
     activity = [{"at": row["at"], "event": row["event"], "kind": row["kind"], "outcome": row["outcome"],
                  "counts": json.loads(row["counts"])}
                 for row in db.execute("SELECT * FROM activity ORDER BY id DESC LIMIT 50")]

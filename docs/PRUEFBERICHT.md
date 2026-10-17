@@ -1,4 +1,4 @@
-# Prüfbericht – unveröffentlicht (Paket D)
+# Prüfbericht – Version 2.3.0 (Paket D, noch ohne Tag)
 
 Schritt S13a: **301 Python-Tests** und **35 Browser-Prüfgruppen**. Neue Tests
 prüfen Vorgangszustände für Importe, Fehler, Abbrüche und unterbrochene
@@ -31,6 +31,15 @@ Ablehnung von Pfad plus `--again`, das gezielte Nachholen fehlgeschlagener
 Elemente (danach keine mehr), nummerierte mbox-Elemente, die Vorprüfung ohne
 Vorgänge oder Hinweise und dass das Dashboard nur die Anzahl fehlgeschlagener
 Elemente sieht. Der Browser zeigt den letzten Terminal-Import mit Befehlen.
+
+Schritt S15: **318 Python-Tests** und **37 Browser-Prüfgruppen**. Neue Tests
+prüfen die Ordnerregeln (Wurzel, Benutzerordner, versteckt, fehlend, Datei,
+Profil, übergeordneter Ordner des Profils, Netzwerkpfade, Verknüpfungen,
+Abstand), Importe neuer Dateien nur aus dem Ordner selbst, stille Durchgänge,
+unveränderte berührte Dateien, die Pause, die Grenze je Durchgang, einen
+fehlenden Ordner, das Beenden mit Protokolleinträgen sowie CLI und Kontroll-API.
+Der Browser zeigt die Überwachung als Berechtigung und wartenden Vorgang und
+beendet sie.
 
 # Prüfbericht – Version 2.2.0 (Paket C, noch ohne Tag)
 

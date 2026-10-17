@@ -112,3 +112,12 @@ Wird während der Umsetzung fortgeschrieben.
   Nachrichten, die erneut ausgewertet wurden und dasselbe Ergebnis brachten
   (etwa mit `--recheck`). Das Budget zählt nur neue Arbeit, damit ein
   wiederholter Lauf tatsächlich weiterkommt.
+- **S15, Ordnerüberwachung ohne Dienst im Hintergrund:** Die Überwachung läuft
+  nur im Prozess des Dashboards (wie geplante Scans) und fragt den Ordner in
+  festem Abstand ab, statt Betriebssystem-Ereignisse zu nutzen; das hält die
+  Laufzeit bei der Standardbibliothek und macht jeden Durchgang als Vorgang
+  sichtbar. Größe und Änderungszeit wählen nur Kandidaten vor; ob eine Datei neu
+  ist, entscheidet der Inhalts-Fingerabdruck. Freigegeben wird nur im Terminal;
+  beendet werden kann auch im Dashboard. Netzwerk-Mounts unter Linux und macOS
+  lassen sich ohne Zusatzbibliothek nicht sicher erkennen; abgelehnt werden
+  daher UNC- und `//`-Pfade, und die Dokumentation verlangt einen lokalen Ordner.

@@ -120,6 +120,10 @@ def parser(language="en"):
     rule.add_argument('--scope', choices=['important', 'all'], default='important')
     rule.add_argument('--off', action='store_true', help=t('Switch the rule off'))
     rule.add_argument('--apply', action='store_true', help=t('Set every proposed review date; undo restores them'))
+    watch = sub.add_parser('watch-folder', help=t('Import new EML files from one local folder while the dashboard runs'))
+    watch.add_argument('action', choices=['enable', 'disable', 'status'])
+    watch.add_argument('path', type=Path, nargs='?')
+    watch.add_argument('--interval-minutes', type=int, default=5, help=t('Minutes between checks of the folder (1 to 1440)'))
     automation = sub.add_parser('automation', help=t('Show jobs and activity, or pause and resume all automation'))
     automation.add_argument('action', choices=['status', 'pause', 'resume'])
     session = sub.add_parser('session', help=t('Work on one or three worklist tasks and keep a short report'))
@@ -319,6 +323,20 @@ def main(argv=None):
             print(json.dumps({'rule': snapshot['review_rule'],
                               'proposals': {a['id']: a['review_proposal'] for a in snapshot['accounts'] if a['review_proposal']},
                               'applied': bool(args.apply and proposed)}, ensure_ascii=False, indent=2))
+        elif args.command == 'watch-folder':
+            from .watch import disable as stop_watch, enable as start_watch, status as watch_status
+            if store.meta('demo', False) or not store.meta('emails'):
+                raise ValueError('Initialize a personal local profile with init first')
+            if args.action == 'enable':
+                if args.path is None:
+                    raise UserFacingError('Name the folder to watch')
+                result = start_watch(store, args.path, args.interval_minutes * 60)
+                print(t('ARGUS will import new EML files from {p0} every {p1} minute(s) while the dashboard runs. Subfolders are not read; files are never changed. Restart a running dashboard to start the watch.',
+                        p0=result['path'], p1=args.interval_minutes), file=sys.stderr)
+            elif args.action == 'disable':
+                stop_watch(store)
+                print(t('The folder is no longer watched.'), file=sys.stderr)
+            print(json.dumps(watch_status(store), ensure_ascii=False, indent=2))
         elif args.command == 'automation':
             if args.action != 'status':
                 store.set_automation_paused(args.action == 'pause')

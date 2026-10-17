@@ -1,4 +1,4 @@
-# ARGUS 2.2.0 – lokales Account-Inventar
+# ARGUS 2.3.0 – lokales Account-Inventar
 
 Deutsch · [English](README.md)
 
@@ -225,6 +225,24 @@ python -m argus_security import /pfad/zu/postfach.mbox --format mbox --check
 python -m argus_security import /pfad/zu/postfach.mbox --format mbox --max-messages 5000
 python -m argus_security import --again          # setzt dieselbe Quelle fort
 python -m argus_security import --retry-failed   # nur fehlgeschlagene Elemente
+```
+
+### Einen Exportordner überwachen
+
+Speichert dein Mailprogramm EML-Dateien in einen Ordner, kann ARGUS neue Dateien
+daraus importieren, solange das Dashboard läuft. Du gibst genau einen
+vorhandenen lokalen Ordner im Terminal frei; ARGUS liest nur `*.eml`-Dateien
+direkt darin, nie Unterordner, und verändert, verschiebt oder löscht nie eine
+Datei. Abgelehnt werden das ganze Laufwerk, dein Benutzerordner, versteckte
+Ordner, Verknüpfungen, Netzwerkpfade und der Profilordner. Die Überwachung
+erscheint unter „Kontrolle“ als Berechtigung und wartender Vorgang, folgt der
+globalen Pause und lässt sich dort beenden; ein fehlender Ordner wird gemeldet,
+nie anderswo gesucht.
+
+```bash
+python -m argus_security watch-folder enable ~/Mail/ARGUS-export --interval-minutes 5
+python -m argus_security watch-folder status
+python -m argus_security watch-folder disable
 ```
 
 ## Mailanbieter ermitteln
@@ -785,6 +803,7 @@ Begründung mitziehen muss. `--json` gibt den vollständigen Bericht aus.
 | `argus_security/sessions.py`, `reviews.py` | Kurze Arbeitssitzungen mit Bericht und die Prüfregel |
 | `argus_security/jobs.py` | Gemeinsame Vorgangszustände, globale Pause und minimales Aktivitätsprotokoll |
 | `argus_security/imports.py` | Index verarbeiteter Nachrichten, Importbudget und Fortsetzen |
+| `argus_security/watch.py` | Eng begrenzte, freigegebene Überwachung eines Exportordners |
 | `argus_security/backup.py` | Lokale Profilsicherungen und Wiederherstellung |
 | `argus_security/workflow.py` | Lokale Sicherheits-Arbeitsliste und geführter nächster Schritt |
 | `argus_security/handoffs.py` | Dauerhaftes Journal für Bitwarden-Übertragungen |

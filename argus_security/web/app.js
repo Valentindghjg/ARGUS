@@ -808,7 +808,7 @@ async function changeWorklist(data){
   finally{workflowBusy=false;renderWorklist();renderGuided();if($("account-dialog").open)renderDetail();}
 }
 // Plan A24, A25, A27, D5: every job visible, a minimal activity log and one pause for everything.
-const jobKinds={import:"Email import",imap_scan:"IMAP scan",scheduled_scan:"Scheduled IMAP scan",bitwarden_check:"Bitwarden check",bitwarden_write:"Bitwarden transfer"};
+const jobKinds={import:"Email import",imap_scan:"IMAP scan",scheduled_scan:"Scheduled IMAP scan",folder_watch:"Folder watch",bitwarden_check:"Bitwarden check",bitwarden_write:"Bitwarden transfer"};
 const jobStates={running:"Running",paused:"Paused",completed:"Completed",completed_with_gaps:"Completed with gaps",failed:"Failed",
   cancelled:"Cancelled",needs_approval:"Needs approval",uncertain:"Result unclear",interrupted:"Interrupted"};
 const activityEvents={automation_paused:"All automation paused",automation_resumed:"Automation resumed",
@@ -848,9 +848,24 @@ function renderControl(){
   renderApproval();
 }
 const approvalStates={active:"Active",disabled:"Disabled",needs_approval:"Needs approval"};
+// Plan A12: the watched folder is a standing approval too, shown with its limits.
+function watchCard(watch){
+  const card=node("article",undefined,"worklist-item");
+  card.append(node("strong",`${t("Folder watch")} · ${t(watch.enabled?"Active":"Disabled")}`));
+  card.append(node("p",t("New EML files directly in {path}, every {minutes} minute(s), only while the dashboard runs. Subfolders are not read.",{path:watch.path,minutes:Math.round(watch.interval_seconds/60)})));
+  if(watch.last_result==="folder_missing")card.append(node("p",t("The folder is missing; nothing is searched elsewhere."),"small-muted"));
+  if(watch.approved_at)card.append(node("p",t("Approved on {date}.",{date:localDateTime(watch.approved_at*1000)}),"small-muted"));
+  if(watch.enabled){const actions=node("div",undefined,"bitwarden-actions");actions.append(actionButton("Stop watching",stopWatch));card.append(actions);}
+  return card;
+}
+async function stopWatch(){
+  try{await api("/api/watch/disable",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});await refresh();toast(t("The folder is no longer watched."));}
+  catch(e){failure(e);}
+}
 function renderApproval(){
-  const approval=state.control.approval;
-  if(!approval){$("approval-items").replaceChildren(node("p",t("No standing approval. Scheduled scans are off.")));return;}
+  const approval=state.control.approval,watch=state.control.watch;
+  const cards=watch?[watchCard(watch)]:[];
+  if(!approval){$("approval-items").replaceChildren(...cards,...(cards.length?[]:[node("p",t("No standing approval. Scheduled scans and folder watches are off."))]));return;}
   const card=node("article",undefined,"worklist-item");
   card.append(node("strong",`${t("Scheduled IMAP scan")} · ${t(approvalStates[approval.state])}`));
   if(approval.host)card.append(node("p",t("{host}, folders: {folders}",{host:`${approval.host}:${approval.port}`,folders:approval.folders.includes("*")?t("all selectable folders"):approval.folders.join(", ")})));
@@ -860,7 +875,7 @@ function renderApproval(){
   const actions=node("div",undefined,"bitwarden-actions");
   actions.append(actionButton("Revoke approval",revokeApproval,!approval.authorized&&approval.state!=="needs_approval"));
   card.append(actions);
-  $("approval-items").replaceChildren(card);
+  $("approval-items").replaceChildren(card,...cards);
 }
 async function revokeApproval(){
   if(!confirm(t("Revoke this approval? Scheduled scans stop and the stored authorization is removed from your system keyring. A new approval needs background-imap enable in a terminal.")))return;

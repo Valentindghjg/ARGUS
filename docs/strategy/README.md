@@ -40,7 +40,7 @@ Hauptnutzen kommt ohne sie aus.
 
 ## Umsetzungsstand der 15 Prioritäten
 
-Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S14.
+Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S15 (2.3.0).
 
 | Nr. | Priorität | Stand | Im Code |
 | --- | --- | --- | --- |
@@ -50,14 +50,14 @@ Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S14.
 | 04 | Mehrdeutigkeiten gesammelt prüfen | **umgesetzt** | Sammelliste „Unklares“: Identitäten, Hinweise ohne Account, neue Belege nach Verwerfen, unbekannte Domains |
 | 05 | Änderungen automatisch zusammenstellen | **umgesetzt** | „Neu seit…“: neue und anders bewertete Hinweise nach Account gruppiert, Unklares zuerst; Zusammenfassung beim Wiederkommen (A1, A3, A4, A7, A28) |
 | 06 | Unverändertes nicht erneut vorlegen | **umgesetzt** | Revision je Hinweis und Durchsicht-Markierung; identische Neuimporte bleiben still, Importlücken bleiben sichtbar (A2) |
-| 07 | Jobs, Pause, Wiederaufnahme vereinheitlichen | weitgehend | gemeinsames Jobmodell für Importe, Scans und Bitwarden, globale Pause, Kontrollübersicht; Fortsetzen folgt (S14) |
+| 07 | Jobs, Pause, Wiederaufnahme vereinheitlichen | **umgesetzt** | gemeinsames Jobmodell für Importe, Scans, Ordnerüberwachung und Bitwarden, globale Pause, Kontrollübersicht, Fortsetzen über den Nachrichtenindex |
 | 08 | Korrekturen erhalten und rückgängig machen | **umgesetzt** | Entscheidungen überstehen Neuauswertung; Protokoll und Rückgängig für Entscheidung, Schritte und Planung in Dashboard, API und CLI |
 | 09 | Nächste Aufgabe begründet vorbereiten | **umgesetzt** | eine begründete nächste Aufgabe in der Übersicht (D1), geführter Ablauf, Arbeitsliste |
 | 10 | Freigaben vor externen Jobs prüfen | **umgesetzt** | Zielbindung aus Host, Port, Benutzer, Anmeldeart und Ordnern; sichtbare Freigabe mit Widerruf und Vorschau; übrige externe Zugriffe je Aufruf |
 | 11 | Bitwarden-Vorschau und Übergabestatus | weitgehend | Übergabejournal und Status; genaue Vorschau vor jedem Schreiben (B2) |
 | 12 | Unklare Schreibausgänge blockieren | umgesetzt | Status `uncertain`, keine blinde Wiederholung, manuelle Klärung |
 | 13 | Wiederkehrende lokale Importe vereinfachen | **umgesetzt** | letzte Quelle wiederholen, nur Geändertes, Budget, Fortsetzen, gezielt nachholen, Vorprüfung |
-| 14 | Begrenzte Ordnerüberwachung | offen | – |
+| 14 | Begrenzte Ordnerüberwachung | **umgesetzt** | ein freigegebener lokaler Ordner, nur `*.eml` direkt darin, nur mit laufendem Dashboard, sichtbar und beendbar |
 | 15 | Belegten Pro-Komfortbedarf bedienen | entschieden | Alles wird als Free umgesetzt; die Lizenzgrundlage ist entfernt (S1) |
 
 Außerdem ist F1 (einheitlicher Produktname) mit der Umbenennung auf ARGUS
@@ -87,7 +87,7 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 | S12 | Passende Checkliste, Arbeitsliste, Sitzungen, Prioritäten, Identitätskonten, Bericht → **2.2.0** | A5, A6, A8, A10, A17, A18, A20, D3, B6 | ✅ (2.2.0) |
 | S13 | Jobmodell, globale Pause, Freigaben, Aktivitätsprotokoll, Kontrollübersicht | A23–A27, D5, 07, 10 | ✅ |
 | S14 | Importeinstellungen, nur Geändertes, Ressourcenbudget, Fortsetzen, gezielte Fehler, große Archive | A11, A13–A16, P3, 13 | ✅ |
-| S15 | Begrenzte Ordnerüberwachung → **2.3.0** | A12, 14 | offen |
+| S15 | Begrenzte Ordnerüberwachung → **2.3.0** | A12, 14 | ✅ (2.3.0) |
 | S16 | Bitwarden: Weg ohne Tresorlesen, Duplikatschutz, Übergabebereitschaft → **2.4.0** | B1, B3, A19, 11 | offen |
 | S17 | Getrennte Profile, Verlaufsanalyse, datensparsame Berichte | P1, P2, P5 | offen |
 | S18 | E-Mail-Umzugsplan und Ablaufvorlagen → **2.5.0** | A21, A22, P4 | offen |

@@ -1041,7 +1041,7 @@
     "Disabled": "Ausgeschaltet",
     "MX lookup for your email domain: only with --allow-dns, for that one lookup.": "MX-Abfrage für deine E-Mail-Domain: nur mit --allow-dns, für genau diese Abfrage.",
     "Manual IMAP scan: only with scan-imap --allow-imap in your terminal, for that one run.": "Manueller IMAP-Scan: nur mit scan-imap --allow-imap in deinem Terminal, für genau diesen Lauf.",
-    "No standing approval. Scheduled scans are off.": "Keine dauerhafte Freigabe. Geplante Scans sind aus.",
+    "No standing approval. Scheduled scans and folder watches are off.": "Keine dauerhafte Freigabe. Geplante Scans und Ordnerüberwachung sind aus.",
     "Permissions": "Berechtigungen",
     "Revoke approval": "Freigabe widerrufen",
     "Revoke this approval? Scheduled scans stop and the stored authorization is removed from your system keyring. A new approval needs background-imap enable in a terminal.": "Diese Freigabe widerrufen? Geplante Scans enden, und die gespeicherte Berechtigung wird aus dem Schlüsselbund deines Systems entfernt. Eine neue Freigabe braucht background-imap enable in einem Terminal.",
@@ -1068,6 +1068,22 @@
     "The last import source no longer exists; choose it again": "Die letzte Importquelle existiert nicht mehr; wähle sie erneut",
     "There is no earlier local import to repeat": "Es gibt keinen früheren lokalen Import zum Wiederholen",
     "{p0} item(s) were skipped or failed. Fix them, then run import --retry-failed to read only those.": "{p0} Element(e) wurden übersprungen oder sind fehlgeschlagen. Behebe sie und führe dann import --retry-failed aus, um nur diese zu lesen.",
-    "{p0} message(s), {p1} MB; {p2} new, {p3} unchanged, {p4} empty or over 2 MiB. Nothing was imported.": "{p0} Nachricht(en), {p1} MB; {p2} neu, {p3} unverändert, {p4} leer oder über 2 MiB. Nichts wurde importiert."
+    "{p0} message(s), {p1} MB; {p2} new, {p3} unchanged, {p4} empty or over 2 MiB. Nothing was imported.": "{p0} Nachricht(en), {p1} MB; {p2} neu, {p3} unverändert, {p4} leer oder über 2 MiB. Nichts wurde importiert.",
+    "Folder watch": "Ordnerüberwachung",
+    "New EML files directly in {path}, every {minutes} minute(s), only while the dashboard runs. Subfolders are not read.": "Neue EML-Dateien direkt in {path}, alle {minutes} Minute(n), nur solange das Dashboard läuft. Unterordner werden nicht gelesen.",
+    "Stop watching": "Überwachung beenden",
+    "The folder is missing; nothing is searched elsewhere.": "Der Ordner fehlt; anderswo wird nichts gesucht.",
+    "The folder is no longer watched.": "Der Ordner wird nicht mehr überwacht.",
+    "ARGUS will import new EML files from {p0} every {p1} minute(s) while the dashboard runs. Subfolders are not read; files are never changed. Restart a running dashboard to start the watch.": "ARGUS importiert alle {p1} Minute(n) neue EML-Dateien aus {p0}, solange das Dashboard läuft. Unterordner werden nicht gelesen; Dateien werden nie verändert. Starte ein laufendes Dashboard neu, damit die Überwachung beginnt.",
+    "Choose a folder outside the ARGUS profile": "Wähle einen Ordner außerhalb des ARGUS-Profils",
+    "Choose a local folder; network paths are not watched": "Wähle einen lokalen Ordner; Netzwerkpfade werden nicht überwacht",
+    "Choose a narrow folder of its own, not the whole disk, your home folder or a hidden folder": "Wähle einen eigenen, eng begrenzten Ordner, nicht das ganze Laufwerk, deinen Benutzerordner oder einen versteckten Ordner",
+    "Choose an existing local folder that is not a link": "Wähle einen vorhandenen lokalen Ordner, der keine Verknüpfung ist",
+    "Import new EML files from one local folder while the dashboard runs": "Neue EML-Dateien aus einem lokalen Ordner importieren, solange das Dashboard läuft",
+    "Minutes between checks of the folder (1 to 1440)": "Minuten zwischen zwei Prüfungen des Ordners (1 bis 1440)",
+    "Name the folder to watch": "Nenne den zu überwachenden Ordner",
+    "No folder is being watched": "Es wird kein Ordner überwacht",
+    "The watch interval must be between 1 minute and 24 hours": "Der Prüfabstand muss zwischen 1 Minute und 24 Stunden liegen",
+    "New EML files in {p0} are imported every {p1} minute(s) while this runs; use watch-folder disable to stop.": "Neue EML-Dateien in {p0} werden alle {p1} Minute(n) importiert, solange dies läuft; mit watch-folder disable beendest du das."
   }
 }

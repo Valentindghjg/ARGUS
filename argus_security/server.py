@@ -78,7 +78,9 @@ class DashboardServer(ThreadingHTTPServer):
 
     def start_background_scans(self):
         """Start the opt-in in-process scheduler only for an enabled profile."""
-        if self.background_thread or not self.background_snapshot().get("enabled"):
+        from .watch import status
+        if self.background_thread or not (self.background_snapshot().get("enabled")
+                                          or (status(self.store) or {}).get("enabled")):
             return
         self.background_thread = threading.Thread(target=self._background_loop,
                                                   name="argus-imap-scheduler", daemon=True)
@@ -107,6 +109,12 @@ class DashboardServer(ThreadingHTTPServer):
             # A locked database or damaged schedule must not end the scheduler
             # thread silently; run_due already records safe scan failures, and
             # the next pass retries without exposing exception text.
+            pass
+        from .watch import run_due
+        try:
+            # Plan A12: the narrow folder watch runs in the same visible loop, only with the dashboard.
+            run_due(self.store)
+        except Exception:
             pass
 
     def server_close(self):
@@ -429,6 +437,11 @@ class Handler(BaseHTTPRequestHandler):
                     raise UserFacingError("Choose an approval to revoke")
                 self.server.background_service.revoke()
                 self._send(200, {"ok": True})
+            elif path == "/api/watch/disable":
+                from .watch import disable
+                if self._json() != {}:
+                    raise UserFacingError("No folder is being watched")
+                self._send(200, {"watch": disable(self.server.store)})
             elif path == "/api/review-rule":
                 data = self._json()
                 if set(data) != {"months", "scope"}:
@@ -486,6 +499,12 @@ def serve(store: Store, port=8765, open_browser=False, language="en"):
         server.start_background_scans()
         print(translate("Local dashboard: ", language) + server.url, flush=True)
         print(startup_notice(server.background_snapshot(), language), flush=True)
+        from .watch import status
+        watched = status(store)
+        if watched and watched.get("enabled"):
+            # Plan A12: no hidden background work; the watched folder is named at start.
+            print(translate("New EML files in {p0} are imported every {p1} minute(s) while this runs; use watch-folder disable to stop.",
+                            language, p0=watched["path"], p1=watched["interval_seconds"] // 60), flush=True)
         if open_browser:
             import webbrowser
             webbrowser.open(server.url)

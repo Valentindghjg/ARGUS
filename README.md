@@ -1,4 +1,4 @@
-# ARGUS 2.2.0
+# ARGUS 2.3.0
 
 [Deutsch](README_DE.md) · English
 
@@ -207,6 +207,23 @@ python -m argus_security import /path/to/mailbox.mbox --format mbox --check
 python -m argus_security import /path/to/mailbox.mbox --format mbox --max-messages 5000
 python -m argus_security import --again          # continues the same source
 python -m argus_security import --retry-failed   # only the items that failed
+```
+
+### Watch one export folder
+
+If your email program saves EML files into one folder, ARGUS can import new
+ones from there while the dashboard runs. You approve exactly one existing local
+folder in a terminal; ARGUS reads only `*.eml` files directly in it, never
+subfolders, and never changes, moves or deletes a file. It refuses the whole
+disk, your home folder, hidden folders, links, network paths and the profile
+folder. The watch appears under “Control” as a permission and a waiting job,
+follows the global pause and can be stopped there; a missing folder is
+reported, never searched for elsewhere.
+
+```bash
+python -m argus_security watch-folder enable ~/Mail/ARGUS-export --interval-minutes 5
+python -m argus_security watch-folder status
+python -m argus_security watch-folder disable
 ```
 
 ## Identify your email provider
@@ -726,6 +743,7 @@ report.
 | `argus_security/sessions.py`, `reviews.py` | Short work sessions with their report, and the review rule |
 | `argus_security/jobs.py` | Shared job states, the global pause and the minimal activity log |
 | `argus_security/imports.py` | Processed-message index, import budget and continuation |
+| `argus_security/watch.py` | The narrow, opt-in watch of one export folder |
 | `argus_security/backup.py` | Local profile backups and restore |
 | `argus_security/workflow.py` | Local security worklist and guided next step |
 | `argus_security/handoffs.py` | Durable Bitwarden transfer journal |

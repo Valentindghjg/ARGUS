@@ -1,6 +1,6 @@
 # Change log
 
-## Unreleased — Package D: dependable automation
+## 2.3.0 — Package D: dependable automation (not yet tagged)
 
 ### Jobs, activity log and one pause for everything (A24, A25, A27, D5, priority 07)
 
@@ -51,6 +51,18 @@
   or mbox number, and `import --retry-failed` reads only those.
 - `import --check` counts messages, size, new, unchanged and oversized items of
   a source without importing or analyzing anything.
+
+### Watch one export folder (A12, priority 14)
+
+- `watch-folder enable PATH` approves exactly one existing local folder; while
+  the dashboard runs, new or changed `*.eml` files directly in it are imported
+  through the normal import with its index. Subfolders are never read; files are
+  never changed. The root, the home folder, hidden folders, links, network paths
+  and the profile folder are refused.
+- The watch is a permission and a waiting job in Control, a `folder_watch` job
+  with activity entries, follows the global pause, handles at most 500 files per
+  pass and reports a missing folder. The dashboard names it at start and can stop
+  it (`POST /api/watch/disable`).
 
 ## 2.2.0 — Package C: local preparation (not yet tagged)
 
