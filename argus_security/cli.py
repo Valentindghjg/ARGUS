@@ -279,6 +279,9 @@ def main(argv=None):
                 raise ValueError('IMAP requires an initialized personal local profile')
             if args.limit is not None and args.limit < 1:
                 raise ValueError('The scan limit must be positive')
+            if args.full_scan and args.limit is not None:
+                # A full scan starts at the first message every time, so a limit would never move on.
+                raise UserFacingError('A full scan rechecks every message; run it without --limit')
             # A paused profile is refused before any password prompt or connection.
             store.ensure_not_paused()
             config = load_config(store.data_dir / 'imap.json')

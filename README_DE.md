@@ -340,7 +340,8 @@ nicht gespeichert. Der Scanner öffnet Ordner nur lesend, ruft Nachrichten mit
 `BODY.PEEK` ab und beendet die Sitzung mit LOGOUT. Keine Gelesen-Markierungen,
 Löschungen oder Mailänderungen. Bei Mails über 2 MiB werden nur die Header gelesen
 und als begrenzte Belege gekennzeichnet. Scans sind über UID-Checkpoints
-wiederaufnehmbar. `--full-scan` prüft bereits gelesene Nachrichten erneut.
+wiederaufnehmbar. `--full-scan` prüft bereits gelesene Nachrichten erneut; er beginnt
+jedes Mal bei der ersten Nachricht und läuft deshalb ohne `--limit`.
 
 Bei `--limit` erscheint „Limit erreicht“, wenn Nachrichten übrig bleiben. Starte
 denselben freigegebenen Scan erneut, um fortzusetzen. Ist das Limit genau am Ende
@@ -389,7 +390,8 @@ python -m argus_security background-imap revoke
 
 `disable` pausiert künftige Scans und behält den Schlüsselbund-Eintrag. `revoke`
 deaktiviert zuerst die Scans und entfernt anschließend den Eintrag aus dem
-Schlüsselbund. Ein bereits laufender Scan endet vor dem nächsten Nachrichtenabruf. Das Dashboard zeigt nur den Status und fragt niemals nach Passwort
+Schlüsselbund. Ein bereits laufender Scan bemerkt das innerhalb von etwa 15 Sekunden
+und endet vor dem nächsten Nachrichtenabruf. Das Dashboard zeigt nur den Status und fragt niemals nach Passwort
 oder Token.
 
 ### OAuth2, Microsoft, Google und Proton
@@ -472,7 +474,8 @@ python -m argus_security sign-in-with notion --remove
 abgeschlossen, fehlgeschlagen, abgebrochen, braucht Freigabe, Ergebnis unklar,
 unterbrochen) und zeigt einen geplanten Scan als wartend bis zu seiner nächsten
 Zeit; keine Hintergrundarbeit bleibt verborgen. **Gesamte Automatik pausieren**
-sperrt neue Vorgänge und beendet laufende zwischen zwei Nachrichten; gespeicherte
+sperrt neue Vorgänge und beendet laufende zwischen zwei Nachrichten, innerhalb
+etwa einer Sekunde; gespeicherte
 Hinweise und IMAP-Checkpoints bleiben, und nichts, was außerhalb von ARGUS schon
 geschah, wird rückgängig gemacht. Die Übersicht zeigt die Pause, bis du
 fortsetzt. Das Aktivitätsprotokoll enthält nur Zeit, Vorgangsart, Ergebnis und

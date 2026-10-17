@@ -22,8 +22,11 @@ def coverage(db, evidences, own_emails):
         entry = sources.setdefault(row["kind"], {"kind": row["kind"], "runs": 0, "last_run": None, "messages": 0})
         entry["runs"] += 1
         entry["last_run"] = row["started_at"]
-        processed = json.loads(row["counts"]).get("processed", 0)
-        entry["messages"] += processed if type(processed) is int else 0
+        counts = json.loads(row["counts"])
+        processed, unchanged = counts.get("processed", 0), counts.get("unchanged", 0)
+        # Messages read again unchanged are not counted twice.
+        if type(processed) is int and type(unchanged) is int:
+            entry["messages"] += max(0, processed - unchanged)
     dated = sorted(e["date"][:7] for e in evidences if e.get("date"))
     months = Counter(dated)
     gaps = []

@@ -11,10 +11,12 @@ import uuid
 from .analysis import ANALYSIS_VERSION, HEADERS_ONLY_MARKER, analyze, MAX_MESSAGE_BYTES
 from .guidance import scan_next_steps
 from . import imports, jobs
+from .errors import UserFacingError
 from .store import Store, now
 
-# Plan A24/A27: a running job looks at the global pause between messages.
-PAUSE_CHECK_EVERY = 25
+# Plan A24/A27: a running job looks at the global pause between two messages,
+# at most once per this many seconds, so a pause takes effect within about a second.
+PAUSE_CHECK_SECONDS = 1.0
 # How a finished scan maps to the shared job states (ADR-0001, section 3.4).
 JOB_STATES = {"completed": "completed", "completed_with_gaps": "completed_with_gaps", "limited": "completed_with_gaps"}
 
@@ -41,8 +43,12 @@ class ScanSession:
                       "unchanged": 0}
         # Plan A13/A14: skip what was analyzed under the same conditions; limit new work per run.
         self.scope = imports.scope_key(self.emails, store.registry, ANALYSIS_VERSION)
+        if recheck and budget:
+            # A recheck starts at the first message every time, so a limit would never move on.
+            raise UserFacingError("Recheck everything without a message or size limit")
         self.recheck = recheck
         self.budget = budget
+        self.pause_checked = None
         # Plan A16: keys of local items that were skipped or failed, for a targeted retry.
         self.failed_items = []
         self.new_work = {"messages": 0, "bytes": 0}
@@ -86,31 +92,51 @@ class ScanSession:
         return self.publish()
 
     def _check_pause(self):
-        if self.stats["processed"] % PAUSE_CHECK_EVERY == 0:
+        moment = time.monotonic()
+        if self.pause_checked is None or moment - self.pause_checked >= PAUSE_CHECK_SECONDS:
+            self.pause_checked = moment
             with self.store.connect() as db:
                 if jobs.paused(db):
                     raise jobs.JobPaused("Automation was paused; the job stopped between two messages. Saved clues stay.")
 
+    def _budget_spent(self):
+        return bool(self.budget) and (
+            (self.budget["messages"] and self.new_work["messages"] >= self.budget["messages"])
+            or (self.budget["bytes"] and self.new_work["bytes"] >= self.budget["bytes"]))
+
     def process(self, raw, key=None):
         self._ensure_capacity()
         self._check_pause()
-        self.stats["processed"] += 1
         fingerprint = sha256(raw).hexdigest() if isinstance(raw, bytes) and raw and len(raw) <= MAX_MESSAGE_BYTES else None
+        known = False
         if fingerprint and not self.recheck:
             with self.store.connect() as db:
-                if imports.known(db, fingerprint, self.scope):
-                    self.stats["unchanged"] += 1
-                    return self._progress()
-        self.new_work["messages"] += 1
-        self.new_work["bytes"] += len(raw) if isinstance(raw, bytes) else 0
+                known = imports.known(db, fingerprint, self.scope)
+        if fingerprint and not known and self._budget_spent():
+            # A13/A14: more new work waits than this run may do. It stops before this
+            # message and ends as "limited"; a source that fits the limit completes.
+            self.info["limit_reached"] = True
+            return dict(self.stats)
+        self.stats["processed"] += 1
+        if known:
+            self.stats["unchanged"] += 1
+            return self._progress()
         if fingerprint is None:
+            # Empty or oversized items cost nothing and do not use up the limit.
             self.stats["skipped"] += 1
             self._failed(key)
         else:
             if raw.startswith(HEADERS_ONLY_MARKER + b": yes"):
                 self.stats["headers_only"] += 1
             try:
-                evidence = analyze(raw, self.store.registry, self.emails, self.stats["source"])
+                try:
+                    evidence = analyze(raw, self.store.registry, self.emails, self.stats["source"])
+                except Exception as exc:
+                    # Hostile headers can break the standard parser in unexpected ways;
+                    # one such message must never stop a whole import or a scheduled scan.
+                    raise ValueError("The message could not be analyzed") from exc
+                self.new_work["messages"] += 1
+                self.new_work["bytes"] += len(raw)
                 changes = []
                 outcome = self.store.record_analysis(fingerprint, evidence, expected_emails=self.emails,
                                                      changes=changes)
@@ -129,10 +155,6 @@ class ScanSession:
             except (ValueError, TypeError, UnicodeError, RecursionError):
                 self.stats["errors"] += 1
                 self._failed(key)
-        if self.budget and ((self.budget["messages"] and self.new_work["messages"] >= self.budget["messages"])
-                            or (self.budget["bytes"] and self.new_work["bytes"] >= self.budget["bytes"])):
-            # A13/A14: the run stops here and ends as "limited", never as complete.
-            self.info["limit_reached"] = True
         return self._progress()
 
     def _failed(self, key):
@@ -187,7 +209,7 @@ def scan_messages(store: Store, messages, source="eml", progress=None, *, sessio
     except jobs.JobPaused:
         session.finish("partial", "paused")
         raise
-    except (KeyboardInterrupt, GeneratorExit):
+    except (KeyboardInterrupt, GeneratorExit, jobs.JobCancelled):
         session.finish("partial", "cancelled")
         raise
     except BaseException:
@@ -198,6 +220,15 @@ def scan_messages(store: Store, messages, source="eml", progress=None, *, sessio
         if close:
             close()
     return session.finish()
+
+
+def _read_item(file: Path):
+    """One message file, or None if it cannot be read; it is then listed for --retry-failed."""
+    try:
+        with file.open("rb") as handle:
+            return handle.read(MAX_MESSAGE_BYTES + 1)
+    except OSError:
+        return None
 
 
 def file_messages(path: Path, kind: str):
@@ -236,18 +267,18 @@ def file_items(path: Path, kind: str, only=None):
             for file in sorted(folder.iterdir()):
                 item = file.relative_to(path).as_posix()
                 if file.is_file() and not file.is_symlink() and (only is None or item in only):
-                    with file.open("rb") as handle:
-                        yield item, handle.read(MAX_MESSAGE_BYTES + 1)
+                    yield item, _read_item(file)
     elif kind == "eml":
         if not path.exists():
             raise ValueError("EML path not found")
-        files = [path] if path.is_file() else sorted(path.rglob("*.eml"))
+        # Exported files are named .eml or .EML depending on the program.
+        files = [path] if path.is_file() else sorted(file for file in path.rglob("*")
+                                                     if file.suffix.lower() == ".eml" and file.is_file())
         for file in files:
             item = file.name if file == path else file.relative_to(path).as_posix()
             if file.is_symlink() or (only is not None and item not in only):
                 continue
-            with file.open("rb") as handle:
-                yield item, handle.read(MAX_MESSAGE_BYTES + 1)
+            yield item, _read_item(file)
     else:
         raise ValueError("Unknown import format")
 

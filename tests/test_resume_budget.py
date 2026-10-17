@@ -81,8 +81,11 @@ class ResumeBudgetTests(unittest.TestCase):
         self.assertEqual((third["unchanged"], third["evidence"], third["result"]), (4, 1, "completed"))
         self.assertEqual(self.store.snapshot()["summary"]["clues"], 5)
         byte_limited = scan_messages(self.store, [created("noreply@netflix.com"), created("noreply@ebay.de")],
-                                     budget=budget(max_megabytes=1), recheck=True)
+                                     budget=budget(max_megabytes=1))
         self.assertEqual(byte_limited["result"], "completed")
+        # A recheck starts at the first message each time, so a limit would never move on.
+        with self.assertRaises(UserFacingError):
+            scan_messages(self.store, self.messages, budget=limits, recheck=True)
         for bad in ({"max_messages": 0}, {"max_messages": "5"}, {"max_megabytes": 10**6}):
             with self.subTest(bad=bad), self.assertRaises(UserFacingError):
                 budget(**bad)

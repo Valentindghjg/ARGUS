@@ -918,6 +918,8 @@ function watchCard(watch){
   card.append(node("strong",`${t("Folder watch")} · ${t(watch.enabled?"Active":"Disabled")}`));
   card.append(node("p",t("New EML files directly in {path}, every {minutes} minute(s), only while the dashboard runs. Subfolders are not read.",{path:watch.path,minutes:Math.round(watch.interval_seconds/60)})));
   if(watch.last_result==="folder_missing")card.append(node("p",t("The folder is missing; nothing is searched elsewhere."),"small-muted"));
+  if(watch.last_result==="too_many_files")card.append(node("p",t("The folder holds more than 5,000 EML files. Import it once with import, then watch a folder for new files only."),"small-muted"));
+  if(watch.last_result==="failed")card.append(node("p",t("The last pass failed; the job list shows it. The next pass follows at the usual interval."),"small-muted"));
   if(watch.approved_at)card.append(node("p",t("Approved on {date}.",{date:localDateTime(watch.approved_at*1000)}),"small-muted"));
   if(watch.enabled){const actions=node("div",undefined,"bitwarden-actions");actions.append(actionButton("Stop watching",stopWatch));card.append(actions);}
   return card;

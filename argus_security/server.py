@@ -16,6 +16,7 @@ from .errors import UserFacingError
 from .guidance import hint_for
 from .analysis import MAX_MESSAGE_BYTES
 from .background import BackgroundScanService, CredentialError, KeyringCredentialStore
+from .jobs import JobPaused
 from .scan import ScanSession, scan_messages
 from .store import Store
 
@@ -77,10 +78,13 @@ class DashboardServer(ThreadingHTTPServer):
             return None
 
     def start_background_scans(self):
-        """Start the opt-in in-process scheduler only for an enabled profile."""
-        from .watch import status
-        if self.background_thread or not (self.background_snapshot().get("enabled")
-                                          or (status(self.store) or {}).get("enabled")):
+        """Start the in-process scheduler with the dashboard.
+
+        It only acts on schedules the person enabled, and checks every minute
+        whether one is due, so enabling a scan or a folder watch in a terminal
+        while the dashboard runs takes effect without a restart.
+        """
+        if self.background_thread:
             return
         self.background_thread = threading.Thread(target=self._background_loop,
                                                   name="argus-imap-scheduler", daemon=True)
@@ -88,12 +92,17 @@ class DashboardServer(ThreadingHTTPServer):
 
     def _background_loop(self):
         while not self.background_stop.is_set():
-            self._background_pass()
-            status = self.background_snapshot()
-            due = status.get("next_run_at")
             seconds = 60
-            if isinstance(due, (int, float)):
-                seconds = max(1, min(60, due - time.time()))
+            try:
+                self._background_pass()
+                due = self.background_snapshot().get("next_run_at")
+                # A due time in the past means the run waits (paused, mailbox busy);
+                # look again in a minute instead of every second.
+                if isinstance(due, (int, float)) and due > time.time():
+                    seconds = max(1, min(60, due - time.time()))
+            except Exception:
+                # A locked or vanished database must not end the scheduler with a traceback.
+                pass
             self.background_stop.wait(seconds)
 
     def _background_pass(self):
@@ -119,6 +128,9 @@ class DashboardServer(ThreadingHTTPServer):
 
     def server_close(self):
         self.background_stop.set()
+        if self.background_thread:
+            # A pass in progress finishes its current step; a long scan stops at its next lease check.
+            self.background_thread.join(timeout=5)
         with self.import_lock:
             if self.import_job and self.import_job.stats["running"]:
                 self.import_job.finish("partial")
@@ -361,7 +373,12 @@ class Handler(BaseHTTPRequestHandler):
                 with self.server.import_lock:
                     if job_id:
                         job = self.server.import_session(job_id)
-                        job.process(raw)
+                        try:
+                            job.process(raw)
+                        except JobPaused:
+                            # Plan A27: the browser import stops as "paused", not as cancelled.
+                            job.finish("partial", "paused")
+                            raise
                         result = job.publish()
                     else:
                         if self.server.active_import():

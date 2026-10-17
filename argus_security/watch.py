@@ -11,8 +11,10 @@ global pause holds the watch; disabling it from the dashboard stops it for
 good. No file is changed, moved or deleted.
 """
 from datetime import datetime, timezone
+import json
 import os
 from pathlib import Path
+import stat
 import time
 
 from .analysis import MAX_MESSAGE_BYTES
@@ -37,14 +39,25 @@ def validate_folder(path, data_dir):
     if candidate.is_symlink() or not candidate.is_dir():
         raise UserFacingError("Choose an existing local folder that is not a link")
     folder = candidate.resolve()
+    # A mapped network drive resolves to a UNC path on Windows.
+    if str(folder).startswith(("\\\\", "//")):
+        raise UserFacingError("Choose a local folder; network paths are not watched")
     home = Path.home().resolve()
     profile = Path(data_dir).resolve()
-    if (folder == Path(folder.anchor) or folder == home or folder in home.parents
+    # samefile also catches another spelling on case-insensitive disks (macOS, Windows).
+    if (folder == Path(folder.anchor) or _same(folder, home) or any(_same(folder, parent) for parent in home.parents)
             or any(part.startswith(".") for part in folder.parts[1:])):
         raise UserFacingError("Choose a narrow folder of its own, not the whole disk, your home folder or a hidden folder")
     if folder == profile or profile in folder.parents or folder in profile.parents:
         raise UserFacingError("Choose a folder outside the ARGUS profile")
     return folder
+
+
+def _same(one, other):
+    try:
+        return one.samefile(other)
+    except OSError:
+        return one == other
 
 
 def enable(store, path, interval_seconds=DEFAULT_INTERVAL):
@@ -83,15 +96,62 @@ def _changed_files(folder, known):
         for entry in sorted(entries, key=lambda item: item.name):
             if not entry.name.lower().endswith(".eml") or entry.is_symlink() or not entry.is_file(follow_symlinks=False):
                 continue
-            stat = entry.stat(follow_symlinks=False)
-            current[entry.name] = [stat.st_size, stat.st_mtime_ns]
+            info = entry.stat(follow_symlinks=False)
+            current[entry.name] = [info.st_size, info.st_mtime_ns]
             if known.get(entry.name) != current[entry.name]:
                 found.append(entry.name)
     return found, current
 
 
+def _read(folder, name):
+    """One watched file, or None if it cannot be read as a plain file now.
+
+    It is opened without following links and without waiting, and must still be
+    a regular file, so a file swapped for a link or a pipe after the folder was
+    listed is skipped instead of followed or blocking the scheduler.
+    """
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0) | getattr(os, "O_BINARY", 0)
+    try:
+        handle = os.open(folder / name, flags)
+    except OSError:
+        return None
+    try:
+        if not stat.S_ISREG(os.fstat(handle).st_mode):
+            return None
+        with os.fdopen(handle, "rb") as file:
+            handle = None
+            return file.read(MAX_MESSAGE_BYTES + 1)
+    except OSError:
+        return None
+    finally:
+        if handle is not None:
+            os.close(handle)
+
+
+def _finish_pass(store, config, values, remembered=None):
+    """Store the pass result only while the same approval is still active.
+
+    A pass that ends after the person disabled the watch or approved another
+    folder never brings the old one back (plan A12).
+    """
+    with store.connect() as db:
+        db.execute("BEGIN IMMEDIATE")
+        row = db.execute("SELECT value FROM meta WHERE key=?", (KEY,)).fetchone()
+        stored = json.loads(row[0]) if row else None
+        if (not isinstance(stored, dict) or not stored.get("enabled") or stored.get("path") != config["path"]
+                or stored.get("approved_at") != config.get("approved_at")):
+            return False
+        db.execute("INSERT INTO meta VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                   (KEY, json.dumps({**stored, **values})))
+        if remembered is not None:
+            db.execute("INSERT INTO meta VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                       (STATE, json.dumps(remembered)))
+    return True
+
+
 def run_due(store, now=None):
     """One watch pass if it is enabled and due; returns a short status, never file contents."""
+    from .jobs import JobPaused
     from .scan import scan_messages
     now = now or time.time()
     config = store.meta(KEY)
@@ -102,31 +162,54 @@ def run_due(store, now=None):
     if config.get("next_run_at") and now < config["next_run_at"]:
         return {"status": "not_due"}
     folder = Path(config["path"])
-    following = {**config, "last_run_at": now, "next_run_at": now + config["interval_seconds"]}
+    following = {"last_run_at": now, "next_run_at": now + config["interval_seconds"]}
     if not folder.is_dir() or folder.is_symlink():
         # A missing folder is reported, never searched for elsewhere (plan A15).
-        store.set_meta(KEY, {**following, "last_result": "folder_missing"})
+        _finish_pass(store, config, {**following, "last_result": "folder_missing"})
         return {"status": "folder_missing"}
     known = store.meta(STATE) or {}
-    changed, current = _changed_files(folder, known)
+    try:
+        changed, current = _changed_files(folder, known)
+    except OSError:
+        _finish_pass(store, config, {**following, "last_result": "failed"})
+        return {"status": "failed"}
+    if len(current) > MAX_TRACKED_FILES:
+        # Too many files to remember reliably; import the folder once instead (plan A14).
+        _finish_pass(store, config, {**following, "last_result": "too_many_files"})
+        return {"status": "too_many_files"}
     batch = changed[:MAX_FILES_PER_PASS]
+    attempted = []
 
     def items():
         for name in batch:
-            with (folder / name).open("rb") as handle:
-                yield name, handle.read(MAX_MESSAGE_BYTES + 1)
+            attempted.append(name)
+            yield name, _read(folder, name)
     result = {"status": "idle"}
     if batch:
-        stats = scan_messages(store, items(), "eml", trigger="watch", keyed=True)
+        try:
+            stats = scan_messages(store, items(), "eml", trigger="watch", keyed=True)
+        except JobPaused:
+            # Paused between two files: the rest follows after resuming, nothing is lost.
+            _finish_pass(store, config, {"last_result": "paused"},
+                         _remember(current, known, attempted[:-1]))
+            return {"status": "paused"}
+        except Exception:
+            # The job is recorded as failed; the pass ends normally, so the interval holds.
+            _finish_pass(store, config, {**following, "last_result": "failed"}, _remember(current, known, []))
+            return {"status": "failed"}
+        if stats["result"] == "partial":
+            # Stopped early because the own addresses changed: the file that noticed it
+            # and every later one are read again under the new addresses.
+            attempted = attempted[:max(0, stats["processed"] - 1)]
         result = {"status": "imported", "processed": stats["processed"], "evidence": stats["evidence"],
                   "unchanged": stats["unchanged"]}
-    # Files beyond this pass's limit stay "changed" and follow in the next pass.
-    remembered = {name: value for name, value in current.items() if name not in changed[MAX_FILES_PER_PASS:]}
-    if len(remembered) > MAX_TRACKED_FILES:
-        remembered = dict(sorted(remembered.items())[-MAX_TRACKED_FILES:])
-    store.set_meta(STATE, remembered)
-    store.set_meta(KEY, {**following, "last_result": result["status"]})
+    _finish_pass(store, config, {**following, "last_result": result["status"]}, _remember(current, known, attempted))
     return result
+
+
+def _remember(current, known, done):
+    """Files to treat as seen: unchanged ones and those this pass read; the rest follow next time."""
+    return {name: value for name, value in current.items() if known.get(name) == value or name in done}
 
 
 def next_run_iso(config):

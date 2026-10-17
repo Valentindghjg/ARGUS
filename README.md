@@ -320,7 +320,8 @@ UID checkpoints support resuming. “Limit reached” means messages remain; rer
 authorized scan to continue. Reaching the limit exactly at the end of selected
 folders completes normally. Errors, skips and header-only analysis indicate gaps.
 Changing the address scope during a scan interrupts it; restart to use the new
-scope. Use `--full-scan` to explicitly recheck previously read messages.
+scope. Use `--full-scan` to explicitly recheck previously read messages; it starts at
+the first message every time, so it runs without `--limit`.
 
 ### Optional scheduled scans
 
@@ -358,7 +359,8 @@ python -m argus_security background-imap revoke
 
 `disable` pauses future scans while retaining the keyring entry. `revoke`
 disables scans first and then removes the entry from the OS keyring. A scan that
-is already running stops before its next message fetch. Dashboard
+is already running notices this within about 15 seconds and stops before its
+next message fetch. Dashboard
 setup shows status only and never accepts a password or token.
 
 ### OAuth2 and provider differences
@@ -446,7 +448,8 @@ python -m argus_security sign-in-with notion --remove
 its state (running, paused, completed, completed with gaps, failed, cancelled,
 needs approval, result unclear, interrupted) and shows a scheduled scan as
 waiting until its next time, so no background work stays hidden. **Pause all
-automation** blocks new jobs and stops running ones between two messages; saved
+automation** blocks new jobs and stops running ones between two messages, within
+about a second; saved
 clues and IMAP checkpoints stay, and nothing already done outside ARGUS is
 undone. The overview keeps the pause visible until you resume. The activity log
 keeps time, job type, result and counts only (no email text, addresses, secrets

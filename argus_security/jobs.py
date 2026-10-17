@@ -55,6 +55,10 @@ class JobPaused(UserFacingError):
     """The global pause stopped a running job between two messages."""
 
 
+class JobCancelled(Exception):
+    """A running job lost its approval or lease and stopped; it ends as "cancelled", not "failed"."""
+
+
 def _now():
     return datetime.now(timezone.utc).isoformat()
 

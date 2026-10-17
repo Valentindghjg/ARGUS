@@ -16,6 +16,14 @@ ausgeblendete Domains und benannte Geschwister-Accounts in „Neu seit…“, ei
 abgelehnten Single-Sign-on-Account, das Entfernen eines fälligen Prüfdatums und
 eine Ablehnung im Sitzungsbericht.
 
+Review-Korrekturen, Teil 3: **378 Python-Tests**. Neue Regressionstests prüfen
+eine Nachricht, die den Parser stört, eine unlesbare Datei, `.EML`-Namen, Limits,
+die nur neue Arbeit zählen und bei exakter Passung abschließen, den abgelehnten
+Vollscan mit Limit, die Abdeckungszahlen, den Planerstart sowie Durchgänge der
+Ordnerüberwachung, die scheitern, mittendrin beendet werden, auf eine geänderte
+Adressliste treffen oder einen zu großen Ordner finden. Die Reproduktionsskripte
+des Prüfers zeigen jetzt das korrigierte Verhalten.
+
 # Prüfbericht – Version 2.6.0 (Qualität und Vertrauen, noch ohne Tag)
 
 Schritt S19: **336 Python-Tests** und **42 Browser-Prüfgruppen**. Neue Tests
