@@ -43,6 +43,36 @@
   Prüfregel schlägt das nächste Datum ab heute vor statt für morgen.
 - Der Sitzungsbericht nennt Entscheidungen aus der Sitzung.
 
+## Importe, Limits, Ordnerüberwachung und Planer
+
+- Eine Nachricht, deren Kopfzeilen den E-Mail-Parser aus dem Tritt bringen,
+  zählt als ein Fehler und steht für `--retry-failed` bereit; sie bricht den
+  Import nicht mehr ab, und ein geplanter Scan kommt an ihr vorbei, statt jedes
+  Mal an ihr zu scheitern.
+- Eine unlesbare Datei wird übersprungen und für `--retry-failed` vermerkt,
+  statt den Import abzubrechen. Ordnerimporte lesen auch Dateien mit `.EML`.
+- Ein Nachrichten- oder Größenlimit zählt nur neue Arbeit: leere, zu große
+  oder fehlerhafte Elemente verbrauchen es nicht mehr, und ein Lauf, der genau
+  ins Limit passt, ist abgeschlossen. `--recheck` mit Limit und
+  `scan-imap --full-scan --limit` werden abgelehnt, weil beide jedes Mal bei der
+  ersten Nachricht beginnen und nie weiterkämen.
+- Die Ordnerüberwachung vermerkt einen fehlgeschlagenen Durchgang und hält ihren
+  Abstand ein, statt jede Minute neu zu starten; ein Durchgang macht nie ein
+  Beenden oder einen neu freigegebenen Ordner rückgängig; Dateien nach einer
+  Änderung der eigenen Adressen werden erneut gelesen; ein Ordner mit mehr als
+  5.000 EML-Dateien wird gemeldet, statt endlos neu gelesen zu werden; eine
+  Datei, die gegen einen Link oder eine Pipe getauscht wurde, wird übersprungen.
+- Der Planer startet mit dem Dashboard, sodass geplante Scans oder die
+  Ordnerüberwachung auch ohne Neustart greifen, wenn man sie im Terminal
+  einschaltet; während der Pause schaut er einmal pro Minute statt jede Sekunde.
+- Ein durch die Pause angehaltener Browser-Import gilt als pausiert, ein
+  geplanter Scan mit beendeter Freigabe als abgebrochen. Ein Zeitplan aus der
+  Zeit vor der Zielbindung zeigt „Freigabe nötig“. Die Abdeckung zählt erneut
+  gelesene Nachrichten nur einmal.
+- Die Pause greift innerhalb etwa einer Sekunde (bisher alle 25 Nachrichten);
+  die README nennt jetzt, dass ein Widerruf innerhalb von etwa 15 Sekunden
+  bemerkt wird.
+
 
 ## Plan abgeschlossen (S21)
 

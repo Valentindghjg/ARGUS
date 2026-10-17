@@ -1220,6 +1220,10 @@
     "Progress report: preview what you could share": "Fortschrittsbericht: sieh dir an, was du weitergeben könntest",
     "Show versions and counts for a bug report; never addresses, paths or messages": "Versionen und Zahlen für einen Fehlerbericht zeigen; nie Adressen, Pfade oder Nachrichten",
     "The catalog now covers this domain, or the entry is no longer valid. ARGUS ignores it; you can remove it.": "Der Katalog deckt diese Domain inzwischen ab, oder der Eintrag ist nicht mehr gültig. ARGUS ignoriert ihn; du kannst ihn entfernen.",
-    "Nothing more to do": "Nichts weiter zu tun"
+    "Nothing more to do": "Nichts weiter zu tun",
+    "Recheck everything without a message or size limit": "Alles ohne Nachrichten- oder Größenlimit erneut prüfen",
+    "The folder holds more than 5,000 EML files. Import it once with import, then watch a folder for new files only.": "Der Ordner enthält mehr als 5.000 EML-Dateien. Importiere ihn einmal mit import und überwache dann einen Ordner nur für neue Dateien.",
+    "The last pass failed; the job list shows it. The next pass follows at the usual interval.": "Der letzte Durchgang ist fehlgeschlagen; die Vorgangsliste zeigt ihn. Der nächste Durchgang folgt im üblichen Abstand.",
+    "A full scan rechecks every message; run it without --limit": "Ein Vollscan prüft jede Nachricht erneut; führe ihn ohne --limit aus"
   }
 }

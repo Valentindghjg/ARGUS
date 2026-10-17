@@ -13,6 +13,13 @@ a tie and its undo, hidden domains and labelled siblings in "What's new", a
 rejected single-sign-on account, clearing a due review and a rejection in the
 session report.
 
+Review fixes, part 3: **378 Python tests**. New regression tests cover a message
+that breaks the parser, an unreadable file, `.EML` names, budgets that count
+only new work and complete on an exact fit, the refused full scan with a limit,
+coverage counts, the scheduler start, and folder-watch passes that fail, are
+disabled midway, meet a scope change or a folder too large to track. The
+reviewer's repro scripts for these findings now show the fixed behaviour.
+
 # Test report — Version 2.6.0 (quality and trust, not yet tagged)
 
 Step S19: **336 Python tests** and **42 browser check groups**. New tests cover

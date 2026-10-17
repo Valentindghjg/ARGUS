@@ -100,7 +100,7 @@ class JobTests(unittest.TestCase):
                 if index == 1:
                     self.store.set_automation_paused(True)
                 yield created(sender)
-        with patch("argus_security.scan.PAUSE_CHECK_EVERY", 1), self.assertRaises(jobs.JobPaused):
+        with patch("argus_security.scan.PAUSE_CHECK_SECONDS", 0), self.assertRaises(jobs.JobPaused):
             scan_messages(self.store, messages())
         self.assertEqual(self.control()["jobs"][0]["state"], "paused")
         # The clue saved before the pause stays.

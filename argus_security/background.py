@@ -18,7 +18,7 @@ from typing import Any, Callable, Protocol
 from uuid import UUID, uuid4
 
 from .imap_client import IMAPConfig, imap_messages, load_config, saved_checkpoints, with_keep_alive
-from .jobs import PAUSE, JobPaused
+from .jobs import PAUSE, JobCancelled, JobPaused
 from .mailbox_lease import MailboxBusy, MailboxLease
 from .store import UNCHANGED, atomic_meta_update
 from .scan import scan_messages
@@ -51,7 +51,7 @@ class CredentialError(Exception):
     """A fixed, non-sensitive credential-storage error."""
 
 
-class ScanCancelled(Exception):
+class ScanCancelled(JobCancelled):
     """The scheduled run no longer owns its lease (disabled, revoked or replaced)."""
 
 
@@ -305,9 +305,9 @@ class BackgroundScanService:
         except Exception:
             described = {"kind": "scheduled_scan", "host": None, "port": None, "auth": None, "folders": [],
                          "interval_seconds": schedule.interval_seconds, "limit": schedule.limit, "checkpoints": 0}
+        # A schedule from before target binding has no approved target yet: it needs approval too.
         confirmed = self._target_confirmed(schedule)
-        state = ("needs_approval" if schedule.target is not None and not confirmed
-                 else "active" if schedule.enabled else "disabled")
+        state = "needs_approval" if not confirmed else "active" if schedule.enabled else "disabled"
         return {**described, "state": state, "approved_at": schedule.approved_at,
                 "authorized": schedule.credential_id is not None}
 

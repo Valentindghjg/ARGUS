@@ -38,6 +38,32 @@
 - Clearing a review date that is due counts as reviewing that step today, so a
   review rule proposes the next date from today instead of tomorrow.
 - The session report names decisions you made in the session.
+
+### Imports, budgets, the folder watch and the scheduler
+
+- A message whose headers break the email parser counts as one error and is
+  listed for `--retry-failed`; it no longer stops the import, and a scheduled
+  scan moves past it instead of failing on it every time.
+- An unreadable file is skipped and listed for `--retry-failed` instead of
+  stopping the import. Directory imports also read files named `.EML`.
+- A message or size limit counts only new work: empty, oversized or failing
+  items no longer use it up, and a run that fits the limit exactly completes.
+  `--recheck` with a limit and `scan-imap --full-scan --limit` are refused,
+  because both start at the first message each time and would never move on.
+- The folder watch records a failed pass and keeps its interval instead of
+  retrying every minute; a pass never undoes a disable or a newly approved
+  folder; files after a change of your own addresses are read again; a folder
+  with more than 5,000 EML files is reported instead of being re-read forever;
+  a file swapped for a link or a pipe is skipped.
+- The scheduler starts with the dashboard, so enabling scheduled scans or the
+  folder watch in a terminal works without a restart; while paused it checks
+  once a minute instead of every second.
+- A browser import stopped by the pause is recorded as paused, a scheduled
+  scan whose approval ended as cancelled. A schedule from before target binding
+  shows "needs approval". Coverage counts messages read again only once.
+- The pause takes effect within about a second (it was checked every 25
+  messages); the README now says that a revoke is noticed within about
+  15 seconds.
 ## 2.6.0 — Quality and trust (not yet tagged)
 
 ### Plan complete (S21)
