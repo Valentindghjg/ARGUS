@@ -119,7 +119,8 @@ class ServerTests(unittest.TestCase):
         raw = synthetic_mail("notify@github.com", "Your account has been created", "")
         status, _, result = self.request("/api/import","POST",raw,headers={"Content-Type":"message/rfc822"})
         self.assertEqual(status,200)
-        self.assertGreaterEqual(json.loads(result)["evidence"]+json.loads(result)["duplicates"],1)
+        counts = json.loads(result)
+        self.assertGreaterEqual(counts["evidence"]+counts["duplicates"]+counts["unchanged"],1)
         body = json.dumps({"checklist":{"reviewed":True}})
         self.assertEqual(self.request("/api/accounts/github","PATCH",body,headers={"Content-Type":"application/json"})[0],200)
 

@@ -40,7 +40,7 @@ Hauptnutzen kommt ohne sie aus.
 
 ## Umsetzungsstand der 15 Prioritäten
 
-Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S13.
+Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S14 (Teil 1).
 
 | Nr. | Priorität | Stand | Im Code |
 | --- | --- | --- | --- |
@@ -86,7 +86,7 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 | S11 | Änderungszentrale und Rückkehr-Zusammenfassung | A1–A4, A7, A28, 05, 06 | ✅ |
 | S12 | Passende Checkliste, Arbeitsliste, Sitzungen, Prioritäten, Identitätskonten, Bericht → **2.2.0** | A5, A6, A8, A10, A17, A18, A20, D3, B6 | ✅ (2.2.0) |
 | S13 | Jobmodell, globale Pause, Freigaben, Aktivitätsprotokoll, Kontrollübersicht | A23–A27, D5, 07, 10 | ✅ |
-| S14 | Importeinstellungen, nur Geändertes, Ressourcenbudget, Fortsetzen, gezielte Fehler, große Archive | A11, A13–A16, P3, 13 | offen |
+| S14 | Importeinstellungen, nur Geändertes, Ressourcenbudget, Fortsetzen, gezielte Fehler, große Archive | A11, A13–A16, P3, 13 | A13, A14, A15 ✅ · A11, A16, P3 offen |
 | S15 | Begrenzte Ordnerüberwachung → **2.3.0** | A12, 14 | offen |
 | S16 | Bitwarden: Weg ohne Tresorlesen, Duplikatschutz, Übergabebereitschaft → **2.4.0** | B1, B3, A19, 11 | offen |
 | S17 | Getrennte Profile, Verlaufsanalyse, datensparsame Berichte | P1, P2, P5 | offen |

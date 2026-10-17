@@ -10,7 +10,7 @@ import uuid
 
 from .analysis import ANALYSIS_VERSION, HEADERS_ONLY_MARKER, analyze, MAX_MESSAGE_BYTES
 from .guidance import scan_next_steps
-from . import jobs
+from . import imports, jobs
 from .store import Store, now
 
 # Plan A24/A27: a running job looks at the global pause between messages.
@@ -23,7 +23,7 @@ class ScanSession:
     """One durable scan, including multi-file imports; no message contents retained."""
 
     def __init__(self, store: Store, source="eml", expected=None, progress=None, info=None, emails=None,
-                 trigger="manual"):
+                 trigger="manual", budget=None, recheck=False):
         self.store = store
         self.emails = list(emails) if emails is not None else store.meta("emails", [])
         if not self.emails:
@@ -37,12 +37,19 @@ class ScanSession:
                       "duplicates": 0, "updated_evidence": 0, "removed_evidence": 0,
                       "ignored": 0, "skipped": 0, "errors": 0, "headers_only": 0,
                       "expected": expected, "running": True, "started": now(),
-                      "analysis_version": ANALYSIS_VERSION, "rule_changes": [], "rule_changes_count": 0}
+                      "analysis_version": ANALYSIS_VERSION, "rule_changes": [], "rule_changes_count": 0,
+                      "unchanged": 0}
+        # Plan A13/A14: skip what was analyzed under the same conditions; limit new work per run.
+        self.scope = imports.scope_key(self.emails, store.registry, ANALYSIS_VERSION)
+        self.recheck = recheck
+        self.budget = budget
+        self.new_work = {"messages": 0, "bytes": 0}
         self.kind = "scheduled_scan" if trigger == "scheduled" else "imap_scan" if source == "imap" else "import"
         with store.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             jobs.require_running(db)
             jobs.start(db, self.stats["id"], self.kind, source)
+            imports.forget_other_scopes(db, self.scope)
         self.publish()
 
     def publish(self):
@@ -85,7 +92,15 @@ class ScanSession:
         self._ensure_capacity()
         self._check_pause()
         self.stats["processed"] += 1
-        if not isinstance(raw, bytes) or not raw or len(raw) > MAX_MESSAGE_BYTES:
+        fingerprint = sha256(raw).hexdigest() if isinstance(raw, bytes) and raw and len(raw) <= MAX_MESSAGE_BYTES else None
+        if fingerprint and not self.recheck:
+            with self.store.connect() as db:
+                if imports.known(db, fingerprint, self.scope):
+                    self.stats["unchanged"] += 1
+                    return self._progress()
+        self.new_work["messages"] += 1
+        self.new_work["bytes"] += len(raw) if isinstance(raw, bytes) else 0
+        if fingerprint is None:
             self.stats["skipped"] += 1
         else:
             if raw.startswith(HEADERS_ONLY_MARKER + b": yes"):
@@ -93,7 +108,7 @@ class ScanSession:
             try:
                 evidence = analyze(raw, self.store.registry, self.emails, self.stats["source"])
                 changes = []
-                outcome = self.store.record_analysis(sha256(raw).hexdigest(), evidence, expected_emails=self.emails,
+                outcome = self.store.record_analysis(fingerprint, evidence, expected_emails=self.emails,
                                                      changes=changes)
                 # Plan E6: show what current rules changed; your decisions stay as they were.
                 if changes:
@@ -104,8 +119,18 @@ class ScanSession:
                 key = {"new": "evidence", "updated": "updated_evidence", "removed": "removed_evidence",
                        "duplicate": "duplicates", "ignored": "ignored", "scope_changed": "ignored"}[outcome]
                 self.stats[key] += 1
+                if outcome != "scope_changed":
+                    with self.store.connect() as db:
+                        imports.remember(db, fingerprint, self.scope)
             except (ValueError, TypeError, UnicodeError, RecursionError):
                 self.stats["errors"] += 1
+        if self.budget and ((self.budget["messages"] and self.new_work["messages"] >= self.budget["messages"])
+                            or (self.budget["bytes"] and self.new_work["bytes"] >= self.budget["bytes"])):
+            # A13/A14: the run stops here and ends as "limited", never as complete.
+            self.info["limit_reached"] = True
+        return self._progress()
+
+    def _progress(self):
         if self.stats["processed"] == 1 or self.stats["processed"] % 50 == 0:
             self.publish()
         return dict(self.stats)
@@ -134,15 +159,17 @@ class ScanSession:
         return published
 
 
-def scan_messages(store: Store, messages, source="eml", progress=None, *, session=None, trigger="manual"):
+def scan_messages(store: Store, messages, source="eml", progress=None, *, session=None, trigger="manual",
+                  budget=None, recheck=False):
     session = session or ScanSession(store, source, progress=progress, info=getattr(messages, "scan_info", None),
-                                    emails=getattr(messages, "scan_emails", None), trigger=trigger)
+                                    emails=getattr(messages, "scan_emails", None), trigger=trigger,
+                                    budget=budget, recheck=recheck)
     iterator = None
     try:
         iterator = iter(messages)
         for raw in iterator:
             session.process(raw)
-            if session.info.get("scope_changed"):
+            if session.info.get("scope_changed") or (session.budget and session.info.get("limit_reached")):
                 break
     except jobs.JobPaused:
         session.finish("partial", "paused")

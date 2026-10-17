@@ -407,10 +407,12 @@ function renderHistory(){
 function scanDescription(scan){
   if(!scan)return t("No scan started yet.");
   // How to close each gap is listed separately as next steps (plan F4).
-  const outcome=scan.running?t("Scan running …"):({completed:t("Completed."),limited:t("Message limit reached."),completed_with_gaps:t("Completed with gaps."),partial:t("Interrupted; processed clues remain saved.")}[scan.result]||t("Finished."));
+  const outcome=scan.running?t("Scan running …"):({completed:t("Completed."),limited:t("Limit reached; not everything was processed."),completed_with_gaps:t("Completed with gaps."),partial:t("Interrupted; processed clues remain saved.")}[scan.result]||t("Finished."));
   const headers=scan.headers_only?t(" {p0} messages analyzed using headers only.",{p0:(scan.headers_only)}):"";
   const folders=scan.folders_total!==undefined?t(" {p0}/{p1} selected folders checked.",{p0:(scan.folders_processed||0),p1:(scan.folders_total)}):"";
-  return t("{processed} messages processed · New clues: {evidence} · Updated: {updated} · Duplicates: {duplicates} · Skipped: {skipped} · Errors: {errors}. {outcome}{headers}{folders}", {processed:scan.processed+(scan.expected?"/"+scan.expected:""),evidence:scan.evidence,updated:scan.updated_evidence||0,duplicates:scan.duplicates,skipped:scan.skipped,errors:scan.errors,outcome,headers,folders});
+  // Plan A13: messages analyzed before under the same conditions are only counted.
+  const unchanged=scan.unchanged?t(" {count} unchanged message(s) were recognized and not analyzed again.",{count:scan.unchanged}):"";
+  return t("{processed} messages processed · New clues: {evidence} · Updated: {updated} · Duplicates: {duplicates} · Skipped: {skipped} · Errors: {errors}. {outcome}{headers}{folders}{unchanged}", {processed:scan.processed+(scan.expected?"/"+scan.expected:""),evidence:scan.evidence,updated:scan.updated_evidence||0,duplicates:scan.duplicates,skipped:scan.skipped,errors:scan.errors,outcome,headers,folders,unchanged});
 }
 function renderNextSteps(id,steps){
   $(id).replaceChildren(...(steps||[]).map(step=>node("li",t(step))));

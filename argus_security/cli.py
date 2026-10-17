@@ -17,6 +17,7 @@ from .background import (BackgroundScanService, CredentialError, KeyringCredenti
                          MIN_INTERVAL_SECONDS, MAX_INTERVAL_SECONDS, MAX_LIMIT)
 from .backup import create_backup, list_backups, read_manifest, restore_backup
 from .bitwarden import export_file, preview_export
+from .imports import budget
 from .scan import file_messages, load_demo, scan_messages
 from .server import serve
 from .store import Store
@@ -77,6 +78,10 @@ def parser(language="en"):
     imp = sub.add_parser('import', help=t('Read local emails without changing the originals'))
     imp.add_argument('path', type=Path)
     imp.add_argument('--format', choices=['eml', 'mbox', 'maildir'], default='eml')
+    imp.add_argument('--max-messages', type=int, help=t('Analyze at most this many new messages in this run'))
+    imp.add_argument('--max-megabytes', type=int, help=t('Read at most this many megabytes of new messages in this run'))
+    imp.add_argument('--recheck', action='store_true',
+                     help=t('Analyze every message again, also those processed before under the same conditions'))
     sub.add_parser('report', help=t('Show local statistics only'))
     accounts = sub.add_parser('list-accounts', help=t('Show local account IDs for individual selections'))
     accounts.add_argument('--all', action='store_true', help=t('Include entries without reliable account evidence'))
@@ -173,7 +178,9 @@ def main(argv=None):
                 raise ValueError('Run init or demo first')
             serve(store, args.port, args.open, language=language)
         elif args.command == 'import':
-            result = scan_messages(store, file_messages(args.path, args.format), args.format, lambda s: print(t('Processed locally: {p0}; new clues: {p1}', p0=s['processed'], p1=s['evidence']), flush=True))
+            limits = budget(args.max_messages, args.max_megabytes)
+            result = scan_messages(store, file_messages(args.path, args.format), args.format, lambda s: print(t('Processed locally: {p0}; new clues: {p1}', p0=s['processed'], p1=s['evidence']), flush=True),
+                                   budget=limits, recheck=args.recheck)
             report_scan(result, t)
         elif args.command == 'report':
             snapshot = store.snapshot()
@@ -391,6 +398,8 @@ def fail(message, t, prefix=''):
 def report_scan(result, t):
     """JSON on stdout for scripts; translated next steps on stderr for people."""
     print(json.dumps(result, ensure_ascii=False))
+    if result.get('unchanged'):
+        print(t('{p0} unchanged message(s) were recognized and not analyzed again.', p0=result['unchanged']), file=sys.stderr)
     if result.get('rule_changes_count'):
         print(t('Current rules changed {p0} stored clue(s); your decisions stay as they were.', p0=result['rule_changes_count']),
               file=sys.stderr)

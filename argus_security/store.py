@@ -16,6 +16,7 @@ from .registry import Registry
 from .review import SCHEMA as REVIEW_SCHEMA
 from .identity import SCHEMA as IDENTITY_SCHEMA, explain_priorities, load as load_identity
 from .jobs import SCHEMA as JOBS_SCHEMA
+from .imports import SCHEMA as IMPORTS_SCHEMA
 from .changes import ChangeBatch, planning
 from .digest import acknowledge, change_digest, next_revision, return_summary, review_mark, undo_acknowledge
 from .states import (DECISIONS, LEGACY_CHECKLIST, LEGACY_STEPS, REJECT_REASONS, STEPS, default_steps,
@@ -31,7 +32,7 @@ CHECKLIST = LEGACY_CHECKLIST
 #   2: ADR-0001 axes: decision, dated steps, planning only in the worklist, change log
 #   3: rule features per clue (plan E1); older clues gain them on their next import
 #   4: reversible sender-domain exclusions and relations between own addresses (E4, A9)
-SCHEMA_VERSION = 7
+SCHEMA_VERSION = 8
 
 
 def now():
@@ -194,6 +195,7 @@ class Store:
             db.executescript(REVIEW_SCHEMA)
             db.executescript(IDENTITY_SCHEMA)
             db.executescript(JOBS_SCHEMA)
+            db.executescript(IMPORTS_SCHEMA)
             queue_columns = {row["name"] for row in db.execute("PRAGMA table_info(instance_work_queue)")}
             if "resume_after" not in queue_columns:
                 db.execute("ALTER TABLE instance_work_queue ADD COLUMN resume_after TEXT")

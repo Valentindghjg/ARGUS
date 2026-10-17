@@ -105,6 +105,7 @@ class CatalogTests(unittest.TestCase):
         scan_messages(self.store, [raw])
         with closing(sqlite3.connect(self.store.path)) as db, db:
             db.execute("UPDATE evidence SET signal='welcome_account', score=70 WHERE provider_id='github'")
+            db.execute("DELETE FROM processed_messages")  # as stored by an earlier version
         self.store.decide("github", "confirmed")
         result = scan_messages(self.store, [raw])
         change = result["rule_changes"][0]

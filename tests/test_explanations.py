@@ -88,6 +88,8 @@ class ExplanationTests(unittest.TestCase):
             scan_messages(store, [raw])
             with closing(sqlite3.connect(store.path)) as db, db:
                 db.execute("UPDATE evidence SET features=NULL")
+                # Clues from before 2.3 have no processed-message index yet.
+                db.execute("DELETE FROM processed_messages")
             clue = next(a for a in store.snapshot()["accounts"] if a["id"] == "github")["evidence"][0]
             self.assertEqual(clue["features"], [])
             result = scan_messages(store, [raw])

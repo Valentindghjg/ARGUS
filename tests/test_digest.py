@@ -49,7 +49,7 @@ class DigestTests(unittest.TestCase):
         self.assertEqual((self.changes()["new"], self.changes()["groups"]), (0, []))
         self.assertIsNotNone(self.changes()["since"])
         # A2: the same messages again are duplicates and bring nothing back.
-        self.assertEqual(scan_messages(self.store, messages)["duplicates"], 2)
+        self.assertEqual(scan_messages(self.store, messages)["unchanged"], 2)
         self.assertEqual(self.changes()["groups"], [])
         scan_messages(self.store, [mail("noreply@spotify.com")])
         self.assertEqual([g["account_id"] for g in self.changes()["groups"]], ["spotify"])
@@ -60,6 +60,7 @@ class DigestTests(unittest.TestCase):
         self.store.acknowledge_changes(self.changes()["revision"])
         with closing(sqlite3.connect(self.store.path)) as db, db:
             db.execute("UPDATE evidence SET signal='welcome_account', score=70")
+            db.execute("DELETE FROM processed_messages")  # as stored by an earlier version
         scan_messages(self.store, [raw])
         changes = self.changes()
         self.assertEqual((changes["new"], changes["changed"]), (0, 1))

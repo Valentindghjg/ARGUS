@@ -74,7 +74,8 @@ SCAN_STEPS = {
                     "accounts yourself.",
     "partial": "The scan stopped early. Run the same import or scan again; messages already analyzed are recognized "
                "and not counted twice.",
-    "limited": "The message limit was reached. Run the IMAP scan again to continue from the saved checkpoint.",
+    "limited": "The processing limit was reached, so this is not a complete result. Run the same import or scan "
+               "again to continue; messages already processed are skipped.",
     "scope_changed": "Your own addresses changed during the scan. Start it again so every message is checked "
                      "against the current addresses.",
 }
