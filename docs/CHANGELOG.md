@@ -2,6 +2,17 @@
 
 ## 2.6.0 — Quality and trust (not yet tagged)
 
+### Plan complete (S21)
+
+- `docs/strategy/README.md` lists every item of the master plan with its
+  state, step and place in the code: 60 implemented, two deliberately narrow
+  (folder watch, accessibility basics), release signatures still to come and
+  the offline license dropped because every feature is free.
+- Fresh preview images from the synthetic demo; the browser test hides
+  short-lived notices and starts each image at the top of the page.
+- A repository test fails on relative Markdown links that point nowhere; one
+  stale link in the test report is gone.
+
 ### Demo tour, data-minimal bug reports and checked releases (G2, G4, G6)
 
 - The demo overview offers “Try this path”: five steps from what the import

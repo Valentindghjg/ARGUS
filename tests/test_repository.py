@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 ARGUS contributors
-"""Repository-wide rules: source headers and a standard-library-only runtime."""
+"""Repository-wide rules: source headers, a standard-library-only runtime and working doc links."""
 import ast
 from pathlib import Path
+import re
 import sys
 import tomllib
 import unittest
@@ -50,6 +51,19 @@ class StandardLibraryRuntimeTests(unittest.TestCase):
                         if top not in sys.stdlib_module_names and top not in self.OPTIONAL | {"argus_security"}:
                             foreign.append(f"{path.relative_to(ROOT)}: {name}")
         self.assertEqual(foreign, [])
+
+
+
+class DocumentationLinkTests(unittest.TestCase):
+    def test_relative_markdown_links_point_to_existing_files(self):
+        broken = []
+        documents = [*ROOT.glob("*.md"), *(ROOT / "docs").rglob("*.md"), *(ROOT / ".github").rglob("*.md")]
+        for document in documents:
+            for target in re.findall(r"\]\(([^)\s]+)\)", document.read_text(encoding="utf-8")):
+                path = target.split("#")[0]
+                if path and not re.match(r"^(https?|mailto):", path) and not (document.parent / path).exists():
+                    broken.append(f"{document.relative_to(ROOT)}: {target}")
+        self.assertEqual(broken, [])
 
 
 if __name__ == "__main__":

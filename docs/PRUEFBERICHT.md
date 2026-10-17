@@ -15,6 +15,12 @@ byte-gleich; ein fehlendes Profil wird nicht angelegt) und das Fehlerformular.
 Der Browser folgt den fünf Schritten des Demo-Rundgangs und prüft, dass das
 Berichtsfeld den Fokus erhält.
 
+Schritt S21: **344 Python-Tests** und **43 Browser-Prüfgruppen**. Ein neuer
+Test prüft, dass jeder relative Markdown-Link in den README-Dateien, `docs/` und
+`.github/` auf eine vorhandene Datei zeigt. Die Vorschaubilder wurden aus der
+synthetischen Demo neu erzeugt und auf Desktop und Mobil in beiden Sprachen
+angesehen.
+
 # Prüfbericht – Version 2.5.0 (frühere Pro-Funktionen, noch ohne Tag)
 
 Schritt S17: **326 Python-Tests** und **39 Browser-Prüfgruppen**. Neue Tests

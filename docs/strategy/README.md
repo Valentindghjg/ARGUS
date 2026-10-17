@@ -6,7 +6,8 @@
 first, then more local automation. External access and writes need separate,
 target-bound approvals. Free stays a complete, safe workflow. The plan is a
 strategy paper, not an implementation order. This page tracks how far the code
-follows it.
+follows it. Since step S21 every plan item is implemented, deliberately limited or
+dropped by an owner decision; the coverage table at the end names where.
 
 ## Einordnung
 
@@ -40,7 +41,7 @@ Hauptnutzen kommt ohne sie aus.
 
 ## Umsetzungsstand der 15 Prioritäten
 
-Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S20.
+Stand: abgeschlossen mit S21.
 
 | Nr. | Priorität | Stand | Im Code |
 | --- | --- | --- | --- |
@@ -93,4 +94,109 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 | S18 | E-Mail-Umzugsplan und Ablaufvorlagen → **2.5.0** | A21, A22, P4 | ✅ (2.5.0) |
 | S19 | Importabdeckung, Barrierefreiheit, Maskierung, Katalogqualität | D4, D6 | ✅ |
 | S20 | Demoablauf, FAQ, vertrauenswürdige Releases → **2.6.0** | G2, G4, G6 | ✅ (2.6.0) |
-| S21 | Abschluss: Abdeckung aller Plan-Punkte | – | offen |
+| S21 | Abschluss: Abdeckung aller Plan-Punkte | – | ✅ |
+
+## Abdeckung aller Plan-Punkte
+
+Stand nach S21: Jeder Punkt des Plans ist umgesetzt, bewusst begrenzt oder per
+Entscheidung entfallen. „Wo“ nennt den Einstieg im Code oder in der Oberfläche;
+die Grenzen aus dem Plan gelten weiter.
+
+### Fundament
+
+| Punkt | Titel | Stand | Schritt | Wo |
+| --- | --- | --- | --- | --- |
+| F1 | Einheitlicher Produktname | umgesetzt | vor S0 | Umbenennung auf ARGUS mit Profil-Migration; Alias `account-finder` bleibt |
+| F2 | Drei klare Einstiegswege | umgesetzt | S7 | Übersicht „Wähle deinen Einstieg“: Demo, lokale E-Mails, IMAP |
+| F3 | Ehrliche Ergebniszusammenfassung | umgesetzt | S7 | `summary.py`, Übersicht „Was ARGUS bisher weiß“ |
+| F4 | Fehler mit nächstem Schritt | umgesetzt | S3 | `guidance.py`, `errors.py`; CLI und Dashboard |
+| F5 | Lokale Änderung rückgängig | umgesetzt | S5 | `changes.py`; `changes`/`undo`, Rückgängig im Dashboard |
+| F6 | Exportvorschau und synthetische Beispiele | umgesetzt | S3 | `bitwarden-export --preview`, Exportvorschau; Demo mit schwierigen Fällen (`scan.load_demo`) |
+
+### Erkennung
+
+| Punkt | Titel | Stand | Schritt | Wo |
+| --- | --- | --- | --- | --- |
+| E1 | Erkennungsbegründungen | umgesetzt | S8 | `analysis.py` (Regelmerkmale), Belegkarten im Detaildialog |
+| E2 | Hinweisarten und Alter trennen | umgesetzt | S8 | Hinweisart, Alter und Stärke je Beleg |
+| E3 | Mehrdeutigkeiten bündeln | umgesetzt | S9 | `review.py`, Ansicht „Unklares“, CLI `unclear` |
+| E4 | Ausschlüsse und Alias-Beziehungen | umgesetzt | S5, S9 | `exclude`, `relate`; Beziehungen ohne Zusammenlegen von Accounts |
+| E5 | Unbekannte Domains und eigener Katalog | umgesetzt | S10 | `catalog.py`, persönlicher Katalog, `/api/catalog` |
+| E6 | Regeländerungen nachvollziehbar anwenden | umgesetzt | S10 | Regelversion je Beleg, Hinweis auf geänderte Bewertungen, Entscheidungen bleiben |
+
+### Dashboard
+
+| Punkt | Titel | Stand | Schritt | Wo |
+| --- | --- | --- | --- | --- |
+| D1 | Eine klare nächste Aufgabe | umgesetzt | S7 | `summary.next_task`, Karte „Nächste Aufgabe“ |
+| D2 | Drei Zustände statt eines grünen Hakens | umgesetzt | S6 | `states.py` (ADR-0001), drei Marken je Account |
+| D3 | Prioritäten erklären und anpassen | umgesetzt | S12 | `identity.explain_priorities`, Reihenfolge in der Arbeitsliste änderbar |
+| D4 | Importabdeckung zeigen | umgesetzt | S19 | `coverage.py`, Panel „Was deine Importe abdecken“, ohne Gesamtquote |
+| D5 | Zentrale Kontrollübersicht | umgesetzt | S13 | Ansicht „Kontrolle“, `jobs.py` |
+| D6 | Barrierefreiheit und Verbergen persönlicher Angaben | umgesetzt (Grundlagen) | S19 | Sprunglink, `aria-current`, Namen für alle Bedienelemente, maskierte Ansicht; kein vollständiges WCAG-Audit |
+
+### Bitwarden
+
+| Punkt | Titel | Stand | Schritt | Wo |
+| --- | --- | --- | --- | --- |
+| B1 | Standardweg ohne Vault-Lesen | umgesetzt | S16 | drei Wege (Datei, CLI, selbst zuordnen) in „Bitwarden vorbereiten“ |
+| B2 | Exakte Übergabevorschau | umgesetzt | S3 | `bitwarden.preview_export`, Vorschau-Dialog |
+| B3 | Sichtbarer Duplikatschutz | umgesetzt | S16 | `handoffs.py`, ein Journal über Download und CLI |
+| B4 | Passwortfreien Eintrag kennzeichnen | umgesetzt | S5 | Tresor-Schritt wird „vorbereitet“, nie „erledigt“ (`instances.py`) |
+| B5 | Datierte Sicherheitsbestätigungen | umgesetzt | S5, S12 | `done_at` und Wiedervorlage je Schritt (`states.py`), Regel `review-rule` |
+| B6 | Kritische Identitätskonten berücksichtigen | umgesetzt | S12 | `identity.py`: `mailbox`, `sign-in-with`, Priorisierung |
+
+### Automatisierung
+
+| Punkt | Titel | Stand | Schritt | Wo |
+| --- | --- | --- | --- | --- |
+| A1 | Änderungszentrale | umgesetzt | S11 | `digest.py`, Ansicht „Neu seit…“, CLI `whats-new` |
+| A2 | Unverändertes erkennen | umgesetzt | S11 | Revision je Hinweis, Durchsicht-Markierung |
+| A3 | Neue Funde vorgruppieren | umgesetzt | S11 | Gruppen nach Account in „Neu seit…“ |
+| A4 | Unklarheiten zuerst | umgesetzt | S11 | Bereich „Zuerst entscheiden“ in „Neu seit…“ |
+| A5 | Passende Checkliste | umgesetzt | S12 | Schritte je Anmeldeart (Passwort, SSO, Passkey) |
+| A6 | Arbeitsliste vorbereiten | umgesetzt | S12 | `workflow.py`, Vorschläge mit Begründung |
+| A7 | Zusammenfassung beim Wiederkommen | umgesetzt | S11 | `digest.return_summary`, Karte in der Übersicht |
+| A8 | Kleine Arbeitssitzungen | umgesetzt | S12 | `sessions.py`, CLI `session` |
+| A9 | Fehlfunde unterdrücken | umgesetzt | S9 | umkehrbare Ausschlüsse mit sichtbarem Geltungsbereich |
+| A10 | Alte Prüfungen vorlegen | umgesetzt | S6, S12 | Wiedervorlage je Schritt, `reviews.py` |
+| A11 | Importeinstellungen merken | umgesetzt | S14 | `import --again`, Hinweis „Letzter lokaler Import“ |
+| A12 | Ausgewählten Ordner beobachten | umgesetzt (eng begrenzt) | S15 | `watch.py`: ein Ordner, nur `*.eml`, nur bei laufendem Dashboard |
+| A13 | Nur Geändertes verarbeiten | umgesetzt | S14 | Index verarbeiteter Nachrichten (`imports.py`) |
+| A14 | Ressourcenbudget | umgesetzt | S14 | `--max-messages`, `--max-megabytes` |
+| A15 | Sicher fortsetzen | umgesetzt | S14 | Fortsetzen über den Nachrichtenindex |
+| A16 | Fehler gezielt bearbeiten | umgesetzt | S14 | `import --retry-failed`, `--check` |
+| A17 | Identitätskonten priorisieren | umgesetzt | S12 | Postfach- und SSO-Accounts zuerst, mit Begründung |
+| A18 | Metadaten vorausfüllen | umgesetzt | S12 | bekannte Angaben in Bitwarden-Notizen |
+| A19 | Übergabebereitschaft prüfen | umgesetzt | S16 | `bitwarden.readiness` je Account |
+| A20 | Sitzungsbericht vorbereiten | umgesetzt | S12 | `sessions.report_text`, Berichtsdialog |
+| A21 | E-Mail-Umzugsplan | umgesetzt | S18 | `moves.py`, CLI `move-address` |
+| A22 | Sichere Ablaufvorlagen | umgesetzt | S18 | `templates.py`, CLI `template`, Vorschau und Rückgängig |
+| A23 | Freigaben vor Start prüfen | umgesetzt | S13 | Zielbindung und sichtbare Freigabe (`background.py`) |
+| A24 | Sichtbare Jobwarteschlange | umgesetzt | S13 | Vorgänge und Wartendes in „Kontrolle“ |
+| A25 | Minimales Aktivitätsprotokoll | umgesetzt | S13 | 500 Einträge, 180 Tage, ohne Inhalte (`jobs.py`) |
+| A26 | Automatikregeln vorschauen | umgesetzt | S13, S18 | `background-imap preview`, Vorlagenvorschau |
+| A27 | Gesamte Automatisierung pausieren | umgesetzt | S13 | `automation pause|resume`, Pause in „Kontrolle“ |
+| A28 | Zusammenfassen statt stören | umgesetzt | S11 | eine Zusammenfassung statt einzelner Meldungen; Pause bleibt sichtbar |
+
+### Frühere Pro-Ideen (alle kostenlos)
+
+| Punkt | Titel | Stand | Schritt | Wo |
+| --- | --- | --- | --- | --- |
+| P1 | Getrennte lokale Profile | umgesetzt | S17 | `--profile`, `profiles.py` |
+| P2 | Lokale Verlaufsanalyse | umgesetzt | S17 | `history.py`, Panel „Fortschritt im Zeitverlauf“ |
+| P3 | Große Archive komfortabel verarbeiten | umgesetzt | S14 | Budget, Fortsetzen, nur Geändertes |
+| P4 | Umzug und eigene Vorlagen | umgesetzt | S18 | Umzugsplan und eigene Vorlagen |
+| P5 | Datensparsame Berichte | umgesetzt | S17 | `reports.py`, `report --text|--export` |
+| P6 | Offline-Lizenz und kuratierte Spezialpakete | entfällt | S1 | Entscheidung „alles als Free“; keine Lizenz |
+
+### Community und Sichtbarkeit
+
+| Punkt | Titel | Stand | Schritt | Wo |
+| --- | --- | --- | --- | --- |
+| G1 | Präzises Produktversprechen | umgesetzt | S3 | README und Dashboard: Hinweise statt Beweise, keine Vollständigkeit |
+| G2 | Ein vollständiger Demoablauf | umgesetzt | S20 | „Probier diesen Weg“, `docs/DEMO_DE.md` |
+| G3 | Anbieter-Vorlage mit Prüfkriterien | umgesetzt | S10 | `.github/ISSUE_TEMPLATE/provider.yml` |
+| G4 | Datensparsame Fehlerberichte und FAQ | umgesetzt | S20 | `argus about`, Fehlerformular, `docs/FAQ_DE.md` |
+| G5 | Synthetischer Qualitätsbenchmark | umgesetzt | S10 | `scripts/benchmark.py`, `benchmarks/` |
+| G6 | Vertrauenswürdige Releases | teilweise | S20 | Release-Prüfung, Prüfsummen, Release-Hinweise; Signaturen folgen später |

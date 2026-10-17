@@ -165,3 +165,11 @@ Wird während der Umsetzung fortgeschrieben.
   Datenbank schreibgeschützt und legt kein fehlendes Profil an; ein Profil mit
   anderer Schemaversion wird nicht geöffnet, damit die Diagnose nie eine
   Migration auslöst. Sie enthält nur Versionen, System und Zahlen.
+- **S21, Abschluss und was offen bleibt:** Alle Plan-Punkte sind einem Schritt
+  zugeordnet und in der Abdeckungstabelle der [Strategie-Übersicht](README.md)
+  mit Ort im Code belegt. Bewusst offen bleiben: Signaturen für Releases (G6),
+  ein vollständiges WCAG-Audit über die geprüften Grundlagen hinaus (D6) sowie
+  Tags und Releases selbst, die nach der Entscheidung „Version erhöhen, kein
+  Release“ beim Owner liegen. P6 entfällt nach „alles als Free“. Die Grenzen aus
+  dem Plan (keine Logins, keine Passwortänderungen, keine unbestätigten
+  Verbindungen) gelten unverändert weiter.

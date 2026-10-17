@@ -13,6 +13,11 @@ without addresses, paths or providers; the database stays byte-identical; a
 missing profile is not created) and the bug report form. The browser follows
 the five demo tour steps and checks that the report field gets the focus.
 
+Step S21: **344 Python tests** and **43 browser check groups**. A new test
+checks that every relative Markdown link in the README files, `docs/` and
+`.github/` points to an existing file. The preview images were regenerated from
+the synthetic demo and inspected on desktop and mobile in both languages.
+
 # Test report — Version 2.5.0 (former Pro features, not yet tagged)
 
 Step S17: **326 Python tests** and **39 browser check groups**. New tests cover
@@ -492,7 +497,7 @@ preserved export choices, and the mobile layout at 390 px. Outgoing browser
 requests were blocked and none were attempted. Desktop and mobile screenshots
 were inspected visually.
 
-[Desktop preview](preview/dashboard.png) · [Plans preview](preview/plans.png) · [Mobile preview](preview/mobile.png)
+[Desktop preview](preview/dashboard.png) · [Mobile preview](preview/mobile.png)
 
 Additional checks: JavaScript syntax, Python compilation, CLI help, archive
 integrity and running the demo from an extracted archive. The version-1.1, version-1.2 and version-1.3 `RULES` values were compared directly
