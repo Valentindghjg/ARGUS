@@ -127,6 +127,8 @@ function toast(message,undo=null){
   $("toast-undo").classList.toggle("hidden",!toastUndo);$("toast").classList.remove("hidden");
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>{$("toast").classList.add("hidden");toastUndo=null;},toastUndo?8000:3000);
 }
+// The toast follows a closed dialog back to the page, so its Undo stays reachable.
+for(const id of ["export-preview","account-dialog"])$(id).addEventListener("close",()=>{if($("toast").parentElement===$(id))document.body.append($("toast"));});
 async function undoChange(batch){
   try{await api("/api/undo",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({batch})});await refresh();if($("account-dialog").open)renderDetail();toast(t("Change undone locally."));}
   catch(e){failure(e);}
@@ -177,7 +179,8 @@ function renderState() {
   if(scheduled.last_error) scheduledText+=" "+t(scheduled.last_error);
   if(scheduled.last_error_hint) scheduledText+=" "+t("Next step: ")+t(scheduled.last_error_hint);
   $("background-scan-status").textContent=scheduledText;
-  const domain=(state.emails[0]||"").split("@")[1]||"your-domain.example";
+  // Masking hides the own domain here too; the placeholder still shows the command's shape.
+  const domain=maskPersonal?"your-domain.example":(state.emails[0]||"").split("@")[1]||"your-domain.example";
   $("discover-command").textContent=`python -m argus_security discover --domain ${domain} --allow-dns`;
   renderScan(state.active_import||state.last_scan);
   $("cancel-import").classList.toggle("hidden",!activeBatch&&!state.active_import);
@@ -236,11 +239,15 @@ function renderChanges(){
   $("return-title").textContent=sinceText(summary.since);
   $("return-lines").replaceChildren(...summary.items.map(item=>node("li",t(returnTexts[item.kind],{count:item.count}),["paused","scan_gaps","handoff"].includes(item.kind)?"problem":"")));
 }
+let markingReviewed=false;
 async function markReviewed(){
+  if(markingReviewed)return;
+  markingReviewed=true;
   try{
     await api("/api/digest/seen",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({revision:state.changes.revision})});
     await refresh();toast(t("Marked as reviewed. Your decisions and steps are unchanged."),undoReviewed);
   }catch(e){failure(e);}
+  finally{markingReviewed=false;}
 }
 async function undoReviewed(){
   try{await api("/api/digest/seen/undo",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});await refresh();toast(t("The changes are shown again."));}
@@ -325,7 +332,7 @@ const suggestionTexts={override:"You set the priority",mailbox:"Hosts one of you
   catalog:"High priority in the catalog",confirmed:"Confirmed by you; steps open",probable:"Probable from your emails",identify:"Sign-in address to choose"};
 function priorityReason(reason){
   const other=state.accounts.find(a=>a.id===reason.account_id);
-  return t(priorityReasonTexts[reason.code],{level:t(labels[reason.level]||""),addresses:(reason.addresses||[]).join(", "),count:reason.count,account:other?accountTitle(other):""});
+  return t(priorityReasonTexts[reason.code],{level:t(labels[reason.level]||""),addresses:(reason.addresses||[]).map(shown).join(", "),count:reason.count,account:other?accountTitle(other):""});
 }
 function confirmedOptions(exclude){
   return state.accounts.filter(a=>a.decision==="confirmed"&&a.id!==exclude).map(a=>new Option(accountTitle(a),a.id));
@@ -334,7 +341,7 @@ function renderMailboxes(){
   const notes=new Map(state.identity_links.mailboxes.map(entry=>[entry.address,entry]));
   $("mailbox-items").replaceChildren(...state.emails.map(address=>{
     const card=node("article",undefined,"worklist-item"),select=node("select"),entry=notes.get(address);
-    select.setAttribute("aria-label",t("Mailbox account for {address}",{address}));
+    select.setAttribute("aria-label",t("Mailbox account for {address}",{address:shown(address)}));
     select.append(new Option(t("Not noted"),""),...confirmedOptions(null));
     if(entry&&![...select.options].some(option=>option.value===entry.account_id))select.append(new Option(t("No longer confirmed"),entry.account_id));
     select.value=entry?entry.account_id:"";
@@ -467,7 +474,9 @@ function renderNextSteps(id,steps){
 }
 // Plan A11, A16: the last terminal import and how to repeat it or retry only failed items.
 function renderLastImport(){
-  const last=state.last_local_import;
+  const last=state.last_local_import,profile=state.profile_name?` --profile ${state.profile_name}`:"";
+  $("last-import-again").textContent=`python -m argus_security${profile} import --again`;
+  $("last-import-retry").textContent=`python -m argus_security${profile} import --retry-failed`;
   $("last-import").classList.toggle("hidden",!last);if(!last)return;
   $("last-import-text").textContent=t("{format} from {path}, {date}. Run the same import again to continue or to find new messages.",{format:last.format.toUpperCase(),path:last.path,date:localDateTime(last.at)})+(last.failed?" "+t("{count} item(s) were skipped or failed; retry only those after fixing them.",{count:last.failed}):"");
   $("last-import-retry").classList.toggle("hidden",!last.failed);
@@ -648,10 +657,10 @@ function renderDetail(){
   $("identity-bound-note").classList.toggle("hidden",!a.identity_email);
   $("identity-caution-note").classList.toggle("hidden",!state.accounts.some(other=>other.id!==a.id&&(other.provider_id||other.id)===(a.provider_id||a.id)));
   $("detail-marks").replaceChildren(evidenceMark(a),decisionMark(a),node("span",progressText(a),`chip mark soft`));
-  const meta=[node("p",`${t(a.category)} · ${a.registered_emails.join(", ")||t("Sign-in address not known from evidence")}`),node("p",t(a.evidence_reason))];
+  const meta=[node("p",`${t(a.category)} · ${a.registered_emails.map(shown).join(", ")||t("Sign-in address not known from evidence")}`),node("p",t(a.evidence_reason))];
   if(a.latest_clue_at)meta.push(node("p",t("Latest clue: {date}",{date:localDate(a.latest_clue_at)})));
   if(a.historical)meta.push(node("p",t("All clues are older than two years. The account may have changed or been closed since."),"notice"));
-  for(const entry of a.related_addresses||[])meta.push(node("p",t("Note: ")+t(relationTexts[entry.kind],{a:entry.address,b:entry.other})+" "+t("This does not mean it is the same account."),"small-muted"));
+  for(const entry of a.related_addresses||[])meta.push(node("p",t("Note: ")+t(relationTexts[entry.kind],{a:shown(entry.address),b:shown(entry.other)})+" "+t("This does not mean it is the same account."),"small-muted"));
   $("detail-meta").replaceChildren(...meta);
   const decided=a.decided_at?localDate(a.decided_at):"";
   $("decision-status").textContent=a.decision==="confirmed"?t("Confirmed by you on {date}.",{date:decided}):a.decision==="rejected"?t("Rejected on {date}: {reason}.",{date:decided,reason:t(reasonLabels[a.decision_reason])}):t("Not decided yet. Evidence alone never confirms an account.");
@@ -1024,7 +1033,7 @@ function saveReport(){
   $("report-dialog").close();toast(t("Report saved by your browser. It stays on this computer."));
 }
 // Plan A22, P4: templates are data; a preview names every account before one undoable change.
-let templatePreview=null;
+let templatePreview=null,templateBusy=false,templateFormLanguage=null;
 function renderTemplates(){
   $("template-items").replaceChildren(...state.templates.map(template=>{
     const card=node("article",undefined,"worklist-item");
@@ -1044,41 +1053,52 @@ function renderTemplates(){
     }
     return card;
   }));
-  const categories=$("template-categories");
-  if(!categories.options.length)categories.replaceChildren(...state.catalog.categories.map(c=>new Option(t(c),c)));
-  const steps=$("template-steps");
-  if(steps.querySelectorAll("input").length===0)for(const step of STEP_ORDER){
-    const label=node("label",undefined,"alias-confirm"),box=node("input");box.type="checkbox";box.value=step;label.append(box,node("span",t(stepNames[step])));steps.append(label);
-  }
+  // Rebuilt only when the language changes, so a switch translates them and focus stays put otherwise.
+  if(templateFormLanguage===language)return;
+  templateFormLanguage=language;
+  const categories=$("template-categories"),chosen=new Set(Array.from(categories.selectedOptions).map(o=>o.value));
+  categories.replaceChildren(...state.catalog.categories.map(c=>{const option=new Option(t(c),c);option.selected=chosen.has(c);return option;}));
+  const steps=$("template-steps"),ticked=new Set(Array.from(steps.querySelectorAll("input:checked")).map(x=>x.value));
+  steps.replaceChildren(...STEP_ORDER.map(step=>{
+    const label=node("label",undefined,"alias-confirm"),box=node("input");box.type="checkbox";box.value=step;box.checked=ticked.has(step);label.append(box,node("span",t(stepNames[step])));return label;
+  }));
 }
 async function previewTemplate(id){
   try{const plan=await api("/api/templates/preview",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})});templatePreview={id,plan};renderTemplates();}
   catch(e){failure(e);}
 }
 async function applyTemplate(id){
-  try{const result=await api("/api/templates/apply",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})});templatePreview=null;await refresh();toast(t("Template applied to {count} account(s).",{count:result.accounts}),result.batch);}
-  catch(e){failure(e);}
+  if(templateBusy||!templatePreview||templatePreview.id!==id)return;
+  templateBusy=true;
+  const accounts=templatePreview.plan.accounts;
+  try{const result=await api("/api/templates/apply",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,accounts})});templatePreview=null;await refresh();toast(t("Template applied to {count} account(s).",{count:result.accounts}),result.batch);}
+  catch(e){templatePreview=null;renderTemplates();failure(e);}
+  finally{templateBusy=false;}
 }
 async function saveTemplate(event){
   event.preventDefault();$("template-error").classList.add("hidden");
+  if(templateBusy)return;
   const steps=Array.from($("template-steps").querySelectorAll("input:checked")).map(x=>x.value);
   const data={name:$("template-name").value,categories:Array.from($("template-categories").selectedOptions).map(o=>o.value),
     min_priority:$("template-priority").value,confirmed_only:$("template-confirmed").checked,worklist:$("template-worklist").checked,
     review_steps:steps,review_days:steps.length?Number($("template-days").value):null};
+  templateBusy=true;
   try{await api("/api/templates",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});$("template-form").reset();await refresh();toast(t("Template saved locally."));}
   catch(e){problem("template-error",e.message,e.hint);}
+  finally{templateBusy=false;}
 }
 // Plan A10: proposals only; applying them is one undoable change.
 function renderReviewRule(){
   const rule=state.review_rule,proposed=state.accounts.filter(a=>a.review_proposal);
-  if(document.activeElement!==$("review-months"))$("review-months").value=rule?String(rule.months):"";
-  if(document.activeElement!==$("review-scope"))$("review-scope").value=rule?rule.scope:"important";
+  // An unsaved choice survives the background refresh; only a save or a reload resets it.
+  if(!reviewRuleEdited){$("review-months").value=rule?String(rule.months):"";$("review-scope").value=rule?rule.scope:"important";}
   $("review-proposals").textContent=rule?t("{count} completed account(s) have a proposed review date.",{count:proposed.length}):t("No rule set. Completed accounts get no proposed review date.");
   $("review-apply").classList.toggle("hidden",!proposed.length);
 }
+let reviewRuleEdited=false;
 async function saveReviewRule(){
   const months=$("review-months").value;
-  try{await api("/api/review-rule",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({months:months?Number(months):null,scope:$("review-scope").value})});await refresh();toast(t("Review rule saved locally."));}
+  try{await api("/api/review-rule",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({months:months?Number(months):null,scope:$("review-scope").value})});reviewRuleEdited=false;await refresh();toast(t("Review rule saved locally."));}
   catch(e){failure(e);}
 }
 async function applyReviewProposals(){
@@ -1289,7 +1309,7 @@ $("login-method").onchange=()=>update({login_method:$("login-method").value});
 $("registered-email").onchange=()=>{
   const email=$("registered-email").value||null;
   // Binding an address is permanent for this account; require an explicit choice.
-  if(email&&!window.confirm(t("Use {p0} as this account's sign-in address? This cannot be changed later; a different address needs a separate account.",{p0:email}))){renderDetail();return;}
+  if(email&&!window.confirm(t("Use {p0} as this account's sign-in address? This cannot be changed later; a different address needs a separate account.",{p0:shown(email)}))){renderDetail();return;}
   update({registered_email:email});
 };
 $("add-account-form").onsubmit=addLocalAccount;
@@ -1306,7 +1326,7 @@ $("template-form").onsubmit=saveTemplate;
 $("mask-toggle").checked=maskPersonal;
 $("mask-toggle").onchange=()=>{maskPersonal=$("mask-toggle").checked;try{localStorage.setItem("argus.mask",maskPersonal?"1":"0");}catch(_){}renderState();if($("account-dialog").open)renderDetail();};$("report-level").onchange=renderTrend;
 for(const id of ["report-close","report-cancel"])$(id).onclick=()=>$("report-dialog").close();
-$("review-save").onclick=saveReviewRule;$("review-apply").onclick=applyReviewProposals;
+$("review-save").onclick=saveReviewRule;for(const id of ["review-months","review-scope"])$(id).onchange=()=>{reviewRuleEdited=true;};$("review-apply").onclick=applyReviewProposals;
 $("review-proposal-use").onclick=()=>{const a=state.accounts.find(x=>x.id===selected);if(a&&a.review_proposal)setStep("identity",{review_after:a.review_proposal});};
 $("sign-in-with").onchange=()=>accountAction("sign-in-with",{account_id:$("sign-in-with").value||null},"Saved locally.");
 $("defer-account").onclick=()=>changeWorklist({action:"defer",id:selected});

@@ -82,6 +82,23 @@
   path. `--profile default` and Windows device names are refused, and a
   mistyped `--profile` no longer creates a new empty profile.
 - A move plan keeps an address note you wrote for the same two addresses.
+
+### Dashboard and local API
+
+- "Hide personal details" now also masks addresses in the account dialog, in
+  address notes, priority reasons, the mailbox selection's label, the discover
+  command and the confirmation before choosing a sign-in address.
+- The review-rule form keeps an unsaved choice when the dashboard refreshes, so
+  Save no longer stores "no rule" by accident.
+- Applying a template sends the accounts its preview showed; if the template
+  covers other accounts by now, nothing happens and the preview is shown again.
+- Marking changes as reviewed twice keeps the undo point; saving and applying
+  templates ignore double clicks.
+- Template steps and categories follow a language switch; the import commands
+  in "Mailbox & Import" name the active profile; the toast and its Undo come back
+  after a dialog closes; the account dialog has an accessible name.
+- A busy database answers every request with "temporarily unavailable", and
+  deeply nested JSON is refused like other malformed input.
 ## 2.6.0 — Quality and trust (not yet tagged)
 
 ### Plan complete (S21)

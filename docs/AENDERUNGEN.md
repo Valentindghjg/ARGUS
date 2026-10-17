@@ -94,6 +94,27 @@
 - Ein Umzugsplan behält eine Adressnotiz, die du für dieselben zwei Adressen
   geschrieben hast.
 
+## Dashboard und lokale API
+
+- „Persönliche Angaben verbergen“ maskiert Adressen jetzt auch im
+  Account-Dialog, in Adressnotizen, Prioritätsgründen, der Beschriftung der
+  Postfach-Auswahl, dem discover-Befehl und der Rückfrage vor der Wahl einer
+  Anmeldeadresse.
+- Das Formular für die Prüfregel behält eine ungespeicherte Auswahl beim
+  Aktualisieren, sodass Speichern nicht mehr versehentlich „keine Regel“ ablegt.
+- Das Anwenden einer Vorlage sendet die Accounts aus ihrer Vorschau; betrifft
+  die Vorlage inzwischen andere Accounts, passiert nichts, und die Vorschau wird
+  erneut gezeigt.
+- Zweimal „Als gesehen markieren“ behält den Rückgängig-Punkt; Speichern und
+  Anwenden von Vorlagen ignorieren Doppelklicks.
+- Vorlagenschritte und -kategorien folgen einem Sprachwechsel; die
+  Importbefehle unter „Postfach & Import“ nennen das aktive Profil; Toast und
+  Rückgängig kommen nach dem Schließen eines Dialogs zurück; der Account-Dialog
+  hat einen zugänglichen Namen.
+- Eine belegte Datenbank beantwortet jede Anfrage mit „vorübergehend nicht
+  verfügbar“, und tief verschachteltes JSON wird wie andere fehlerhafte Eingaben
+  abgelehnt.
+
 
 ## Plan abgeschlossen (S21)
 
