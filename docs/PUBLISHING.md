@@ -36,8 +36,11 @@ publish itself.
 
 ## Creating a release by hand
 
-ARGUS never publishes itself, and no workflow can create a release: the
-"Release files" workflow only reads the repository.
+ARGUS never publishes itself, and no workflow can create a release. The
+"Release files" workflow builds with read access only. For a tag, a separate
+job that runs no project code records a signed build provenance attestation
+for the built files (keyless, through Sigstore and the GitHub attestations
+API); it is the only job allowed to request a signing identity.
 
 1. Run `python scripts/release_check.py`. It fails when the version differs
    between the package and the two change logs, when a module can reach the
@@ -46,16 +49,19 @@ ARGUS never publishes itself, and no workflow can create a release: the
 2. Write the release notes from `docs/RELEASE_NOTES_TEMPLATE.md`. Its section
    "New connections and permissions" is mandatory, also when it says "none".
 3. Tag the reviewed commit, for example `git tag v2.6.0`, and push the tag. The
-   "Release files" run checks that the tag names the version, builds the files
-   and lists their checksums in its summary.
+   "Release files" run checks that the tag names the version, builds the files,
+   lists their checksums in its summary, keeps them as the `release-files`
+   artifact for 30 days and attests their build provenance.
 4. Build locally from the same tag:
    `SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)" python -m build`, then
    `python scripts/release_check.py checksums dist`. The wheel checksum must
    match the run summary. The source archive is not byte-identical between two
    builds, so compare the wheel.
-5. Create the GitHub release by hand and attach the files from `dist/` together
-   with `SHA256SUMS`. Signatures can follow later; until then the checksums and
-   the matching wheel are the integrity check.
+5. Create the GitHub release by hand and attach the wheel, the source archive
+   and `SHA256SUMS` from the run's `release-files` artifact. Only these exact
+   files carry the attestation; a local wheel is byte-identical, a local source
+   archive is not. Check one before attaching it:
+   `gh attestation verify <file> --repo Valentindghjg/ARGUS --signer-workflow Valentindghjg/ARGUS/.github/workflows/release.yml`.
 
 ## What a public user gets
 

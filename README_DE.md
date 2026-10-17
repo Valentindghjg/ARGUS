@@ -894,8 +894,13 @@ die [FAQ](docs/FAQ_DE.md).
 dieselbe Version nennen, dass jedes Modul, das ins Netz gehen oder ein Programm
 starten kann, angegeben ist und dass der Browser-Begleiter nur `activeTab`
 behält. Der Workflow „Release files“ führt die Prüfung bei einem Versions-Tag aus,
-baut die Dateien und listet ihre Prüfsummen. Er braucht nur Leserechte und
-veröffentlicht nichts; Releases legt der Eigentümer von Hand mit der
+baut die Dateien und listet ihre Prüfsummen. Sein Build-Job braucht nur
+Leserechte; bei einem Tag legt ein eigener Job, der keinen Projektcode ausführt,
+eine signierte Herkunftsbestätigung (Build-Provenance-Attestierung) für Rad und
+Quellarchiv an, sodass
+`gh attestation verify <Datei> --repo Valentindghjg/ARGUS` zeigt, dass eine
+Datei von diesem Workflow aus dem Tag gebaut wurde. Kein Workflow erstellt ein
+Release; Releases legt der Eigentümer von Hand mit der
 [Vorlage für Release-Hinweise](docs/RELEASE_NOTES_TEMPLATE.md) an, die neue
 Verbindungen und Rechte immer nennt. Siehe [Veröffentlichung](docs/PUBLISHING.md).
 

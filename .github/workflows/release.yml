@@ -1,8 +1,10 @@
 name: Release files
 
 # Builds and checks the release files and lists their checksums in the run
-# summary. It publishes nothing: the owner creates each GitHub release by hand
-# (docs/PUBLISHING.md) and can compare these checksums with a local build.
+# summary. It creates no release: the owner creates each GitHub release by hand
+# (docs/PUBLISHING.md). For a tag, a separate job records a signed build
+# provenance attestation for the built files (keyless, through Sigstore), so
+# anyone can check that a file was built by this workflow from that tag.
 on:
   push:
     tags: ['v*']
@@ -46,3 +48,32 @@ jobs:
             echo
             python scripts/release_check.py
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Keep the files for the attestation and the release
+        if: github.ref_type == 'tag'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-files
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
+
+  attest:
+    name: Attest build provenance
+    # Only a tag is a release. This job runs no project code and is the only
+    # one that may request a signing identity and store an attestation.
+    if: github.ref_type == 'tag'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-files
+          path: dist
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: 'dist/*.whl, dist/*.tar.gz'

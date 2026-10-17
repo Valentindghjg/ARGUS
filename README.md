@@ -825,7 +825,11 @@ synthetic steps; see the [FAQ](docs/FAQ.md).
 name the same version, that every module able to reach the network or start a
 program is declared, and that the browser companion keeps only `activeTab`.
 The "Release files" workflow runs it on a version tag, builds the files and
-lists their checksums. It needs only read access and publishes nothing; the
+lists their checksums. Its build job needs only read access; for a tag, a
+separate job that runs no project code records a signed build provenance
+attestation for the wheel and the source archive, so
+`gh attestation verify <file> --repo Valentindghjg/ARGUS` shows that a file
+was built by this workflow from the tag. No workflow creates a release; the
 owner creates releases by hand with the
 [release notes template](docs/RELEASE_NOTES_TEMPLATE.md), which always names new
 connections and permissions. See [publishing](docs/PUBLISHING.md).

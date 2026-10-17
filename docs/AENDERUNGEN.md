@@ -9,6 +9,18 @@
   ARGUS legt wie üblich vor der Migration eine Sicherung an. Jobs, die eine
   ältere Version schon entfernt hat, lassen sich nicht zurückholen.
 
+## Herkunftsbestätigung für Releases (G6)
+
+- Bei einem Versions-Tag legt der Workflow „Release files“ eine signierte
+  Herkunftsbestätigung (Build-Provenance-Attestierung) für Rad und Quellarchiv
+  an, schlüssellos über Sigstore.
+  `gh attestation verify <Datei> --repo Valentindghjg/ARGUS` bestätigt, dass
+  eine Datei von diesem Workflow aus dem Tag gebaut wurde. Die Signatur darf nur
+  ein eigener Job anfordern, der keinen Projektcode ausführt; der Build-Job
+  behält Leserechte. Die Dateien bleiben als Artefakt `release-files` des Laufs
+  für das von Hand erstellte Release. Weiterhin erstellt kein Workflow ein
+  Release.
+
 # Änderungen – Version 2.6.1, Korrekturen aus dem Review von 2.0–2.6 (noch ohne Tag)
 
 ## Änderungsprotokoll, Rückgängig, Sicherungen und Migrationen
