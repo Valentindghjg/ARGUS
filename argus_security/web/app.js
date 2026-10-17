@@ -174,7 +174,7 @@ function renderState() {
   $("alias-email").disabled=state.demo;$("alias-owned").disabled=state.demo;
   if(state.demo)setMessage("alias-message","Add real own addresses in a personal profile on your computer. The demo profile stays separate.");
   renderRows();renderCandidates();renderExport();renderBitwardenAudit();renderWorklist();renderGuided();renderHandoffs();renderHistory();
-  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();renderChanges();renderMailboxes();renderSession();renderReviewRule();renderControl();renderLastImport();renderTrend();
+  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();renderChanges();renderMailboxes();renderSession();renderReviewRule();renderControl();renderLastImport();renderTrend();renderMoves();
 }
 // Plan A1-A4, A7, A28: what is new since the last review, in one place and one summary.
 const changeReasons={
@@ -326,6 +326,36 @@ function renderMailboxes(){
     if(entry&&!entry.active)card.append(node("p",t("This note is inactive until you confirm the account again."),"small-muted"));
     return card;
   }));
+}
+// Plan A21: an ordered, manual plan for moving accounts to another own address.
+const moveStates={open:"Open",changed:"Changed at the provider",skipped:"Skipped"};
+function renderMoves(){
+  for(const id of ["move-old","move-new"]){
+    const select=$(id),previous=select.value;
+    select.replaceChildren(...state.emails.map(e=>new Option(e,e)));if(state.emails.includes(previous))select.value=previous;
+  }
+  if($("move-new").value===$("move-old").value&&state.emails.length>1)$("move-new").value=state.emails.find(e=>e!==$("move-old").value);
+  $("move-create").disabled=state.emails.length<2;
+  $("move-plans").replaceChildren(...state.move_plans.filter(plan=>!plan.closed_at).map(plan=>{
+    const card=node("article",undefined,"worklist-item");
+    card.append(node("strong",t("{old} → {new}",{old:plan.old,new:plan.new})),node("p",t("{done} of {total} handled",{done:plan.done,total:plan.items.length}),"small-muted"));
+    const list=node("ol",undefined,"move-items");
+    for(const item of plan.items){
+      const account=state.accounts.find(a=>a.id===item.account_id),row=node("li");
+      row.append(node("span",`${account?account.name+(account.label?" · "+account.label:""):item.account_id} · ${t(moveStates[item.state])}`));
+      const actions=node("span",undefined,"move-actions");
+      if(item.state==="open")actions.append(actionButton("Changed at the provider",()=>markMove(plan.id,item.account_id,"changed")),actionButton("Skip",()=>markMove(plan.id,item.account_id,"skipped")));
+      else actions.append(actionButton("Reopen",()=>markMove(plan.id,item.account_id,"open")));
+      row.append(actions);list.append(row);
+    }
+    const actions=node("div",undefined,"bitwarden-actions");actions.append(actionButton("Close plan",()=>reviewAction("/api/moves/close",{plan_id:plan.id},"Plan closed. Your accounts stay as they are.")));
+    card.append(list,actions);return card;
+  }));
+}
+function markMove(plan_id,account_id,moveState){reviewAction("/api/moves/item",{plan_id,account_id,state:moveState},"Saved locally.");}
+async function createMovePlan(event){
+  event.preventDefault();
+  await reviewAction("/api/moves",{old:$("move-old").value,new:$("move-new").value},"Plan created. Change the address at each provider yourself, then mark it here.");
 }
 function renderRelations(){
   for(const id of ["relation-address","relation-other"]){
@@ -1196,7 +1226,8 @@ $("session-three").onclick=()=>sessionAction({action:"start",size:3},"Session st
 $("session-end").onclick=()=>sessionAction({action:"end"},"Session ended. Your steps stay saved.");
 $("session-report").onclick=previewReport;
 $("report-save").onclick=saveReport;
-$("report-create").onclick=previewProgressReport;$("report-level").onchange=renderTrend;
+$("report-create").onclick=previewProgressReport;
+$("move-form").onsubmit=createMovePlan;$("report-level").onchange=renderTrend;
 for(const id of ["report-close","report-cancel"])$(id).onclick=()=>$("report-dialog").close();
 $("review-save").onclick=saveReviewRule;$("review-apply").onclick=applyReviewProposals;
 $("review-proposal-use").onclick=()=>{const a=state.accounts.find(x=>x.id===selected);if(a&&a.review_proposal)setStep("identity",{review_after:a.review_proposal});};

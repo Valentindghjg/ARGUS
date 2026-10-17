@@ -519,6 +519,16 @@ def main():
                 page.locator("#report-cancel").click()
                 page.locator('[data-view="setup"]').click()
                 checks.append("Progress over time and a data-minimal progress report with preview")
+                page.locator("#move-old").select_option("demo@example.invalid")
+                page.locator("#move-new").select_option("demo.work@example.invalid")
+                page.locator("#move-create").click()
+                plan_card = page.locator("#move-plans article").first
+                expect(plan_card).to_contain_text("demo@example.invalid → demo.work@example.invalid")
+                plan_card.locator(".move-items li").first.get_by_role("button", name="Changed at the provider").click()
+                expect(page.locator("#move-plans article").first).to_contain_text("1 of")
+                page.locator("#move-plans article").first.get_by_role("button", name="Close plan").click()
+                expect(page.locator("#move-plans article")).to_have_count(0)
+                checks.append("Address change plan in order, marked by hand and closed")
 
                 page.set_viewport_size({"width":390,"height":844})
                 expect(page.locator("#page-title")).to_be_visible()

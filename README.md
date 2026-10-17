@@ -680,6 +680,21 @@ python -m argus_security report --text --level tasks
 python -m argus_security report --level numbers --export /local/path/argus-report.txt
 ```
 
+## Plan an address change
+
+When you give up an address, “Plan an address change” under “Mailbox & Import”
+lists every account that signs in with it: accounts others depend on first (for
+example the one hosting the mailbox), then by priority. Change the address at
+each provider yourself and mark the account as changed or skipped; ARGUS
+changes nothing at providers and never moves an account's sign-in on its own.
+The plan also notes that the old address was replaced by the new one.
+
+```bash
+python -m argus_security move-address create old@example.org new@example.org
+python -m argus_security move-address mark PLAN_ID github --state changed
+python -m argus_security move-address list
+```
+
 ## Back up and restore your profile
 
 ARGUS saves a backup automatically before a new version updates the profile
@@ -784,6 +799,7 @@ report.
 | `argus_security/imports.py` | Processed-message index, import budget and continuation |
 | `argus_security/watch.py` | The narrow, opt-in watch of one export folder |
 | `argus_security/profiles.py`, `history.py`, `reports.py` | Named profiles, daily counts and data-minimal reports |
+| `argus_security/moves.py` | Ordered, manual plans for moving accounts to another own address |
 | `argus_security/backup.py` | Local profile backups and restore |
 | `argus_security/workflow.py` | Local security worklist and guided next step |
 | `argus_security/handoffs.py` | Durable Bitwarden transfer journal |

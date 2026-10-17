@@ -95,6 +95,10 @@ def parser(language="en"):
     report.add_argument('--include-addresses', action='store_true', help=t('Add sign-in addresses to the task lines'))
     report.add_argument('--export', type=Path, help=t('Save the report to a new private file instead of printing it'))
     sub.add_parser('profiles', help=t('List your separate local profiles by name'))
+    move = sub.add_parser('move-address', help=t('Plan moving your accounts from one own address to another'))
+    move.add_argument('action', choices=['create', 'list', 'mark', 'close'])
+    move.add_argument('values', nargs='*', help=t('create: OLD NEW; mark: PLAN_ID ACCOUNT_ID; close: PLAN_ID'))
+    move.add_argument('--state', choices=['changed', 'skipped', 'open'], default='changed')
     accounts = sub.add_parser('list-accounts', help=t('Show local account IDs for individual selections'))
     accounts.add_argument('--all', action='store_true', help=t('Include entries without reliable account evidence'))
     dis = sub.add_parser('discover', help=t('Mail provider hints; offline by default'))
@@ -346,6 +350,18 @@ def main(argv=None):
             print(json.dumps({'rule': snapshot['review_rule'],
                               'proposals': {a['id']: a['review_proposal'] for a in snapshot['accounts'] if a['review_proposal']},
                               'applied': bool(args.apply and proposed)}, ensure_ascii=False, indent=2))
+        elif args.command == 'move-address':
+            needed = {'create': 2, 'list': 0, 'mark': 2, 'close': 1}[args.action]
+            if len(args.values) != needed:
+                raise UserFacingError('Give the values this action needs; see move-address --help')
+            if args.action == 'create':
+                store.create_move_plan(*args.values)
+                print(t('Plan created. Change the address at each provider yourself, then mark it; ARGUS changes nothing at providers.'), file=sys.stderr)
+            elif args.action == 'mark':
+                store.mark_move(args.values[0], args.values[1], args.state)
+            elif args.action == 'close':
+                store.close_move_plan(args.values[0])
+            print(json.dumps(store.snapshot()['move_plans'], ensure_ascii=False, indent=2))
         elif args.command == 'watch-folder':
             from .watch import disable as stop_watch, enable as start_watch, status as watch_status
             if store.meta('demo', False) or not store.meta('emails'):
