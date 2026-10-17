@@ -397,6 +397,9 @@ class Store:
         candidates = {}
         stale_evidence = 0
         for e in evidences:
+            if e["provider_id"] and e["provider_id"] not in self.registry.providers:
+                # A skipped or removed own provider: its clues count as outside the catalog again.
+                e["provider_id"] = None
             identity = direct_identity(e, own)
             e.pop("fingerprint")
             e["caveat"] = english_caveat(e["caveat"])
@@ -460,7 +463,7 @@ class Store:
                                    else "No local evidence; account existence is unknown")
                 accounts.append({
                     **provider.public(), "id": state["id"], "provider_id": provider_id,
-                    "identity_email": email, "label": state["label"],
+                    "identity_email": email, "label": state["label"], "canonical": bool(state["canonical"]),
                     "display_name": provider.name + (" · " + state["label"] if state["label"] else ""),
                     "identity_review_required": review,
                     # ADR-0001 axes: A evidence, B decision, C steps; progress is derived.
@@ -502,7 +505,8 @@ class Store:
                            for domain, items in sorted(candidates.items())
                            if domain not in {entry["domain"] for entry in excluded}],
             "exclusions": excluded, "relations": related, "identity_links": identity_links,
-            "catalog": {"personal": personal_providers(self.registry), "categories": catalog_categories(self.registry),
+            "catalog": {"personal": personal_providers(self.registry), "skipped": self.registry.skipped_personal,
+                        "categories": catalog_categories(self.registry),
                         # Plan E6: clues stored before a catalog addition need their original email again.
                         "reanalysis": sum(1 for e in evidences if not e["provider_id"] and self.registry.match(e["sender_domain"]))},
             "summary": {"providers": len(self.registry.providers), "found": len(found),
@@ -773,6 +777,11 @@ class Store:
             if state is not UNCHANGED and state != current["state"]:
                 new.update(state=state, done_at=None if state == "open" else now())
             if review_after is not UNCHANGED:
+                # Clearing a date that is due means the person did the review now (plan A10);
+                # the step's date moves, so a review rule proposes the next one from today.
+                if (review_after is None and current["review_after"] and current["state"] == "done"
+                        and current["review_after"] <= date.today().isoformat()):
+                    new["done_at"] = now()
                 new["review_after"] = review_after
             batch = ChangeBatch(db)
             if new != current:

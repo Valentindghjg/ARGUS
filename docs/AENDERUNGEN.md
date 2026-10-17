@@ -25,6 +25,24 @@
   und Berichtsdatum folgen deinem lokalen Kalendertag. Eigene Vorlagen werden
   unter einer Sperre gespeichert.
 
+## Katalogergänzungen, „Neu seit…“, Reihenfolge, Anmeldeverknüpfungen und Sitzungen
+
+- Eine eigene Katalogergänzung, die ein neuerer Katalog (oder eine
+  `--providers`-Datei) inzwischen abdeckt, sperrt nicht mehr das ganze Profil:
+  Sie wird übersprungen, unter „Postfach & Import“ mit Hinweis gezeigt und
+  lässt sich entfernen; ihre Hinweise warten auf einen erneuten Import. Fehlerhafte
+  `--providers`-Zeilen werden mit Meldung abgelehnt statt abzustürzen. Eine
+  Ergänzung kann keine Subdomain eines Katalog-Anbieters mehr belegen.
+- „Neu seit…“ lässt ausgeblendete Absenderdomains in Ruhe, bis ein neuerer
+  Hinweis kommt, und ordnet Hinweise dem Account zu, der sie hält, nicht einem
+  benannten Geschwister-Account.
+- Eine Aufgabe neben gleichen Positionen rückt genau einen Platz, und die
+  Neunummerierung wird mit dem Verschieben zurückgenommen.
+- Ein abgelehnter Account gilt nicht mehr als Anmeldung über einen anderen Account.
+- Wer ein fälliges Prüfdatum entfernt, hat den Schritt heute geprüft; eine
+  Prüfregel schlägt das nächste Datum ab heute vor statt für morgen.
+- Der Sitzungsbericht nennt Entscheidungen aus der Sitzung.
+
 
 ## Plan abgeschlossen (S21)
 

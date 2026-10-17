@@ -9,6 +9,13 @@ automatischen Sicherung, ein beschädigtes Profil, eine neuere Sicherung,
 Katalogergänzungen in Sicherungen und ein gewählter Sicherungsordner. Ein
 Migrationsrennen mit drei Prozessen lief 90-mal ohne Fehler.
 
+Review-Korrekturen, Teil 2: **367 Python-Tests**. Neue Regressionstests prüfen
+eine eigene Ergänzung, die ein neuerer Katalog abdeckt, eine Subdomain als
+Ergänzung, das Verschieben neben gleichen Positionen samt Rückgängig,
+ausgeblendete Domains und benannte Geschwister-Accounts in „Neu seit…“, einen
+abgelehnten Single-Sign-on-Account, das Entfernen eines fälligen Prüfdatums und
+eine Ablehnung im Sitzungsbericht.
+
 # Prüfbericht – Version 2.6.0 (Qualität und Vertrauen, noch ohne Tag)
 
 Schritt S19: **336 Python-Tests** und **42 Browser-Prüfgruppen**. Neue Tests

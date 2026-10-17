@@ -97,7 +97,9 @@ def explain_priorities(accounts, relations):
     sign_in = {}
     for account_id, provider in relations["sign_in"].items():
         account = by_id.get(account_id)
-        active = bool(account) and account["login_method"] == "sso" and provider in confirmed
+        # A rejected account is not the person's, so it depends on nothing.
+        active = (bool(account) and account["decision"] != "rejected" and account["login_method"] == "sso"
+                  and provider in confirmed)
         sign_in[account_id] = {"account_id": account_id, "provider_account": provider, "active": active}
     mailboxes = {address: {"address": address, "account_id": holder, "active": holder in confirmed}
                  for address, holder in relations["mailboxes"].items()}

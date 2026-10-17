@@ -100,7 +100,7 @@ class SessionReviewTests(unittest.TestCase):
                          (True, ["identity"], 1, 0))
         text = self.store.session_report_text("de")
         self.assertIn("ARGUS-Sitzungsbericht", text)
-        self.assertIn("GitHub: erledigt: Anmeldung geprüft", text)
+        self.assertIn("GitHub: erledigt: Von dir bestätigt, Anmeldung geprüft", text)
         self.assertNotIn("@", text)
         self.store.end_session()
         self.assertIsNone(self.store.snapshot()["session"])

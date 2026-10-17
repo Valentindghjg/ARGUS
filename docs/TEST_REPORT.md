@@ -7,6 +7,12 @@ evidence, the local calendar day west of UTC, restoring the oldest automatic
 backup, a damaged profile, a newer backup, catalog additions in backups and a
 chosen backup folder. A three-process migration race ran 90 times without error.
 
+Review fixes, part 2: **367 Python tests**. New regression tests cover an own
+addition a newer catalog covers, a sub-domain addition, a worklist move next to
+a tie and its undo, hidden domains and labelled siblings in "What's new", a
+rejected single-sign-on account, clearing a due review and a rejection in the
+session report.
+
 # Test report — Version 2.6.0 (quality and trust, not yet tagged)
 
 Step S19: **336 Python tests** and **42 browser check groups**. New tests cover

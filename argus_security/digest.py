@@ -88,12 +88,17 @@ def change_digest(snapshot, evidences, mark, current):
     """New and changed clues since the mark, grouped by account, unclear first."""
     since = mark["revision"]
     accounts = snapshot["accounts"]
-    by_identity = {(a["provider_id"], a["identity_email"]): a for a in accounts if a["identity_email"]}
+    # Clues belong to the canonical account of an identity; a labelled sibling holds none.
+    by_identity = {(a["provider_id"], a["identity_email"]): a for a in accounts
+                   if a["identity_email"] and a.get("canonical", True)}
     by_provider = {}
     for account in accounts:
         by_provider.setdefault(account["provider_id"], account)
     groups, other = {}, {"marketing": 0, "order": 0, "reset": 0}
-    fresh = [e for e in evidences if e["changed_rev"] > since]
+    # A domain the person hid stays out of the digest until a newer clue brings it back (A9).
+    hidden = {entry["domain"] for entry in snapshot.get("exclusions", []) if not entry.get("new_clues")}
+    fresh = [e for e in evidences if e["changed_rev"] > since
+             and not (e["provider_id"] is None and e["sender_domain"] in hidden)]
     for clue in fresh:
         kind = KINDS.get(clue["signal"], "marketing")
         provider, email = clue["provider_id"], clue["registered_email"]

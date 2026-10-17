@@ -15,6 +15,7 @@ from .errors import UserFacingError
 from .i18n import translate
 
 KEY = "work_session"
+DECISION_NAMES = {"confirmed": "Confirmed by you", "rejected": "Rejected by you"}
 SIZES = (1, 3)
 STEP_NAMES = {"identity": "Sign-in checked", "vault": "Stored in Bitwarden", "password": "Unique password",
               "signin_test": "Sign-in tested", "mfa_recovery": "MFA and recovery"}
@@ -80,8 +81,11 @@ def report_text(summary, language="en"):
              ""]
     for row in summary["accounts"]:
         name = row["name"] + (f" ({row['label']})" if row["label"] else "")
-        done = ", ".join(t(STEP_NAMES[step]) for step in row["done"]) or t("nothing recorded yet")
-        lines.append(t("- {name}: done: {done}; next: {next}", name=name, done=done, next=t(NEXT_NAMES[row["next_step"]])))
+        decided = DECISION_NAMES.get(row["decision"]) if row["decided"] else None
+        done = ", ".join(([t(decided)] if decided else []) + [t(STEP_NAMES[step]) for step in row["done"]]) \
+            or t("nothing recorded yet")
+        following = "Nothing more to do" if row["decision"] == "rejected" else NEXT_NAMES[row["next_step"]]
+        lines.append(t("- {name}: done: {done}; next: {next}", name=name, done=done, next=t(following)))
     lines += ["", t("This report lists only steps you recorded in ARGUS. It contains no email addresses, "
                     "evidence or passwords and is not a security guarantee.")]
     return "\n".join(lines) + "\n"

@@ -304,7 +304,13 @@ function renderPersonalProviders(){
     const actions=node("div",undefined,"bitwarden-actions");actions.append(actionButton("Remove from my catalog",()=>reviewAction("/api/catalog/remove",{id:provider.id},"Provider removed from your catalog.")));
     card.append(actions);return card;
   }));
-  if(!state.catalog.personal.length)$("personal-providers").append(node("p",t("No providers added yet.")));
+  // An addition a newer catalog now covers is ignored, never a reason to lock the profile.
+  for(const entry of state.catalog.skipped||[]){
+    const card=node("article",undefined,"worklist-item");card.append(node("strong",entry.name),node("p",t("The catalog now covers this domain, or the entry is no longer valid. ARGUS ignores it; you can remove it.")));
+    const actions=node("div",undefined,"bitwarden-actions");actions.append(actionButton("Remove from my catalog",()=>reviewAction("/api/catalog/remove",{id:entry.id},"Provider removed from your catalog.")));
+    card.append(actions);$("personal-providers").append(card);
+  }
+  if(!state.catalog.personal.length&&!(state.catalog.skipped||[]).length)$("personal-providers").append(node("p",t("No providers added yet.")));
 }
 const relationTexts={same_mailbox:"{a} is the same mailbox as {b}.",replaced_by:"{a} was replaced by {b}."};
 // Plan D3, A17, B6: priorities with their reasons; identity relations come from the person only.
