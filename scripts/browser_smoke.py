@@ -15,6 +15,12 @@ from argus_security.scan import load_demo, synthetic_mail
 from argus_security.server import DashboardServer
 from argus_security.store import Store
 
+def preview(page, folder, name):
+    """Save a preview image from the top of the page, without short-lived notices."""
+    # The dashboard's CSP blocks injected styles, so the notice is hidden like its own timer does.
+    page.evaluate("document.getElementById('toast').classList.add('hidden'); window.scrollTo(0, 0)")
+    page.screenshot(path=str(folder / name), full_page=True)
+
 
 def main():
     parser = argparse.ArgumentParser(description="Browser smoke test with synthetic emails")
@@ -100,7 +106,7 @@ def main():
                 checks.append("English desktop dashboard, statistics and demo notice")
                 if args.screenshots_dir:
                     args.screenshots_dir.mkdir(parents=True, exist_ok=True)
-                    page.screenshot(path=str(args.screenshots_dir / "dashboard.png"), full_page=True)
+                    preview(page, args.screenshots_dir, "dashboard.png")
 
                 page.locator('[data-view="workflow"]').click()
                 expect(page.locator('#guided-priority-preview')).to_be_visible()
@@ -156,7 +162,7 @@ def main():
                 expect(page.locator('#guided-prepare-bitwarden')).to_be_visible()
                 page.locator('#close-dialog').click()
                 if args.screenshots_dir:
-                    page.screenshot(path=str(args.screenshots_dir / 'worklist.png'), full_page=True)
+                    preview(page, args.screenshots_dir, 'worklist.png')
                 checks.append('Persistent bilingual security worklist, pause, resume and guided next step')
                 page.locator('[data-view="dashboard"]').click()
 
@@ -180,7 +186,7 @@ def main():
                 expect(page.locator("#category")).to_have_value("Finance")
                 page.locator("#category").select_option("")
                 if args.screenshots_dir:
-                    page.screenshot(path=str(args.screenshots_dir / "dashboard-de.png"), full_page=True)
+                    preview(page, args.screenshots_dir, "dashboard-de.png")
                 page.reload(wait_until="networkidle")
                 expect(page.locator("html")).to_have_attribute("lang", "de")
                 expect(page.locator("#language")).to_have_value("de")
@@ -581,20 +587,20 @@ def main():
                 expect(page.locator("#page-title")).to_be_visible()
                 assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
                 if args.screenshots_dir:
-                    page.screenshot(path=str(args.screenshots_dir / "mobile.png"), full_page=True)
+                    preview(page, args.screenshots_dir, "mobile.png")
                 checks.append("Mobile layout without horizontal page overflow")
                 page.locator("#language").select_option("de")
                 expect(page.locator("#page-title")).to_have_text("Beginne mit deinem Postfach.")
                 assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
                 expect(page.locator("#alias-message")).to_contain_text("Deine Checklisten wurden erhalten")
                 if args.screenshots_dir:
-                    page.screenshot(path=str(args.screenshots_dir / "mobile-de.png"), full_page=True)
+                    preview(page, args.screenshots_dir, "mobile-de.png")
                 checks.append("German mobile layout and translated alias/import messages")
                 page.locator('[data-view="workflow"]').click()
                 expect(page.locator('#worklist-items article')).to_have_count(2)
                 assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
                 if args.screenshots_dir:
-                    page.screenshot(path=str(args.screenshots_dir / 'worklist-mobile-de.png'), full_page=True)
+                    preview(page, args.screenshots_dir, 'worklist-mobile-de.png')
                 checks.append('German security worklist fits the mobile viewport')
 
                 for browser_locale, expected_language, blocked_storage in [("de-DE", "de", False),("fr-FR", "en", False),("de-DE", "de", True)]:

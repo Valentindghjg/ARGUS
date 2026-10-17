@@ -1,5 +1,16 @@
 # Änderungen – Version 2.6.0, Qualität und Vertrauen (noch ohne Tag)
 
+## Plan abgeschlossen (S21)
+
+- `docs/strategy/README.md` führt jeden Punkt des Gesamtplans mit Stand,
+  Schritt und Ort im Code: 60 umgesetzt, zwei bewusst eng begrenzt
+  (Ordnerüberwachung, Grundlagen der Barrierefreiheit), Release-Signaturen
+  folgen noch, und die Offline-Lizenz entfällt, weil alles kostenlos ist.
+- Neue Vorschaubilder aus der synthetischen Demo; der Browsertest blendet kurze
+  Meldungen aus und beginnt jedes Bild am Seitenanfang.
+- Ein Repository-Test schlägt bei relativen Markdown-Links ohne Ziel fehl; ein
+  veralteter Link im Testbericht ist entfernt.
+
 ## Demo-Rundgang, datensparsame Fehlerberichte und geprüfte Releases (G2, G4, G6)
 
 - Die Demo-Übersicht bietet „Probier diesen Weg“: fünf Schritte von dem, was der
