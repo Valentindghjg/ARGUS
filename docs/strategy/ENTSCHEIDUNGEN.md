@@ -79,3 +79,11 @@ Wird während der Umsetzung fortgeschrieben.
   Anmelde-Account wird automatisch „Zuerst“; eine eigene Priorität geht immer
   vor. „Nach oben/unten“ tauscht genau zwei Positionen, damit Rückgängig die
   Reihenfolge exakt wiederherstellt.
+- **S12, Prüfregel und Sitzungsbericht:** Die Prüfregel setzt nie selbst ein
+  Datum, sondern schlägt es vor; übernommen wird es als gewöhnliches,
+  rücknehmbares Prüfdatum beim Schritt „Anmeldung geprüft“, weil die erneute
+  Prüfung fragt, ob der Account noch existiert und die Anmeldung noch stimmt.
+  Liegt das Regeldatum in der Vergangenheit, wird morgen vorgeschlagen. Der
+  Sitzungsbericht wird aus dem Zustand der Accounts abgeleitet, nicht
+  mitprotokolliert, und folgt damit jedem Rückgängig. Gespeichert wird er nur
+  über den Browser nach vollständiger Vorschau; die CLI gibt ihn nur aus.

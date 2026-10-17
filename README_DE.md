@@ -1,4 +1,4 @@
-# ARGUS 2.1.0 – lokales Account-Inventar
+# ARGUS 2.2.0 – lokales Account-Inventar
 
 Deutsch · [English](README.md)
 
@@ -401,6 +401,33 @@ python -m argus_security sign-in-with notion google
 python -m argus_security sign-in-with notion --remove
 ```
 
+## Kurze Sitzungen, Prüfdaten und Checkliste nach Anmeldeart
+
+Unter „Sicherheits-Arbeitsliste“ startet **Eine Aufgabe** oder **Drei Aufgaben**
+eine kurze Sitzung mit den nächsten bereiten Aufgaben. Es gibt kein Zeitlimit.
+Die Sitzung zeigt, was du seit ihrem Start erfasst hast; **Bericht ansehen**
+zeigt die vollständige Textdatei (nur Accountnamen und Schritte, keine Adressen,
+Belege oder Passwörter), bevor dein Browser sie speichert. Die Checkliste folgt
+der gewählten Anmeldeart: Single-Sign-on- und Passkey-Accounts erhalten
+passende Schritte statt einer Passwortänderung, und ein Account, der von einem
+unvollständigen Anmelde-Account abhängt, sagt das.
+
+Eine **Prüfregel** (nach 6, 12 oder 24 Monaten; Accounts mit hoher Priorität
+oder alle abgeschlossenen) schlägt ein Datum vor, an dem du abgeschlossene
+Accounts erneut prüfst. Nichts ändert sich, bis du **Dieses Datum übernehmen**
+oder **Vorgeschlagene Daten übernehmen** wählst; beides lässt sich
+zurücknehmen. Alter allein ist kein Zeichen für ein Sicherheitsproblem.
+Bitwarden-Notizen enthalten jetzt auch die von dir bestätigte Anmeldeart, den
+Anmelde-Account und eine geprüfte Seite für Passwort-Einstellungen; Unbekanntes
+bleibt weg.
+
+```bash
+python -m argus_security session start --size 3
+python -m argus_security session report
+python -m argus_security session end
+python -m argus_security review-rule --months 12 --scope important --apply
+```
+
 ## Neu seit deiner letzten Durchsicht
 
 Nach einem Import zeigt „Neu seit…“ nur Hinweise, die neu sind oder anders
@@ -694,6 +721,7 @@ Begründung mitziehen muss. `--json` gibt den vollständigen Bericht aus.
 | `argus_security/summary.py`, `guidance.py` | Ergebniszusammenfassung, nächste Aufgabe und Hinweise zum nächsten Schritt |
 | `argus_security/digest.py` | Neues seit der letzten Durchsicht und Zusammenfassung beim Wiederkommen |
 | `argus_security/identity.py` | Bestätigte Anmelde- und Postfachbeziehungen und begründete Prioritäten |
+| `argus_security/sessions.py`, `reviews.py` | Kurze Arbeitssitzungen mit Bericht und die Prüfregel |
 | `argus_security/backup.py` | Lokale Profilsicherungen und Wiederherstellung |
 | `argus_security/workflow.py` | Lokale Sicherheits-Arbeitsliste und geführter nächster Schritt |
 | `argus_security/handoffs.py` | Dauerhaftes Journal für Bitwarden-Übertragungen |

@@ -61,6 +61,18 @@ const stepTitles={
   signin_test:["Sign-in tested","Sign in successfully using the new password, passkey or central identity provider."],
   mfa_recovery:["MFA and recovery reviewed","Enable multi-factor authentication if available and store recovery codes securely."]
 };
+// Plan A5: the checklist follows the sign-in method you confirmed; ARGUS never sets it from an email.
+const methodStepTitles={
+  sso:{vault:["Noted in Bitwarden","Save an item without a password that says which account you sign in with."],
+    password:["No separate password","This account uses single sign-on. Secure the account you sign in with instead."],
+    signin_test:["Single sign-on tested","Sign in through the account you sign in with and check that it works."],
+    mfa_recovery:["Sign-in account and recovery reviewed","Check MFA and recovery at the account you sign in with, and any recovery options here."]},
+  passkey:{vault:["Passkey noted in Bitwarden","Keep the passkey in Bitwarden if you use it there, or note where it is stored."],
+    password:["No separate password","This account uses a passkey. If it still has a password, switch to “Separate password” and change it."],
+    signin_test:["Passkey sign-in tested","Sign in with your passkey on a device you use."],
+    mfa_recovery:["Recovery reviewed","Check how you regain access if the device with your passkey is lost."]}
+};
+function stepTitle(a,step){return (methodStepTitles[a.login_method]||{})[step]||stepTitles[step];}
 const stepNames={identity:"Sign-in checked",vault:"Stored in Bitwarden",password:"Unique password",signin_test:"Sign-in tested",mfa_recovery:"MFA and recovery"};
 const stateLabels={open:"open",done:"done",not_applicable:"not applicable",prepared:"prepared"};
 const titles = {
@@ -161,7 +173,7 @@ function renderState() {
   $("alias-email").disabled=state.demo;$("alias-owned").disabled=state.demo;
   if(state.demo)setMessage("alias-message","Add real own addresses in a personal profile on your computer. The demo profile stays separate.");
   renderRows();renderCandidates();renderExport();renderBitwardenAudit();renderWorklist();renderGuided();renderHandoffs();renderHistory();
-  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();renderChanges();renderMailboxes();
+  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();renderChanges();renderMailboxes();renderSession();renderReviewRule();
 }
 // Plan A1-A4, A7, A28: what is new since the last review, in one place and one summary.
 const changeReasons={
@@ -525,7 +537,7 @@ function stepMeta(a,step){
   return "";
 }
 function stepRow(a,step,busy){
-  const value=a.steps[step],[title,description]=stepTitles[step];
+  const value=a.steps[step],[title,description]=stepTitle(a,step);
   const label=node("label",undefined,"check-item"),checkbox=node("input",undefined,"step-check");checkbox.type="checkbox";checkbox.dataset.step=step;checkbox.checked=value.state==="done";
   checkbox.disabled=busy||(step==="identity"&&a.identity_review_required)||value.state==="not_applicable";
   checkbox.onchange=()=>setStep(step,{state:checkbox.checked?"done":"open"});
@@ -612,6 +624,12 @@ function renderDetail(){
   for(const id of ["new-account-email","new-account-label","new-account-owned","add-account-button"])$(id).disabled=busy;
   $("sso-note").classList.toggle("hidden",a.login_method==="password");
   $("checklist").replaceChildren(...STEP_ORDER.map(step=>stepRow(a,step,busy)));
+  $("review-proposal").classList.toggle("hidden",!a.review_proposal);
+  if(a.review_proposal)$("review-proposal-text").textContent=t("Your review rule proposes checking this account again on {date}.",{date:localDate(a.review_proposal)});
+  $("review-proposal-use").disabled=busy;
+  const provider=state.accounts.find(other=>other.id===a.signs_in_with);
+  $("sso-dependency").classList.toggle("hidden",!(provider&&a.login_method==="sso"&&provider.progress!=="complete"));
+  if(provider)$("sso-dependency").textContent=t("This account depends on {account}. Secure that account first; its checklist is not complete yet.",{account:accountTitle(provider)});
   $("progress-status").textContent=a.progress==="complete"?t("Complete on {date}: every step is done or not applicable. This is not a security guarantee.",{date:localDate(a.completed_at)}):progressText(a);
   $("detail-evidence").replaceChildren(...(a.evidence.length?a.evidence.map(evidenceCard):[node("p",t("No local evidence. This does not prove that an account does not exist."),"small-muted")]));
   const sharedClues=a.unassigned_evidence||[];
@@ -733,8 +751,8 @@ function guidedStepCopy(account,step){
   if(step==="identity")return t("Make sure the sign-in address or username is right and belongs to you, then complete this step.");
   if(step==="bitwarden")return t("Prepare an empty Bitwarden item for this exact account. ARGUS never generates or handles its password.");
   if(step==="change_password")return account.password_url?t("Open the verified provider page, change the password in your browser, then return here and complete the checklist step."):t("No verified password-settings link is available. Open the provider website and navigate manually.");
-  if(step==="test_signin")return t("Test the sign-in yourself, then complete this checklist step.");
-  if(step==="mfa")return t("Review multi-factor authentication and recovery options yourself, then complete this checklist step.");
+  if(step==="test_signin")return t(account.login_method==="sso"?"Sign in through the account you sign in with, then complete this checklist step.":account.login_method==="passkey"?"Sign in with your passkey, then complete this checklist step.":"Test the sign-in yourself, then complete this checklist step.");
+  if(step==="mfa")return t(account.login_method==="passkey"?"Check how you regain access without the passkey device, then complete this checklist step.":"Review multi-factor authentication and recovery options yourself, then complete this checklist step.");
   return t("This account is complete.");
 }
 function renderGuided(){
@@ -772,6 +790,57 @@ async function changeWorklist(data){
   try{const result=await api("/api/workflow",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});await refresh();if($("account-dialog").open)renderDetail();return result;}
   catch(e){failure(e);return false;}
   finally{workflowBusy=false;renderWorklist();renderGuided();if($("account-dialog").open)renderDetail();}
+}
+// Plan A8, A20: one or three tasks at a time, no deadline; the report is shown in full before saving.
+function renderSession(){
+  const session=state.session,active=Boolean(session);
+  $("session-badge").classList.toggle("hidden",!active);
+  $("session-badge").textContent=active?t("{finished} of {total} finished",{finished:session.finished,total:session.accounts.length}):"";
+  $("session-copy").textContent=active?t("Started {date}. {steps} step(s) recorded so far. Take the time you need; nothing here has a deadline.",{date:localDate(session.started_at),steps:session.steps_done}):t("Pick one or three tasks from your worklist and work on just these. There is no time limit.");
+  $("session-items").replaceChildren(...(active?session.accounts:[]).map(row=>{
+    const card=node("article",undefined,"worklist-item"),account=state.accounts.find(a=>a.id===row.id);
+    card.append(node("strong",account?accountTitle(account):row.name));
+    card.append(node("p",row.next_step==="done"?t("Finished in this session."):`${t("Next:")} ${t(workflowSteps[row.next_step])}`));
+    if(row.done.length)card.append(node("p",`${t("Done in this session:")} ${row.done.map(step=>t(stepNames[step])).join(", ")}`,"small-muted"));
+    if(row.next_step!=="done"){const actions=node("div",undefined,"bitwarden-actions");actions.append(actionButton("Review →",()=>continueWorklist(row.id),workflowBusy||state.workflow.paused));card.append(actions);}
+    return card;
+  }));
+  for(const id of ["session-one","session-three"])$(id).classList.toggle("hidden",active);
+  for(const id of ["session-report","session-end"])$(id).classList.toggle("hidden",!active);
+  const ready=state.workflow.items.some(item=>!item.deferred&&item.step!=="done");
+  $("session-one").disabled=$("session-three").disabled=workflowBusy||state.workflow.paused||!ready;
+}
+async function sessionAction(body,message){
+  try{await api("/api/session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});await refresh();toast(t(message));}
+  catch(e){failure(e);}
+}
+let reportText="";
+async function previewReport(){
+  try{const result=await api(`/api/session/report?language=${encodeURIComponent(language)}`);reportText=result.text;$("report-text").textContent=reportText;$("report-dialog").showModal();}
+  catch(e){failure(e);}
+}
+function saveReport(){
+  const url=URL.createObjectURL(new Blob([reportText],{type:"text/plain"}));
+  const a=document.createElement("a");a.href=url;a.download="argus-session.txt";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  $("report-dialog").close();toast(t("Report saved by your browser. It stays on this computer."));
+}
+// Plan A10: proposals only; applying them is one undoable change.
+function renderReviewRule(){
+  const rule=state.review_rule,proposed=state.accounts.filter(a=>a.review_proposal);
+  if(document.activeElement!==$("review-months"))$("review-months").value=rule?String(rule.months):"";
+  if(document.activeElement!==$("review-scope"))$("review-scope").value=rule?rule.scope:"important";
+  $("review-proposals").textContent=rule?t("{count} completed account(s) have a proposed review date.",{count:proposed.length}):t("No rule set. Completed accounts get no proposed review date.");
+  $("review-apply").classList.toggle("hidden",!proposed.length);
+}
+async function saveReviewRule(){
+  const months=$("review-months").value;
+  try{await api("/api/review-rule",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({months:months?Number(months):null,scope:$("review-scope").value})});await refresh();toast(t("Review rule saved locally."));}
+  catch(e){failure(e);}
+}
+async function applyReviewProposals(){
+  const ids=state.accounts.filter(a=>a.review_proposal).map(a=>a.id);
+  try{const result=await api("/api/review-rule/apply",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ids})});await refresh();toast(t("Review dates set for {count} account(s).",{count:ids.length}),result.batch);}
+  catch(e){failure(e);}
 }
 async function moveWorklist(id,direction){
   const result=await changeWorklist({action:"move",id,direction});
@@ -973,6 +1042,14 @@ $("registered-email").onchange=()=>{
 };
 $("add-account-form").onsubmit=addLocalAccount;
 $("detail-priority").onchange=()=>update({priority:$("detail-priority").value||null});
+$("session-one").onclick=()=>sessionAction({action:"start",size:1},"Session started. Work on this task at your own pace.");
+$("session-three").onclick=()=>sessionAction({action:"start",size:3},"Session started. Work on these tasks at your own pace.");
+$("session-end").onclick=()=>sessionAction({action:"end"},"Session ended. Your steps stay saved.");
+$("session-report").onclick=previewReport;
+$("report-save").onclick=saveReport;
+for(const id of ["report-close","report-cancel"])$(id).onclick=()=>$("report-dialog").close();
+$("review-save").onclick=saveReviewRule;$("review-apply").onclick=applyReviewProposals;
+$("review-proposal-use").onclick=()=>{const a=state.accounts.find(x=>x.id===selected);if(a&&a.review_proposal)setStep("identity",{review_after:a.review_proposal});};
 $("sign-in-with").onchange=()=>accountAction("sign-in-with",{account_id:$("sign-in-with").value||null},"Saved locally.");
 $("defer-account").onclick=()=>changeWorklist({action:"defer",id:selected});
 $("decide-confirm").onclick=()=>decide("confirmed");

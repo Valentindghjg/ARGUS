@@ -27,3 +27,4 @@ html,body{max-width:100%;overflow-x:clip}
 .catalog-form{display:grid;gap:6px}.catalog-form label{font-size:11px;color:#697990;margin-top:6px}.catalog-form input{border:1px solid var(--border);border-radius:7px;padding:9px 11px;font-size:12px}
 .return-summary{margin-bottom:22px}.return-summary li.problem{color:#a74338;font-weight:600}#changes-view h3{margin-top:24px}
 p.small-muted{white-space:normal;overflow-wrap:anywhere}
+.report-text{white-space:pre-wrap;overflow-wrap:anywhere;background:#f6f8fb;border:1px solid var(--border);border-radius:7px;padding:12px;font-size:11px;max-height:50vh;overflow:auto}

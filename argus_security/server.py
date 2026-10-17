@@ -211,6 +211,15 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, (WEB / path[1:]).read_bytes(), kind)
         elif path == "/api/changes":
             self._send(200, {"changes": self.server.store.recent_changes()})
+        elif path == "/api/session/report":
+            from urllib.parse import parse_qs
+            language = parse_qs(urlsplit(self.path).query).get("language", ["en"])[0]
+            try:
+                self._send(200, {"text": self.server.store.session_report_text(language)})
+            except UserFacingError as exc:
+                self._error(400, str(exc))
+            except ValueError:
+                self._error(400, "Unsupported language; choose en or de")
         elif path == "/api/accounts":
             with self.server.import_lock:
                 job = self.server.active_import()
@@ -397,6 +406,24 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/bitwarden/resolve":
                 from .handoffs import resolve
                 self._send(200, resolve(self.server.store, self._json()))
+            elif path == "/api/review-rule":
+                data = self._json()
+                if set(data) != {"months", "scope"}:
+                    raise UserFacingError("Choose 6, 12 or 24 months and which accounts the rule covers")
+                self._send(200, self.server.store.set_review_rule(data["months"], data["scope"]))
+            elif path == "/api/review-rule/apply":
+                data = self._json()
+                if set(data) != {"ids"}:
+                    raise UserFacingError("Choose accounts with a suggested review date")
+                self._send(200, self.server.store.apply_review_proposals(data["ids"]))
+            elif path == "/api/session":
+                data = self._json()
+                if data.get("action") == "start" and set(data) == {"action", "size"}:
+                    self._send(200, self.server.store.start_session(data["size"]))
+                elif data == {"action": "end"}:
+                    self._send(200, self.server.store.end_session())
+                else:
+                    raise UserFacingError("Choose a session with one or three tasks")
             elif path == "/api/workflow":
                 from .workflow import change_worklist
                 self._send(200, change_worklist(self.server.store, self._json()))

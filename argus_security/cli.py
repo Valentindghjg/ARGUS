@@ -106,6 +106,14 @@ def parser(language="en"):
     export.add_argument('--id', action='append', required=True, help=t('Account ID from list-accounts; may be repeated'))
     export.add_argument('--preview', action='store_true', help=t('Show the items that would be written; create no file'))
     sub.add_parser('unclear', help=t('List everything ARGUS cannot decide for you, in one place'))
+    rule = sub.add_parser('review-rule', help=t('Propose review dates for completed accounts; age alone is no security finding'))
+    rule.add_argument('--months', type=int, choices=[6, 12, 24])
+    rule.add_argument('--scope', choices=['important', 'all'], default='important')
+    rule.add_argument('--off', action='store_true', help=t('Switch the rule off'))
+    rule.add_argument('--apply', action='store_true', help=t('Set every proposed review date; undo restores them'))
+    session = sub.add_parser('session', help=t('Work on one or three worklist tasks and keep a short report'))
+    session.add_argument('action', choices=['start', 'report', 'end'])
+    session.add_argument('--size', type=int, choices=[1, 3], default=3)
     news = sub.add_parser('whats-new', help=t('Show new and changed clues since your last review'))
     news.add_argument('--mark-reviewed', action='store_true',
                       help=t('Mark the shown changes as reviewed; decisions and steps stay unchanged'))
@@ -259,6 +267,26 @@ def main(argv=None):
                 print(t('Scheduled read-only IMAP scans are enabled. They run only while the local ARGUS dashboard is running.'))
                 if config.auth == 'oauth2':
                     print(t('Note: OAuth2 access tokens usually expire within hours. Scheduled scans fail safely once it expires; run enable again with a fresh token or use a provider-supported app password.'))
+        elif args.command == 'review-rule':
+            if args.months and args.off:
+                raise UserFacingError('Choose 6, 12 or 24 months and which accounts the rule covers')
+            if args.months or args.off:
+                store.set_review_rule(None if args.off else args.months, args.scope)
+            snapshot = store.snapshot()
+            proposed = [a['id'] for a in snapshot['accounts'] if a['review_proposal']]
+            if args.apply and proposed:
+                store.apply_review_proposals(proposed)
+            print(json.dumps({'rule': snapshot['review_rule'],
+                              'proposals': {a['id']: a['review_proposal'] for a in snapshot['accounts'] if a['review_proposal']},
+                              'applied': bool(args.apply and proposed)}, ensure_ascii=False, indent=2))
+        elif args.command == 'session':
+            if args.action == 'start':
+                store.start_session(args.size)
+            elif args.action == 'end':
+                print(store.session_report_text(language), end='')
+                store.end_session()
+                return 0
+            print(store.session_report_text(language), end='')
         elif args.command == 'whats-new':
             snapshot = store.snapshot()
             print(json.dumps({'changes': snapshot['changes'], 'return_summary': snapshot['return_summary']},

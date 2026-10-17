@@ -1,4 +1,4 @@
-# Prüfbericht – unveröffentlicht (Paket C)
+# Prüfbericht – Version 2.2.0 (Paket C, noch ohne Tag)
 
 Schritt S11: **283 Python-Tests** und **32 Browser-Prüfgruppen**. Neue Tests
 prüfen neue gegenüber geänderten Hinweisen, stille identische Neuimporte, die
@@ -17,6 +17,14 @@ keine Kreise, inaktiv nach Verwerfen, Entfernen), Identitätskonten an der Spitz
 der Vorschläge mit Gründen, das Tauschen zweier Aufgaben mit Rücknahme sowie
 CLI- und API-Formen. Der Browser notiert Anmelde- und Postfach-Account, liest die
 Gründe und verschiebt eine Aufgabe mit Rücknahme.
+
+Schritt S12b: **294 Python-Tests** und **34 Browser-Prüfgruppen**. Neue Tests
+prüfen die Prüfregel (Eingaben, Umfang, nie ein vergangenes Datum, Monatsenden,
+einmal rücknehmbares Übernehmen), Sitzungen (nur bereite Aufgaben, Größen,
+Bericht aus erfassten Schritten, keine Adressen im Text, Beenden), nur bestätigte
+Exportangaben sowie CLI- und API-Formen. Der Browser prüft die
+Single-Sign-on-Checkliste, eine Sitzung mit Berichtsvorschau und Download und das
+Übernehmen und Zurücknehmen vorgeschlagener Prüfdaten.
 
 # Prüfbericht – Version 2.1.0 (Paket B, noch ohne Tag)
 
