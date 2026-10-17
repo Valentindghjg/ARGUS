@@ -174,7 +174,7 @@ function renderState() {
   $("alias-email").disabled=state.demo;$("alias-owned").disabled=state.demo;
   if(state.demo)setMessage("alias-message","Add real own addresses in a personal profile on your computer. The demo profile stays separate.");
   renderRows();renderCandidates();renderExport();renderBitwardenAudit();renderWorklist();renderGuided();renderHandoffs();renderHistory();
-  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();renderChanges();renderMailboxes();renderSession();renderReviewRule();renderControl();
+  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();renderChanges();renderMailboxes();renderSession();renderReviewRule();renderControl();renderLastImport();
 }
 // Plan A1-A4, A7, A28: what is new since the last review, in one place and one summary.
 const changeReasons={
@@ -417,6 +417,13 @@ function scanDescription(scan){
 function renderNextSteps(id,steps){
   $(id).replaceChildren(...(steps||[]).map(step=>node("li",t(step))));
   $(id).classList.toggle("hidden",!(steps||[]).length);
+}
+// Plan A11, A16: the last terminal import and how to repeat it or retry only failed items.
+function renderLastImport(){
+  const last=state.last_local_import;
+  $("last-import").classList.toggle("hidden",!last);if(!last)return;
+  $("last-import-text").textContent=t("{format} from {path}, {date}. Run the same import again to continue or to find new messages.",{format:last.format.toUpperCase(),path:last.path,date:localDateTime(last.at)})+(last.failed?" "+t("{count} item(s) were skipped or failed; retry only those after fixing them.",{count:last.failed}):"");
+  $("last-import-retry").classList.toggle("hidden",!last.failed);
 }
 function renderScan(scan){
   displayedScan=scan;

@@ -1055,6 +1055,19 @@
     "Analyze every message again, also those processed before under the same conditions": "Jede Nachricht erneut auswerten, auch die unter gleichen Bedingungen bereits verarbeiteten",
     "Read at most this many megabytes of new messages in this run": "Höchstens so viele Megabyte neuer Nachrichten in diesem Lauf lesen",
     "The message budget must be between 1 and 1000000": "Das Nachrichtenbudget muss zwischen 1 und 1000000 liegen",
-    "The size budget must be between 1 and 100000 MB": "Das Größenbudget muss zwischen 1 und 100000 MB liegen"
+    "The size budget must be between 1 and 100000 MB": "Das Größenbudget muss zwischen 1 und 100000 MB liegen",
+    "Last local import": "Letzter lokaler Import",
+    "{count} item(s) were skipped or failed; retry only those after fixing them.": "{count} Element(e) wurden übersprungen oder sind fehlgeschlagen; wiederhole nach dem Beheben nur diese.",
+    "{format} from {path}, {date}. Run the same import again to continue or to find new messages.": "{format} aus {path}, {date}. Starte denselben Import erneut, um fortzusetzen oder neue Nachrichten zu finden.",
+    "Count messages, sizes and new work without importing": "Nachrichten, Größen und neue Arbeit zählen, ohne zu importieren",
+    "Name a path or use --again, not both": "Nenne einen Pfad oder verwende --again, nicht beides",
+    "Name the file or folder to import, or use --again": "Nenne die zu importierende Datei oder den Ordner oder verwende --again",
+    "Read only the items that were skipped or failed last time": "Nur die Elemente lesen, die zuletzt übersprungen wurden oder fehlschlugen",
+    "Repeat the last local import with the same source and format": "Den letzten lokalen Import mit gleicher Quelle und gleichem Format wiederholen",
+    "The last import of this source has no failed items to retry": "Der letzte Import dieser Quelle hat keine fehlgeschlagenen Elemente zum Wiederholen",
+    "The last import source no longer exists; choose it again": "Die letzte Importquelle existiert nicht mehr; wähle sie erneut",
+    "There is no earlier local import to repeat": "Es gibt keinen früheren lokalen Import zum Wiederholen",
+    "{p0} item(s) were skipped or failed. Fix them, then run import --retry-failed to read only those.": "{p0} Element(e) wurden übersprungen oder sind fehlgeschlagen. Behebe sie und führe dann import --retry-failed aus, um nur diese zu lesen.",
+    "{p0} message(s), {p1} MB; {p2} new, {p3} unchanged, {p4} empty or over 2 MiB. Nothing was imported.": "{p0} Nachricht(en), {p1} MB; {p2} neu, {p3} unverändert, {p4} leer oder über 2 MiB. Nichts wurde importiert."
   }
 }

@@ -469,6 +469,12 @@ def main():
                 page.locator("#language").select_option("en")
                 page.locator('[data-view="setup"]').click()
                 checks.append("Control view: permissions, jobs, activity log, global pause and resume in both languages")
+                store.set_meta("import_preset", {"path": "/home/person/Mail/archive.mbox", "format": "mbox", "at": "2026-10-17T08:00:00+00:00"})
+                store.set_meta("import_failures", {"path": "/home/person/Mail/archive.mbox", "format": "mbox", "items": ["#4"]})
+                page.evaluate("refresh()")
+                expect(page.locator("#last-import")).to_contain_text("MBOX from /home/person/Mail/archive.mbox")
+                expect(page.locator("#last-import-retry")).to_be_visible()
+                checks.append("Last terminal import with repeat and retry commands")
 
                 page.set_viewport_size({"width":390,"height":844})
                 expect(page.locator("#page-title")).to_be_visible()

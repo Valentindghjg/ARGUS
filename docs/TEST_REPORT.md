@@ -23,6 +23,13 @@ the CLI options. Earlier re-import tests now expect `unchanged`; tests that
 simulate older stored clues also remove the index, as profiles from before 2.3
 have none.
 
+Step S14b: **314 Python tests** and **36 browser check groups**. New tests cover
+remembering and repeating the last source, a missing source, refusing a path
+together with `--again`, retrying only failed items (and none left afterwards),
+numbered mbox items, the pre-check without jobs or clues, and that the dashboard
+sees only the number of failed items. The browser shows the last terminal
+import with its commands.
+
 # Test report — Version 2.2.0 (package C, not yet tagged)
 
 Step S11: **283 Python tests** and **32 browser check groups**. New tests cover

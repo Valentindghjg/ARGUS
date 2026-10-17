@@ -42,6 +42,16 @@
 - Schema version 8 adds the index after the automatic backup. Re-imports now
   report `unchanged` where they reported `duplicates` before.
 
+### Repeat, retry and check local imports (A11, A16, P3, priority 13)
+
+- `import --again` repeats the last terminal import with the same source and
+  format; a missing source is reported. The dashboard shows the last terminal
+  import with its commands. Browser selections are never remembered.
+- Empty, oversized or unreadable items are noted locally by their relative path
+  or mbox number, and `import --retry-failed` reads only those.
+- `import --check` counts messages, size, new, unchanged and oversized items of
+  a source without importing or analyzing anything.
+
 ## 2.2.0 — Package C: local preparation (not yet tagged)
 
 ### What's new since your last review (A1–A4, A7, A28, priorities 05 and 06)

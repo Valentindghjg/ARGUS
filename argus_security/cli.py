@@ -17,10 +17,11 @@ from .background import (BackgroundScanService, CredentialError, KeyringCredenti
                          MIN_INTERVAL_SECONDS, MAX_INTERVAL_SECONDS, MAX_LIMIT)
 from .backup import create_backup, list_backups, read_manifest, restore_backup
 from .bitwarden import export_file, preview_export
-from .imports import budget
-from .scan import file_messages, load_demo, scan_messages
+from .analysis import ANALYSIS_VERSION, MAX_MESSAGE_BYTES
+from .imports import budget, failed_items, last_source, precheck, save_run
+from .scan import ScanSession, file_items, load_demo, scan_messages
 from .server import serve
-from .store import Store
+from .store import Store, now as result_time
 
 
 def data_root():
@@ -76,8 +77,11 @@ def parser(language="en"):
     srv.add_argument('--port', type=int, default=8765)
     srv.add_argument('--open', action='store_true')
     imp = sub.add_parser('import', help=t('Read local emails without changing the originals'))
-    imp.add_argument('path', type=Path)
+    imp.add_argument('path', type=Path, nargs='?')
     imp.add_argument('--format', choices=['eml', 'mbox', 'maildir'], default='eml')
+    imp.add_argument('--again', action='store_true', help=t('Repeat the last local import with the same source and format'))
+    imp.add_argument('--retry-failed', action='store_true', help=t('Read only the items that were skipped or failed last time'))
+    imp.add_argument('--check', action='store_true', help=t('Count messages, sizes and new work without importing'))
     imp.add_argument('--max-messages', type=int, help=t('Analyze at most this many new messages in this run'))
     imp.add_argument('--max-megabytes', type=int, help=t('Read at most this many megabytes of new messages in this run'))
     imp.add_argument('--recheck', action='store_true',
@@ -178,10 +182,28 @@ def main(argv=None):
                 raise ValueError('Run init or demo first')
             serve(store, args.port, args.open, language=language)
         elif args.command == 'import':
-            limits = budget(args.max_messages, args.max_megabytes)
-            result = scan_messages(store, file_messages(args.path, args.format), args.format, lambda s: print(t('Processed locally: {p0}; new clues: {p1}', p0=s['processed'], p1=s['evidence']), flush=True),
-                                   budget=limits, recheck=args.recheck)
+            path, kind = import_source(args, store)
+            only = failed_items(store, path, kind) if args.retry_failed else None
+            if args.check:
+                emails = store.meta('emails', [])
+                if not emails:
+                    raise ValueError('Configure your own email addresses with init first')
+                summary = precheck(store, file_items(path, kind, only), emails, store.registry, ANALYSIS_VERSION, MAX_MESSAGE_BYTES)
+                print(json.dumps(summary, ensure_ascii=False, indent=2))
+                print(t('{p0} message(s), {p1} MB; {p2} new, {p3} unchanged, {p4} empty or over 2 MiB. Nothing was imported.',
+                        p0=summary['messages'], p1=round(summary['bytes'] / 1048576, 1), p2=summary['new'],
+                        p3=summary['unchanged'], p4=summary['too_large']), file=sys.stderr)
+                return 0
+            session = ScanSession(store, kind, budget=budget(args.max_messages, args.max_megabytes), recheck=args.recheck,
+                                  progress=lambda s: print(t('Processed locally: {p0}; new clues: {p1}', p0=s['processed'], p1=s['evidence']), flush=True))
+            try:
+                result = scan_messages(store, file_items(path, kind, only), kind, session=session, keyed=True)
+            finally:
+                save_run(store, path.resolve(), kind, session.failed_items, result_time())
             report_scan(result, t)
+            if session.failed_items:
+                print(t('{p0} item(s) were skipped or failed. Fix them, then run import --retry-failed to read only those.',
+                        p0=len(session.failed_items)), file=sys.stderr)
         elif args.command == 'report':
             snapshot = store.snapshot()
             print(json.dumps({**snapshot['summary'], 'result': snapshot['result'], 'next_task': snapshot['next_task']},
@@ -393,6 +415,17 @@ def fail(message, t, prefix=''):
     if hint:
         print(t('Next step: ') + t(hint), file=sys.stderr)
     return 2
+
+
+def import_source(args, store):
+    """The source of this import: the given path, or the remembered one (plan A11)."""
+    if args.again or args.retry_failed:
+        if args.path is not None:
+            raise UserFacingError('Name a path or use --again, not both')
+        return last_source(store)
+    if args.path is None:
+        raise UserFacingError('Name the file or folder to import, or use --again')
+    return args.path, args.format
 
 
 def report_scan(result, t):

@@ -194,9 +194,19 @@ everything was processed”, never as complete. Run the same import again to
 continue, also after an interruption or a pause. `--recheck` analyzes every
 message again. The index holds fingerprints only, never message content.
 
+ARGUS remembers the last terminal import (source and format) for
+`import --again`; the dashboard shows it under “Mailbox & Import” with the
+command. Items that were empty, too large or unreadable are listed locally, and
+`import --retry-failed` reads only those after you fixed them. A missing source
+is reported, never silently replaced. For a large archive, `import --check`
+first counts messages, size, new and unchanged messages and oversized items
+without importing anything. Files you pick in the browser are never remembered.
+
 ```bash
+python -m argus_security import /path/to/mailbox.mbox --format mbox --check
 python -m argus_security import /path/to/mailbox.mbox --format mbox --max-messages 5000
-python -m argus_security import /path/to/mailbox.mbox --format mbox   # continues
+python -m argus_security import --again          # continues the same source
+python -m argus_security import --retry-failed   # only the items that failed
 ```
 
 ## Identify your email provider
