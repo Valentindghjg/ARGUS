@@ -1,3 +1,12 @@
+# Test report — Version 2.6.1 (review fixes, not yet tagged)
+
+Review fixes, part 1: **359 Python tests**. New regression tests reproduce each
+fixed finding first: a batch larger than the log limit, method and decision
+undo, redo followed by undo, reused clue numbers, silent re-imports, stale
+evidence, the local calendar day west of UTC, restoring the oldest automatic
+backup, a damaged profile, a newer backup, catalog additions in backups and a
+chosen backup folder. A three-process migration race ran 90 times without error.
+
 # Test report — Version 2.6.0 (quality and trust, not yet tagged)
 
 Step S19: **336 Python tests** and **42 browser check groups**. New tests cover

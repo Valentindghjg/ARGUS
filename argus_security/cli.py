@@ -481,10 +481,11 @@ def backup_command(args, data_dir, t):
                 p0=manifest['created_at'], p1=manifest['app_version']))
     else:
         result = restore_backup(data_dir, args.path)
-        Store(data_dir, Registry(args.providers))
         print(t('Profile restored from the backup of {p0}.', p0=result['restored']))
         if result['safety_backup']:
             print(t('The previous state was saved to {p0}.', p0=result['safety_backup']))
+        # Opening it migrates an older backup; the messages above stay visible if that fails.
+        Store(data_dir, Registry(args.providers))
         print(t('Keyring authorizations are not part of a backup. If scheduled scans stop, approve them again with background-imap enable.'))
     return 0
 

@@ -8,7 +8,7 @@ changes. The date is a reminder, not a finding: an account's age alone says
 nothing about its security.
 """
 from calendar import monthrange
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta
 import json
 
 from .errors import UserFacingError
@@ -50,7 +50,7 @@ def proposals(accounts, rule, today=None):
     """Suggested review dates for completed accounts in scope without any review date."""
     if not rule:
         return {}
-    today = today or datetime.now(timezone.utc).date()
+    today = today or date.today()
     result = {}
     for account in accounts:
         if (account["progress"] != "complete" or not account["completed_at"] or account["decision"] == "rejected"

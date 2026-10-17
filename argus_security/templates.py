@@ -8,11 +8,12 @@ it plans for them (add them to the worklist, a review date for chosen steps).
 Applying a template first shows exactly which accounts it touches, then makes
 one local change that can be undone. It never acts at a provider.
 """
-from datetime import datetime, timedelta, timezone
+from datetime import date, timedelta
 import re
 
 from .errors import UserFacingError
 from .states import STEPS
+from .store import atomic_meta_update
 
 KEY = "templates"
 RANK = {"normal": 0, "high": 1, "critical": 2}
@@ -62,23 +63,28 @@ def all_templates(store):
 
 def save(store, data, categories):
     template = validate(data, categories)
-    templates = custom(store)
-    if len(templates) >= 50:
-        raise UserFacingError("Keep at most 50 own templates")
-    ident = "mine-" + (re.sub(r"[^a-z0-9]+", "-", template["name"].casefold()).strip("-")[:40] or "template")
-    base, suffix = ident, 2
-    while ident in templates or ident in BUILTIN:
-        ident, suffix = f"{base}-{suffix}", suffix + 1
-    store.set_meta(KEY, {**templates, ident: template})
-    return ident
+
+    # Read and written under one lock, so two tabs or the CLI never lose a template.
+    def change(value):
+        templates = value if isinstance(value, dict) else {}
+        if len(templates) >= 50:
+            raise UserFacingError("Keep at most 50 own templates")
+        ident = "mine-" + (re.sub(r"[^a-z0-9]+", "-", template["name"].casefold()).strip("-")[:40] or "template")
+        base, suffix = ident, 2
+        while ident in templates or ident in BUILTIN:
+            ident, suffix = f"{base}-{suffix}", suffix + 1
+        return {**templates, ident: template}, ident
+    return atomic_meta_update(store, KEY, change)
 
 
 def delete(store, ident):
-    templates = custom(store)
-    if ident not in templates:
-        raise UserFacingError("Only templates you created can be deleted")
-    del templates[ident]
-    store.set_meta(KEY, templates)
+    def change(value):
+        templates = dict(value) if isinstance(value, dict) else {}
+        if not isinstance(ident, str) or ident not in templates:
+            raise UserFacingError("Only templates you created can be deleted")
+        del templates[ident]
+        return templates, None
+    atomic_meta_update(store, KEY, change)
 
 
 def select(accounts, template):
@@ -92,7 +98,7 @@ def select(accounts, template):
 
 def preview(accounts, template, queued):
     covered = select(accounts, template)
-    review_date = ((datetime.now(timezone.utc).date() + timedelta(days=template["review_days"])).isoformat()
+    review_date = ((date.today() + timedelta(days=template["review_days"])).isoformat()
                    if template["review_steps"] else None)
     return {"accounts": [account["id"] for account in covered],
             "worklist_additions": [account["id"] for account in covered if template["worklist"] and account["id"] not in queued],

@@ -171,16 +171,18 @@ class StateModelTests(unittest.TestCase):
         store.update_account("github", {"login_method": "sso"})
         store.update_account("github", {"status": "skipped"})
         entries = self.log(store)
+        # The sign-in method is logged with the password step it changes.
         self.assertEqual([entry["field"] for entry in entries],
-                         ["decision", "step:identity", "step:vault", "step:password", "planning"])
+                         ["decision", "step:identity", "step:vault", "method", "step:password", "planning"])
         self.assertEqual(len({entry["batch"] for entry in entries}), 3)
         self.assertEqual(json.loads(entries[0]["old"])["decision"], "undecided")
         self.assertEqual(json.loads(entries[0]["new"])["decision"], "confirmed")
-        self.assertEqual(json.loads(entries[3]["new"])["state"], "not_applicable")
-        self.assertEqual(json.loads(entries[4]["new"])["deferred"], True)
+        self.assertEqual(json.loads(entries[3]["new"]), "sso")
+        self.assertEqual(json.loads(entries[4]["new"])["state"], "not_applicable")
+        self.assertEqual(json.loads(entries[5]["new"])["deferred"], True)
         # An unchanged value is not logged again.
         store.update_account("github", {"checklist": {"reviewed": True}})
-        self.assertEqual(len(self.log(store)), 5)
+        self.assertEqual(len(self.log(store)), 6)
 
     def test_change_log_keeps_whole_batches_within_its_limit(self):
         store = self.personal_store()

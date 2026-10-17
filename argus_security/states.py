@@ -15,7 +15,7 @@ Progress and the next step are derived for display and never stored. A
 completed progress records only the person's own steps; it is no security
 guarantee.
 """
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, timedelta
 import json
 
 from .errors import UserFacingError
@@ -50,7 +50,8 @@ def valid_step_state(step, state):
 
 def review_date(value, today=None):
     """A local review date for a step (A10): a calendar day within the next five years."""
-    today = today or datetime.now(timezone.utc).date()
+    # The person's own calendar day, the same one the date field showed them.
+    today = today or date.today()
     if not isinstance(value, str):
         raise UserFacingError("Choose a review date within the next five years")
     try:

@@ -2,7 +2,7 @@
 # Copyright (c) 2026 ARGUS contributors
 """Private SQLite storage of evidence metadata, never message bodies or secrets."""
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 import json
 import os
 from pathlib import Path
@@ -19,8 +19,9 @@ from .jobs import SCHEMA as JOBS_SCHEMA
 from .imports import SCHEMA as IMPORTS_SCHEMA
 from .history import SCHEMA as HISTORY_SCHEMA
 from .moves import SCHEMA as MOVES_SCHEMA
-from .changes import ChangeBatch, planning
-from .digest import acknowledge, change_digest, next_revision, return_summary, review_mark, undo_acknowledge
+from .changes import ChangeBatch, decision_value, planning
+from .digest import (acknowledge, change_digest, evidence_mark, keep_evidence_mark, next_revision, return_summary,
+                     review_mark, undo_acknowledge)
 from .states import (DECISIONS, LEGACY_CHECKLIST, LEGACY_STEPS, REJECT_REASONS, STEPS, default_steps,
                      evidence_level, legacy_checklist, legacy_classification, legacy_status, progress,
                      review_date, valid_step_state)
@@ -34,6 +35,12 @@ CHECKLIST = LEGACY_CHECKLIST
 #   2: ADR-0001 axes: decision, dated steps, planning only in the worklist, change log
 #   3: rule features per clue (plan E1); older clues gain them on their next import
 #   4: reversible sender-domain exclusions and relations between own addresses (E4, A9)
+#   5: arrival and change revision per clue for "What's new" (A1-A4)
+#   6: sign-in links and mailbox hosts between confirmed accounts (A17, B6)
+#   7: jobs, the global pause and the minimal activity log (A23-A27, D5)
+#   8: the processed-message index for continuing imports (A11, A13-A16)
+#   9: one row of counts per day for progress over time (P2)
+#  10: address move plans (A21)
 SCHEMA_VERSION = 10
 
 
@@ -156,6 +163,15 @@ def write_private(path: Path, content: str):
         handle.write(content)
 
 
+def _add_column(db, table, definition):
+    """Add a column once; a second process opening the same old profile may have added it already."""
+    try:
+        db.execute(f"ALTER TABLE {table} ADD COLUMN {definition}")
+    except sqlite3.OperationalError as exc:
+        if "duplicate column name" not in str(exc):
+            raise
+
+
 class Store:
     def __init__(self, data_dir: Path, registry: Registry):
         self.data_dir = data_dir.resolve()
@@ -178,21 +194,21 @@ class Store:
                 db.executescript(LEGACY_SCHEMA)
                 columns = {row["name"] for row in db.execute("PRAGMA table_info(accounts)")}
                 if "manual_email" not in columns:
-                    db.execute("ALTER TABLE accounts ADD COLUMN manual_email TEXT")
+                    _add_column(db, "accounts", "manual_email TEXT")
             evidence_columns = {row["name"] for row in db.execute("PRAGMA table_info(evidence)")}
             if "rule_version" not in evidence_columns:
-                db.execute("ALTER TABLE evidence ADD COLUMN rule_version INTEGER NOT NULL DEFAULT 1")
+                _add_column(db, "evidence", "rule_version INTEGER NOT NULL DEFAULT 1")
             if "features" not in evidence_columns:
-                db.execute("ALTER TABLE evidence ADD COLUMN features TEXT")
+                _add_column(db, "evidence", "features TEXT")
             # Plan A1/A2: clues stored before revisions existed count as already seen (revision 0).
             for column in ("created_rev", "changed_rev"):
                 if column not in evidence_columns:
-                    db.execute(f"ALTER TABLE evidence ADD COLUMN {column} INTEGER NOT NULL DEFAULT 0")
+                    _add_column(db, "evidence", f"{column} INTEGER NOT NULL DEFAULT 0")
             # A message's raw fingerprint is its identity across rule/catalogue revisions.
             indexes = {row["name"] for row in db.execute("PRAGMA index_list(evidence)")}
             if "evidence_fingerprint" not in indexes:
                 db.execute("DELETE FROM evidence WHERE id NOT IN (SELECT MIN(id) FROM evidence GROUP BY fingerprint)")
-                db.execute("CREATE UNIQUE INDEX evidence_fingerprint ON evidence(fingerprint)")
+                db.execute("CREATE UNIQUE INDEX IF NOT EXISTS evidence_fingerprint ON evidence(fingerprint)")
             db.executescript(INSTANCE_SCHEMA)
             db.executescript(REVIEW_SCHEMA)
             db.executescript(IDENTITY_SCHEMA)
@@ -202,9 +218,10 @@ class Store:
             db.executescript(MOVES_SCHEMA)
             queue_columns = {row["name"] for row in db.execute("PRAGMA table_info(instance_work_queue)")}
             if "resume_after" not in queue_columns:
-                db.execute("ALTER TABLE instance_work_queue ADD COLUMN resume_after TEXT")
-            instance_columns = {row["name"] for row in db.execute("PRAGMA table_info(account_instances)")}
+                _add_column(db, "instance_work_queue", "resume_after TEXT")
             db.execute("BEGIN IMMEDIATE")
+            # Read under the lock: another process may have just migrated this profile.
+            instance_columns = {row["name"] for row in db.execute("PRAGMA table_info(account_instances)")}
             if "checklist" in instance_columns:
                 rebuild_from_v1(db)
             migrate_instances(db, registry)
@@ -304,6 +321,7 @@ class Store:
             previous = db.execute("SELECT * FROM evidence WHERE fingerprint=?", (fingerprint,)).fetchone()
             if evidence is None:
                 if previous:
+                    keep_evidence_mark(db)
                     db.execute("DELETE FROM evidence WHERE fingerprint=?", (fingerprint,))
                     if changes is not None:
                         changes.append({"provider_id": previous["provider_id"], "sender_domain": previous["sender_domain"],
@@ -312,26 +330,35 @@ class Store:
                     return "removed"
                 return "ignored"
             features = json.dumps(sorted(set(evidence.features) & FEATURES))
-            fields = ("provider_id", "sender_domain", "registered_email", "signal", "score", "date", "caveat",
-                      "rule_version", "features")
-            values = (evidence.provider_id, evidence.sender_domain, evidence.registered_email,
-                      evidence.signal, evidence.score, evidence.date, evidence.caveat, ANALYSIS_VERSION, features)
-            if previous and tuple(previous[f] for f in fields) == values:
-                # Plan A2: the same message with the same result is never presented again.
-                return "duplicate"
+            rating = ("provider_id", "sender_domain", "registered_email", "signal", "score")
+            values = {"provider_id": evidence.provider_id, "sender_domain": evidence.sender_domain,
+                      "registered_email": evidence.registered_email, "signal": evidence.signal, "score": evidence.score,
+                      "date": evidence.date, "caveat": evidence.caveat, "rule_version": ANALYSIS_VERSION,
+                      "features": features}
+            if (previous and previous["rule_version"] >= ANALYSIS_VERSION
+                    and all(previous[field] == values[field] for field in rating)):
+                # Plan A2: the same message with the same rating is never presented
+                # again. Newer wording or features are stored without a new
+                # revision; a clue from older rules was capped, so its re-rating counts.
+                if all(previous[field] == values[field] for field in values):
+                    return "duplicate"
+                db.execute("UPDATE evidence SET date=?,caveat=?,rule_version=?,features=? WHERE fingerprint=?",
+                           (evidence.date, evidence.caveat, ANALYSIS_VERSION, features, fingerprint))
+                return "updated"
             revision = next_revision(db)
-            db.execute("""INSERT INTO evidence
-              (provider_id,sender_domain,registered_email,signal,score,fingerprint,date,source,caveat,rule_version,features,
-               created_rev,changed_rev)
-              VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(fingerprint) DO UPDATE SET
-                provider_id=excluded.provider_id, sender_domain=excluded.sender_domain,
-                registered_email=excluded.registered_email, signal=excluded.signal,
-                score=excluded.score, date=excluded.date, caveat=excluded.caveat,
-                rule_version=excluded.rule_version, features=excluded.features, changed_rev=excluded.changed_rev""", (
-                evidence.provider_id, evidence.sender_domain, evidence.registered_email,
-                evidence.signal, evidence.score, evidence.fingerprint, evidence.date,
-                evidence.source, evidence.caveat, ANALYSIS_VERSION, features, revision, revision,
-            ))
+            if previous:
+                db.execute("""UPDATE evidence SET provider_id=?,sender_domain=?,registered_email=?,signal=?,score=?,date=?,
+                              caveat=?,rule_version=?,features=?,changed_rev=? WHERE fingerprint=?""",
+                           (*values.values(), revision, fingerprint))
+            else:
+                # Above the high-water mark, so a removed newest clue never lends its id to a new one.
+                db.execute("""INSERT INTO evidence
+                  (id,provider_id,sender_domain,registered_email,signal,score,fingerprint,date,source,caveat,rule_version,
+                   features,created_rev,changed_rev) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (
+                    evidence_mark(db) + 1, evidence.provider_id, evidence.sender_domain, evidence.registered_email,
+                    evidence.signal, evidence.score, evidence.fingerprint, evidence.date,
+                    evidence.source, evidence.caveat, ANALYSIS_VERSION, features, revision, revision,
+                ))
             synchronize_instances(db, self.registry, {evidence.provider_id})
             if previous and changes is not None and (previous["signal"], previous["score"], previous["provider_id"]) != (
                     evidence.signal, evidence.score, evidence.provider_id):
@@ -364,7 +391,7 @@ class Store:
         from .registry import is_shared_sender
         from .workflow import effectively_deferred, utcnow
         moment = utcnow()
-        today = moment.date().isoformat()
+        today = moment.astimezone().date().isoformat()  # the person's calendar day
         grouped = {}
         unassigned = {}
         candidates = {}
@@ -421,11 +448,16 @@ class Store:
                 steps.update(step_rows.get(state["id"], {}))
                 review = bool(state["identity_review_required"])
                 level = evidence_level(found)
+                # Clues from older rules cannot bind an identity, but they are
+                # evidence: axis A says "stale" instead of "none" (ADR-0001).
+                if not found and state["canonical"] and provider_clues and all(e["outdated"] for e in provider_clues):
+                    level = "stale"
                 progress_value, completed_at = progress(decision, steps, review)
                 planned = queue.get(state["id"])
                 deferred = bool(planned) and effectively_deferred(planned, moment)
                 confirmed = decision == "confirmed"
-                evidence_reason = found[0]["reason"] if found else "No local evidence; account existence is unknown"
+                evidence_reason = (found[0]["reason"] if found else provider_clues[0]["reason"] if level == "stale"
+                                   else "No local evidence; account existence is unknown")
                 accounts.append({
                     **provider.public(), "id": state["id"], "provider_id": provider_id,
                     "identity_email": email, "label": state["label"],
@@ -525,7 +557,7 @@ class Store:
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             history.record(db, today)
-            snapshot["history"] = {"day": datetime.now(timezone.utc).date().isoformat(), "today": today,
+            snapshot["history"] = {"day": date.today().isoformat(), "today": today,
                                    "comparisons": history.comparisons(db, today)}
         snapshot["profile_name"] = profile_name(self.data_dir)
         from .moves import plans
@@ -576,7 +608,7 @@ class Store:
             moment = now()
             steps = read_steps(db, account_id, state["login_method"])
             new_steps = {step: dict(value) for step, value in steps.items()}
-            decision = {"decision": state["decision"], "reason": state["decision_reason"], "decided_at": state["decided_at"]}
+            decision = decision_value(state)
             new_decision = dict(decision)
             review = state["identity_review_required"]
 
@@ -653,11 +685,15 @@ class Store:
                 if progress(new_decision["decision"], new_steps, bool(review))[0] != "complete":
                     raise UserFacingError("Check the required steps before marking this account done")
             batch = ChangeBatch(db)
-            if new_decision != decision:
-                decided_evidence = db.execute("SELECT COALESCE(MAX(id),0) FROM evidence").fetchone()[0]
+            core = ("decision", "reason", "decided_at")
+            if any(new_decision[key] != decision[key] for key in core):
+                new_decision = {**{key: new_decision[key] for key in core}, "evidence_mark": evidence_mark(db)}
                 batch.record(account_id, "decision", decision, new_decision)
             else:
-                decided_evidence = state["decided_evidence_id"]
+                new_decision = decision
+            decided_evidence = new_decision["evidence_mark"]
+            # Logged with the password step it changes, so one undo restores both.
+            batch.record(account_id, "method", state["login_method"], method)
             for step, value in new_steps.items():
                 if value != steps[step]:
                     write_step(db, account_id, step, value)
@@ -697,13 +733,14 @@ class Store:
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             state = self._account_row(db, account_id)
-            old = {"decision": state["decision"], "reason": state["decision_reason"], "decided_at": state["decided_at"]}
+            old = decision_value(state)
             if old["decision"] == decision and old["reason"] == reason:
                 return {"ok": True, "batch": None}
-            new = {"decision": decision, "reason": reason, "decided_at": None if decision == "undecided" else now()}
+            mark = evidence_mark(db)
+            new = {"decision": decision, "reason": reason, "decided_at": None if decision == "undecided" else now(),
+                   "evidence_mark": mark}
             batch = ChangeBatch(db)
             batch.record(account_id, "decision", old, new)
-            mark = db.execute("SELECT COALESCE(MAX(id),0) FROM evidence").fetchone()[0]
             db.execute("""UPDATE account_instances SET decision=?,decision_reason=?,decided_at=?,decided_evidence_id=?,
                           updated=? WHERE id=?""", (decision, reason, new["decided_at"], mark, now(), account_id))
             if decision == "rejected":

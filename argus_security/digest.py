@@ -17,6 +17,7 @@ from .errors import UserFacingError
 from .registry import is_shared_sender
 
 SEEN = "changes_seen"
+EVIDENCE_HIGH = "evidence_high"
 # Items that need a decision come first (A4), most blocking first.
 ATTENTION = ("reconsider", "identity", "unassigned", "domain")
 SCAN_GAPS = {"partial", "limited", "completed_with_gaps"}
@@ -33,6 +34,23 @@ def next_revision(db):
     db.execute("INSERT INTO meta VALUES ('revision',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
                (json.dumps(revision),))
     return revision
+
+
+def evidence_mark(db):
+    """The highest clue id ever stored.
+
+    SQLite gives a new row the current largest id plus one, so after the
+    newest clue is removed its id comes back. Decisions and exclusions keep
+    this high-water value instead, and new clues are stored above it, so a
+    later clue is always recognised as newer (ADR-0001 rule 2, plan A9).
+    """
+    return max(_meta(db, EVIDENCE_HIGH, 0), db.execute("SELECT COALESCE(MAX(id),0) FROM evidence").fetchone()[0])
+
+
+def keep_evidence_mark(db):
+    """Remember the high-water value before a clue is removed."""
+    db.execute("INSERT INTO meta VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+               (EVIDENCE_HIGH, json.dumps(evidence_mark(db))))
 
 
 def review_mark(db):

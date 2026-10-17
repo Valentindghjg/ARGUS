@@ -3,7 +3,8 @@
 """Local, unencrypted profile backups and verified restores.
 
 A backup is one ZIP file with a manifest, a consistent copy of the database
-(SQLite online backup) and, when present, the password-free ``imap.json``.
+(SQLite online backup) and, when present, the password-free ``imap.json`` and
+the person's own catalog additions (``my-providers.json``).
 Secrets never enter a backup: ARGUS keeps none in the profile, and the OS
 keyring is not copied. Files are created with private permissions and never
 overwritten. The owner chose no ARGUS encryption (no new password system);
@@ -21,17 +22,20 @@ import tempfile
 import zipfile
 
 from . import __version__
+from .catalog import PERSONAL_CATALOG
 from .errors import UserFacingError
 
 FORMAT = "argus-backup"
-FORMAT_VERSION = 1
+# 2 (2.6.1) adds my-providers.json; version 1 archives are read as before.
+FORMAT_VERSION = 2
 DATABASE = "accounts.sqlite3"
 IMAP_CONFIG = "imap.json"
 MANIFEST = "manifest.json"
 BACKUP_DIR = "backups"
 REASONS = ("manual", "pre-migration", "pre-restore")
 # Limits keep a damaged or hostile archive from exhausting the disk.
-MAX_SIZES = {DATABASE: 1024 * 1024 * 1024, IMAP_CONFIG: 64 * 1024, MANIFEST: 64 * 1024}
+MAX_SIZES = {DATABASE: 1024 * 1024 * 1024, IMAP_CONFIG: 64 * 1024, PERSONAL_CATALOG: 4 * 1024 * 1024,
+             MANIFEST: 64 * 1024}
 KEEP_AUTOMATIC = 5
 
 
@@ -43,11 +47,13 @@ def _now():
     return datetime.now(timezone.utc)
 
 
-def _private_dir(path: Path):
+def _private_dir(path: Path, own=True):
+    """Create the folder privately; a folder the person chose keeps its permissions."""
     if path.is_symlink():
         raise BackupError("The backup folder must not be a symlink")
+    created = not path.exists()
     path.mkdir(parents=True, exist_ok=True, mode=0o700)
-    if os.name == "posix":
+    if os.name == "posix" and (own or created):
         path.chmod(0o700)
 
 
@@ -88,7 +94,7 @@ def default_folder(data_dir: Path):
     return data_dir / BACKUP_DIR
 
 
-def create_backup(data_dir: Path, *, reason="manual", folder: Path | None = None, label=""):
+def create_backup(data_dir: Path, *, reason="manual", folder: Path | None = None, label="", prune=True):
     """Write one new backup archive and return its path; never overwrite a file."""
     if reason not in REASONS:
         raise ValueError("Invalid backup reason")
@@ -96,8 +102,9 @@ def create_backup(data_dir: Path, *, reason="manual", folder: Path | None = None
     database = data_dir / DATABASE
     if not database.is_file() or database.is_symlink():
         raise BackupError("There is no local profile to back up yet")
-    folder = Path(folder) if folder is not None else default_folder(data_dir)
-    _private_dir(folder)
+    own = folder is None
+    folder = default_folder(data_dir) if own else Path(folder)
+    _private_dir(folder, own)
     stamp = _now().strftime("%Y%m%dT%H%M%SZ")
     name = f"argus-backup-{stamp}-{reason}{'-' + label if label else ''}-{secrets.token_hex(3)}.zip"
     target = folder / name
@@ -107,9 +114,10 @@ def create_backup(data_dir: Path, *, reason="manual", folder: Path | None = None
     try:
         _copy_database(database, temporary)
         files = {DATABASE: temporary}
-        imap = data_dir / IMAP_CONFIG
-        if imap.is_file() and not imap.is_symlink():
-            files[IMAP_CONFIG] = imap
+        for member in (IMAP_CONFIG, PERSONAL_CATALOG):
+            source = data_dir / member
+            if source.is_file() and not source.is_symlink():
+                files[member] = source
         manifest = {"format": FORMAT, "version": FORMAT_VERSION, "app_version": __version__,
                     "created_at": _now().isoformat(), "reason": reason,
                     "schema_version": schema_version(temporary),
@@ -128,17 +136,34 @@ def create_backup(data_dir: Path, *, reason="manual", folder: Path | None = None
         raise BackupError("The backup could not be written; nothing was changed") from exc
     finally:
         temporary.unlink(missing_ok=True)
-    if reason != "manual":
+    if reason != "manual" and prune:
         _prune_automatic(folder)
     return target
 
 
-def _prune_automatic(folder: Path):
-    """Keep the newest automatic backups; manual backups are never deleted."""
+def _prune_automatic(folder: Path, keep: Path | None = None):
+    """Keep the newest automatic backups; manual backups and ``keep`` are never deleted."""
     automatic = sorted(path for path in folder.glob("argus-backup-*.zip")
                        if "-manual" not in path.name and path.is_file() and not path.is_symlink())
     for path in automatic[:-KEEP_AUTOMATIC]:
-        path.unlink(missing_ok=True)
+        if keep is None or not path.samefile(keep):
+            path.unlink(missing_ok=True)
+
+
+def _save_damaged(data_dir: Path):
+    """Keep the bytes of a profile SQLite cannot read, so a restore can still replace it."""
+    folder = default_folder(data_dir)
+    _private_dir(folder)
+    target = folder / f"argus-damaged-profile-{_now().strftime('%Y%m%dT%H%M%SZ')}-{secrets.token_hex(3)}.sqlite3"
+    try:
+        handle = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(handle, "wb") as out, (data_dir / DATABASE).open("rb") as source:
+            for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                out.write(chunk)
+    except OSError as exc:
+        target.unlink(missing_ok=True)
+        raise BackupError("The backup could not be written; nothing was changed") from exc
+    return target
 
 
 def list_backups(data_dir: Path):
@@ -177,7 +202,9 @@ def read_manifest(path: Path):
             or not all(isinstance(entry, dict) for entry in manifest["files"].values())
             or not isinstance(manifest.get("created_at"), str) or not isinstance(manifest.get("app_version"), str)):
         raise BackupError("This file is not a valid ARGUS backup")
-    if manifest.get("version") != FORMAT_VERSION:
+    if type(manifest.get("version")) is not int or manifest["version"] < 1:
+        raise BackupError("This file is not a valid ARGUS backup")
+    if manifest["version"] > FORMAT_VERSION:
         raise BackupError("This backup was made by a newer ARGUS version; update ARGUS first")
     return manifest
 
@@ -222,8 +249,12 @@ def restore_backup(data_dir: Path, path: Path):
     """Replace the profile with a verified backup; the current state is saved first.
 
     Stop the dashboard and any scan before restoring. OS-keyring entries are
-    not part of a backup, so scheduled scans may need a new approval.
+    not part of a backup, so scheduled scans may need a new approval. A
+    backup from a newer ARGUS is refused before anything changes. A profile
+    SQLite cannot read is kept as raw bytes instead of a backup. Catalog
+    additions are kept when an older backup has none.
     """
+    from .store import SCHEMA_VERSION
     data_dir = Path(data_dir)
     manifest = read_manifest(path)
     if data_dir.is_symlink():
@@ -232,21 +263,34 @@ def restore_backup(data_dir: Path, path: Path):
     extracted = _extract_verified(Path(path), manifest, data_dir)
     safety = None
     try:
+        stored = schema_version(extracted[DATABASE])
+        if stored is not None and stored > SCHEMA_VERSION:
+            raise BackupError("This backup was made by a newer ARGUS version; update ARGUS first")
         if (data_dir / DATABASE).is_file():
-            safety = create_backup(data_dir, reason="pre-restore")
+            try:
+                safety = create_backup(data_dir, reason="pre-restore", prune=False)
+            except BackupError as exc:
+                cause = exc.__cause__
+                if not isinstance(cause, sqlite3.DatabaseError) or isinstance(cause, sqlite3.OperationalError):
+                    raise
+                safety = _save_damaged(data_dir)
         os.replace(extracted.pop(DATABASE), data_dir / DATABASE)
         if IMAP_CONFIG in extracted:
             os.replace(extracted.pop(IMAP_CONFIG), data_dir / IMAP_CONFIG)
         else:
             # The restored profile had no mailbox settings; keep them only in the safety backup.
             (data_dir / IMAP_CONFIG).unlink(missing_ok=True)
+        if PERSONAL_CATALOG in extracted:
+            os.replace(extracted.pop(PERSONAL_CATALOG), data_dir / PERSONAL_CATALOG)
     except OSError as exc:
         raise BackupError("The profile is in use; stop the dashboard and scans, then restore again") from exc
     finally:
         for file in extracted.values():
             file.unlink(missing_ok=True)
+    # Only now, so the archive being restored can never be pruned on the way.
+    _prune_automatic(default_folder(data_dir), keep=Path(path))
     if os.name == "posix":
-        for name in (DATABASE, IMAP_CONFIG):
+        for name in (DATABASE, IMAP_CONFIG, PERSONAL_CATALOG):
             if (data_dir / name).is_file():
                 (data_dir / name).chmod(0o600)
     return {"restored": manifest["created_at"], "reason": manifest["reason"],
