@@ -64,7 +64,8 @@ def _export_plan(store: Store, ids: list[str], language="en"):
                 "type": 1, "reprompt": 0,
                 "name": account["name"] + (" · " + account["label"] if account.get("label") else ""), "favorite": False,
                 "notes": translate("ARGUS: {classification}; review manually.\nEvidence: {reason}\nNo password exported. Generate a new password directly in Bitwarden and set it at the provider.",
-                                   language, classification=translate(account["classification"], language), reason=account["reason"]),
+                                   language, classification=translate(account["classification"], language), reason=account["reason"])
+                         + _known_details(account, accounts, language),
                 "fields": [{"name": ACCOUNT_FIELD, "value": account["id"], "type": 0},
                            {"name": PROVIDER_FIELD, "value": account["provider_id"], "type": 0}],
                 "login": {"uris": [{"match": None, "uri": account["website"]}],
@@ -74,6 +75,25 @@ def _export_plan(store: Store, ids: list[str], language="en"):
     if not items:
         raise UserFacingError("Export only discovered accounts not already assigned in Bitwarden")
     return items, already_created
+
+
+SIGN_IN_METHODS = {"password": "Separate password", "sso": "Single sign-on", "passkey": "Passkey"}
+
+
+def _known_details(account, accounts, language):
+    """Plan A18: add only what the person confirmed or the catalog verified; leave the rest out."""
+    lines = []
+    if account["decision"] == "confirmed":
+        lines.append(translate("Sign-in method: {method}", language,
+                               method=translate(SIGN_IN_METHODS[account["login_method"]], language)))
+        provider = accounts.get(account.get("signs_in_with"))
+        if provider and provider["decision"] == "confirmed":
+            lines.append(translate("Signs in with: {account}", language,
+                                   account=provider["name"] + (" · " + provider["label"] if provider.get("label") else "")))
+    if account.get("password_url"):
+        lines.append(translate("Password settings: {url} (official source checked {date})", language,
+                               url=account["password_url"], date=account["password_verified"]))
+    return "".join("\n" + line for line in lines)
 
 
 def _folder_name():

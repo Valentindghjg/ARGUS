@@ -1,4 +1,4 @@
-# Test report — unreleased (package C)
+# Test report — Version 2.2.0 (package C, not yet tagged)
 
 Step S11: **283 Python tests** and **32 browser check groups**. New tests cover
 new versus changed clues, quiet identical re-imports, grouping with unclear
@@ -15,6 +15,13 @@ rejection, removal), identity accounts leading the suggestions with reasons,
 swapping two worklist tasks with undo, and CLI and API shapes. The browser
 notes a sign-in and a mailbox account, reads the reasons and moves a task with
 undo.
+
+Step S12b: **294 Python tests** and **34 browser check groups**. New tests cover
+the review rule (validation, scope, never a past date, month ends, one undoable
+apply), sessions (ready tasks only, sizes, report from recorded steps, no
+addresses in the text, end), confirmed-only export details, and CLI and API
+shapes. The browser checks the single sign-on checklist, a session with report
+preview and download, and applying and undoing proposed review dates.
 
 # Test report — Version 2.1.0 (package B, not yet tagged)
 

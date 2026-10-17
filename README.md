@@ -1,4 +1,4 @@
-# ARGUS 2.1.0
+# ARGUS 2.2.0
 
 [Deutsch](README_DE.md) · English
 
@@ -381,6 +381,30 @@ python -m argus_security sign-in-with notion google
 python -m argus_security sign-in-with notion --remove
 ```
 
+## Short sessions, review dates and the checklist by sign-in method
+
+Under “Security worklist”, **One task** or **Three tasks** starts a short
+session with the next ready tasks. There is no time limit. The session shows
+what you recorded since it started; **Preview report** shows the complete text
+file (account names and steps only, no addresses, evidence or passwords) before
+your browser saves it. The checklist follows the sign-in method you chose:
+single sign-on and passkey accounts get matching steps instead of a password
+change, and an account that depends on an incomplete sign-in account says so.
+
+A **review rule** (after 6, 12 or 24 months; high-priority or all completed
+accounts) proposes a date to check completed accounts again. Nothing changes
+until you choose **Use this date** or **Use proposed dates**, which can be
+undone. Age alone is no sign of a security problem. Bitwarden notes now also
+carry the sign-in method and sign-in account you confirmed and a verified
+password-settings page; unknown values stay out.
+
+```bash
+python -m argus_security session start --size 3
+python -m argus_security session report
+python -m argus_security session end
+python -m argus_security review-rule --months 12 --scope important --apply
+```
+
 ## What's new since your last review
 
 After an import, “What's new” shows only clues that are new or rated
@@ -644,6 +668,7 @@ report.
 | `argus_security/summary.py`, `guidance.py` | Result summary, next task and next-step hints |
 | `argus_security/digest.py` | What's new since the last review and the return summary |
 | `argus_security/identity.py` | Confirmed sign-in and mailbox relations and explained priorities |
+| `argus_security/sessions.py`, `reviews.py` | Short work sessions with their report, and the review rule |
 | `argus_security/backup.py` | Local profile backups and restore |
 | `argus_security/workflow.py` | Local security worklist and guided next step |
 | `argus_security/handoffs.py` | Durable Bitwarden transfer journal |

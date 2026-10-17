@@ -1,4 +1,4 @@
-# Änderungen – unveröffentlicht (Paket C: lokale Vorarbeit)
+# Änderungen – Version 2.2.0, Paket C: lokale Vorarbeit (noch ohne Tag)
 
 ## Neu seit deiner letzten Durchsicht (A1–A4, A7, A28, Prioritäten 05 und 06)
 
@@ -38,6 +38,25 @@
   `POST /api/profile/mailboxes`, `POST /api/accounts/{id}/sign-in-with` und die
   Arbeitslisten-Aktion `move`. Schemaversion 6 ergänzt zwei Tabellen nach der
   automatischen Sicherung.
+
+## Sitzungen, Prüfdaten und Checkliste nach Anmeldeart (A5, A8, A10, A18, A20)
+
+- Die Checkliste folgt der bestätigten Anmeldeart: Single-Sign-on- und
+  Passkey-Accounts erhalten passende Schritte, und ein Account, dessen
+  Anmelde-Account nicht vollständig ist, sagt das.
+- **Eine Aufgabe** oder **Drei Aufgaben** startet eine kurze Sitzung ohne Frist.
+  Ihr Bericht stammt aus den Schritten, die du seit dem Start erfasst hast; die
+  Textdatei wird vor dem Speichern vollständig gezeigt und enthält nur
+  Accountnamen und Schritte.
+- Eine Prüfregel (6, 12 oder 24 Monate; wichtige oder alle abgeschlossenen
+  Accounts) schlägt Prüfdaten vor. Das Übernehmen ist eine rücknehmbare
+  Änderung; automatisch passiert nichts.
+- Bitwarden-Notizen ergänzen die bestätigte Anmeldeart, den bestätigten
+  Anmelde-Account und eine geprüfte Seite für Passwort-Einstellungen; Unbekanntes
+  bleibt weg.
+- Neue CLI-Befehle `session` und `review-rule`; API `POST /api/session`,
+  `GET /api/session/report`, `POST /api/review-rule` und
+  `POST /api/review-rule/apply`.
 
 # Änderungen – Version 2.1.0, Paket B: erklärbare, korrigierbare Erkennung (noch ohne Tag)
 

@@ -40,7 +40,7 @@ Hauptnutzen kommt ohne sie aus.
 
 ## Umsetzungsstand der 15 Prioritäten
 
-Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S12 (Teil 1).
+Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S12 (2.2.0).
 
 | Nr. | Priorität | Stand | Im Code |
 | --- | --- | --- | --- |
@@ -84,7 +84,7 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 | S9 | Mehrdeutigkeitsliste, Ausschlüsse, Alias-Beziehungen | E3, E4, A9, 04 | ✅ |
 | S10 | Unbekannte Domains, eigener Katalog, Regeländerungen, Benchmark → **2.1.0** | E5, E6, G3, G5 | ✅ (2.1.0) |
 | S11 | Änderungszentrale und Rückkehr-Zusammenfassung | A1–A4, A7, A28, 05, 06 | ✅ |
-| S12 | Passende Checkliste, Arbeitsliste, Sitzungen, Prioritäten, Identitätskonten, Bericht → **2.2.0** | A5, A6, A8, A10, A17, A18, A20, D3, B6 | A6, A17, D3, B6 ✅ · A5, A8, A10, A18, A20 offen |
+| S12 | Passende Checkliste, Arbeitsliste, Sitzungen, Prioritäten, Identitätskonten, Bericht → **2.2.0** | A5, A6, A8, A10, A17, A18, A20, D3, B6 | ✅ (2.2.0) |
 | S13 | Jobmodell, globale Pause, Freigaben, Aktivitätsprotokoll, Kontrollübersicht | A23–A27, D5, 07, 10 | offen |
 | S14 | Importeinstellungen, nur Geändertes, Ressourcenbudget, Fortsetzen, gezielte Fehler, große Archive | A11, A13–A16, P3, 13 | offen |
 | S15 | Begrenzte Ordnerüberwachung → **2.3.0** | A12, 14 | offen |

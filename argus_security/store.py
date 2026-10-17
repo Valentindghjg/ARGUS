@@ -494,6 +494,14 @@ class Store:
         snapshot["next_task"] = next_task(snapshot)
         snapshot["changes"] = change_digest(snapshot, evidences, mark, json.loads(revision[0]) if revision else 0)
         snapshot["return_summary"] = return_summary(snapshot)
+        from . import reviews, sessions
+        with self.connect() as db:
+            rule, session = reviews.load_rule(db), sessions.load(db)
+        proposals = reviews.proposals(accounts, rule)
+        for account in accounts:
+            account["review_proposal"] = proposals.get(account["id"])
+        snapshot["review_rule"] = rule
+        snapshot["session"] = sessions.report(session, accounts)
         from .i18n import localize_snapshot
         return localize_snapshot(snapshot, language)
 
@@ -711,6 +719,54 @@ class Store:
             db.execute("BEGIN IMMEDIATE")
             set_mailbox(db, address, account_id, owned_emails(db), now())
         return {"ok": True}
+
+    def set_review_rule(self, months, scope=None):
+        """Save the person's rule for proposing review dates (plan A10); None switches it off."""
+        from .reviews import set_rule
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            return {"rule": set_rule(db, months, scope)}
+
+    def apply_review_proposals(self, ids):
+        """Set each proposed review date as an ordinary, undoable step change."""
+        if not isinstance(ids, list) or not ids or len(ids) > 10_000 or any(not isinstance(i, str) for i in ids):
+            raise UserFacingError("Choose accounts with a suggested review date")
+        from .reviews import REVIEW_STEP
+        proposals = {account["id"]: account["review_proposal"] for account in self.snapshot()["accounts"]}
+        if any(not proposals.get(account_id) for account_id in ids):
+            raise UserFacingError("Choose accounts with a suggested review date")
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            batch = ChangeBatch(db)
+            for account_id in dict.fromkeys(ids):
+                account = self._account_row(db, account_id)
+                current = read_steps(db, account_id, account["login_method"])[REVIEW_STEP]
+                new = {**current, "review_after": review_date(proposals[account_id])}
+                write_step(db, account_id, REVIEW_STEP, new)
+                batch.record(account_id, "step:" + REVIEW_STEP, current, new)
+            return {"ok": True, "batch": batch.close()}
+
+    def start_session(self, size):
+        """Choose one or three ready worklist tasks to work on now (plan A8)."""
+        from .sessions import start
+        workflow = self.snapshot()["workflow"]
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            return {"session": start(db, size, workflow, now())}
+
+    def end_session(self):
+        from .sessions import end
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            end(db)
+        return {"ok": True}
+
+    def session_report_text(self, language="en"):
+        from .sessions import report_text
+        session = self.snapshot()["session"]
+        if not session:
+            raise UserFacingError("There is no session to report")
+        return report_text(session, language)
 
     def acknowledge_changes(self, revision):
         """Mark the changes the person saw as reviewed (plan A1); decisions stay untouched."""

@@ -1,6 +1,6 @@
 # Change log
 
-## Unreleased — Package C: local preparation
+## 2.2.0 — Package C: local preparation (not yet tagged)
 
 ### What's new since your last review (A1–A4, A7, A28, priorities 05 and 06)
 
@@ -34,6 +34,23 @@
   `POST /api/profile/mailboxes`, `POST /api/accounts/{id}/sign-in-with` and the
   worklist action `move`. Schema version 6 adds two tables after the automatic
   backup.
+
+### Sessions, review dates and the checklist by sign-in method (A5, A8, A10, A18, A20)
+
+- The checklist follows the confirmed sign-in method: single sign-on and passkey
+  accounts get matching steps, and an account whose sign-in account is not
+  complete says so.
+- **One task** or **Three tasks** starts a short session without a deadline. Its
+  report comes from the steps you recorded since the start; the text file is
+  shown in full before saving and holds account names and steps only.
+- A review rule (6, 12 or 24 months; important or all completed accounts)
+  proposes review dates. Applying them is one undoable change; nothing happens
+  automatically.
+- Bitwarden notes add the confirmed sign-in method, the confirmed sign-in
+  account and a verified password-settings page; unknown values stay out.
+- New CLI commands `session` and `review-rule`; API `POST /api/session`,
+  `GET /api/session/report`, `POST /api/review-rule` and
+  `POST /api/review-rule/apply`.
 
 ## 2.1.0 — Package B: explainable, correctable detection (not yet tagged)
 
