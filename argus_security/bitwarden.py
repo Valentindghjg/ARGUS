@@ -206,7 +206,9 @@ def bw_executable(windows=os.name == "nt"):
     if windows:
         if path.suffix.lower() != ".exe":
             raise BitwardenCliError("Install the standalone Bitwarden CLI (bw.exe); script wrappers cannot be started safely.")
-        folders = {os.path.normcase(os.path.abspath(folder)) for folder in os.environ.get("PATH", "").split(os.pathsep) if folder}
+        # Compared fully resolved, so links and short 8.3 names in PATH still match.
+        folders = {os.path.normcase(str(Path(folder).resolve())) for folder in os.environ.get("PATH", "").split(os.pathsep)
+                   if folder}
         if os.path.normcase(str(path.parent)) not in folders:
             return None
     return str(path)
