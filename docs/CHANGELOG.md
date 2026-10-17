@@ -21,6 +21,23 @@
   keeps read access. The files are kept as the run's `release-files` artifact
   for the owner's hand-made release. Still no workflow creates a release.
 
+### WCAG 2.2 AA audit (D6)
+
+- `scripts/browser_accessibility.py` audits every view and dialog with
+  axe-core 4.13 against WCAG 2.2 level AA: German and English, desktop and phone
+  width, the demo and a new profile (88 states). It reads the views and dialogs
+  from the page, so a new one cannot go unaudited. Any violation fails CI.
+  axe-core is pinned with an integrity hash in `scripts/accessibility` and is a
+  test tool only; ARGUS itself still needs nothing beyond Python.
+- Fixed what the audit found: grey text, status marks and sidebar notes now
+  reach at least 4.5:1 contrast through a few colour tokens instead of 30 single
+  greys; the sidebar counters use white text; the account table, the report text
+  and the Bitwarden preview can be scrolled with the keyboard and are named
+  regions; the extra controls of a checklist step are no longer nested inside
+  its label; decorative icons are hidden from screen readers.
+- An automated audit covers only part of WCAG; a screen reader review is still
+  to come.
+
 ## 2.6.1 — Fixes from the review of 2.0–2.6 (not yet tagged)
 
 ### Change log, undo, backups and migrations

@@ -21,6 +21,25 @@
   für das von Hand erstellte Release. Weiterhin erstellt kein Workflow ein
   Release.
 
+## WCAG-2.2-AA-Prüfung (D6)
+
+- `scripts/browser_accessibility.py` prüft jede Ansicht und jeden Dialog mit
+  axe-core 4.13 gegen WCAG 2.2 Stufe AA: Deutsch und Englisch, Desktop- und
+  Handybreite, Demo und neues Profil (88 Zustände). Ansichten und Dialoge liest
+  die Prüfung aus der Seite, sodass keine neue ungeprüft bleibt. Jeder Verstoß
+  lässt die CI scheitern. axe-core ist in `scripts/accessibility` mit
+  Integritäts-Hash gepinnt und nur ein Testwerkzeug; ARGUS selbst braucht
+  weiterhin nur Python.
+- Behoben, was die Prüfung fand: Graue Texte, Statusmarken und Hinweise in der
+  Seitenleiste erreichen mindestens 4,5:1 Kontrast über wenige Farb-Tokens statt
+  30 einzelner Grautöne; die Zähler in der Seitenleiste haben weiße Schrift; die
+  Account-Tabelle, der Berichtstext und die Bitwarden-Vorschau lassen sich per
+  Tastatur scrollen und sind benannte Bereiche; die Zusatzfelder eines
+  Checklistenschritts liegen nicht mehr in dessen Beschriftung; dekorative
+  Symbole sind für Screenreader ausgeblendet.
+- Eine automatische Prüfung deckt nur einen Teil von WCAG ab; eine Prüfung mit
+  Screenreadern steht noch aus.
+
 # Änderungen – Version 2.6.1, Korrekturen aus dem Review von 2.0–2.6 (noch ohne Tag)
 
 ## Änderungsprotokoll, Rückgängig, Sicherungen und Migrationen

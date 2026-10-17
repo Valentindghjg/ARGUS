@@ -606,10 +606,12 @@ function stepMeta(a,step){
 }
 function stepRow(a,step,busy){
   const value=a.steps[step],[title,description]=stepTitle(a,step);
-  const label=node("label",undefined,"check-item"),checkbox=node("input",undefined,"step-check");checkbox.type="checkbox";checkbox.dataset.step=step;checkbox.checked=value.state==="done";
+  // The extra controls sit beside the label, not inside it: a label must not contain other labels or fields.
+  const row=node("div",undefined,"check-item"),checkbox=node("input",undefined,"step-check");checkbox.type="checkbox";checkbox.id=`step-${step}`;checkbox.dataset.step=step;checkbox.checked=value.state==="done";
   checkbox.disabled=busy||(step==="identity"&&a.identity_review_required)||value.state==="not_applicable";
   checkbox.onchange=()=>setStep(step,{state:checkbox.checked?"done":"open"});
-  const text=node("span",t(title));text.append(node("small",t(description)));
+  const label=node("label",t(title));label.htmlFor=checkbox.id;label.append(node("small",t(description)));
+  const text=node("div");text.append(label);
   const meta=stepMeta(a,step);if(meta)text.append(node("small",meta,"step-meta"));
   if(a.reviews_due.includes(step))text.append(node("small",t("Review due: check this step again."),"step-meta review-due"));
   const extra=node("span",undefined,"step-extra");
@@ -626,7 +628,7 @@ function stepRow(a,step,busy){
     if(value.review_after){const clear=node("button",t("No review date"),"text-button");clear.type="button";clear.disabled=busy;clear.onclick=event=>{event.preventDefault();setStep(step,{review_after:null});};extra.append(clear);}
   }
   if(extra.childNodes.length)text.append(extra);
-  label.append(checkbox,text);return label;
+  row.append(checkbox,text);return row;
 }
 function renderDetail(){
   const a=state.accounts.find(x=>x.id===selected);if(!a)return;

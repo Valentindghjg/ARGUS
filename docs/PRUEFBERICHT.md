@@ -13,6 +13,18 @@ Action auf einen vollständigen Commit gepinnt ist. `actionlint` 1.7 akzeptiert
 beide Workflows. Die Bestätigung selbst läuft nur bei einem vom Owner gepushten
 Tag und wurde hier nicht ausgelöst.
 
+WCAG-2.2-AA-Prüfung: **405 Python-Tests**, **38 Browser-Prüfgruppen**, die
+Mehrkonten-Prüfung und **88 geprüfte Zustände** (9 Ansichten × 2 Sprachen ×
+Desktop- und Handybreite für Demo und neues Profil, dazu 4 Dialoge je Sprache
+und Breite) mit **0 Verstößen**, 0 Seitenfehlern und 0 externen Anfragen. Der
+erste Lauf fand 101 Verstöße in zwei Regeln (`color-contrast`,
+`scrollable-region-focusable`); ein Lauf mit einem alten Grauton scheitert
+wieder. Ergebnisse, die axe-core nicht allein entscheiden kann (Text über
+Symbolen, teilweise verdeckter Text, Kopfzeilen einer leeren Tabelle), stehen
+als „needs review“ in der Ausgabe und wurden von Hand geprüft: Keines hat einen
+gemessenen Kontrast unter 4,5:1. Neue Tests prüfen das gepinnte, nur für Tests
+genutzte axe-core, seinen Lock-Eintrag und den CI-Schritt.
+
 # Prüfbericht – Version 2.6.1 (Korrekturen aus dem Review, noch ohne Tag)
 
 Review-Korrekturen, Teil 1: **359 Python-Tests**. Neue Regressionstests

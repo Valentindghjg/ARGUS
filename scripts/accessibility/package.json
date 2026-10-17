@@ -1,0 +1,9 @@
+{
+  "name": "argus-accessibility-audit",
+  "private": true,
+  "description": "Test-only tool for scripts/browser_accessibility.py; never part of the ARGUS package.",
+  "license": "MPL-2.0",
+  "devDependencies": {
+    "axe-core": "4.13.0"
+  }
+}
