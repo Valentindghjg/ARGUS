@@ -1,3 +1,12 @@
+# Test report — unreleased (former Pro features)
+
+Step S17: **326 Python tests** and **39 browser check groups**. New tests cover
+separate profile folders that never read each other, profile names, the
+`--profile`/`--data-dir` conflict, daily counts with comparisons and pruning,
+the history columns, report levels with and without addresses, invalid
+combinations, the private export file and the report API. The browser previews
+a progress report without addresses.
+
 # Test report — Version 2.4.0 (package E, not yet tagged)
 
 Step S16: **323 Python tests** and **38 browser check groups**. New tests cover

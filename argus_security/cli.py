@@ -21,7 +21,8 @@ from .analysis import ANALYSIS_VERSION, MAX_MESSAGE_BYTES
 from .imports import budget, failed_items, last_source, precheck, save_run
 from .scan import ScanSession, file_items, load_demo, scan_messages
 from .server import serve
-from .store import Store, now as result_time
+from .store import Store, now as result_time, write_private
+from .profiles import list_profiles, profile_dir
 
 
 def data_root():
@@ -62,6 +63,7 @@ def parser(language="en"):
     t = lambda message, **values: translate(message, language, **values)
     p = LocalizedArgumentParser(prog='argus', language=language, description=t('ARGUS local account inventory. No login attempts at cataloged services.'))
     p.add_argument('--data-dir', type=Path, help=t('Private local results directory (default: ~/.local/share/argus)'))
+    p.add_argument('--profile', help=t('Use a separate named profile instead of the default one'))
     p.add_argument('--providers', type=Path, help=t('Additional JSON provider catalog'))
     p.add_argument("--language", choices=["en", "de"], default=language, help=t("Interface language (defaults to your system language)"))
     sub = p.add_subparsers(dest='command', required=True)
@@ -86,7 +88,13 @@ def parser(language="en"):
     imp.add_argument('--max-megabytes', type=int, help=t('Read at most this many megabytes of new messages in this run'))
     imp.add_argument('--recheck', action='store_true',
                      help=t('Analyze every message again, also those processed before under the same conditions'))
-    sub.add_parser('report', help=t('Show local statistics only'))
+    report = sub.add_parser('report', help=t('Show local statistics only'))
+    report.add_argument('--text', action='store_true', help=t('Print a data-minimal progress report instead of JSON'))
+    report.add_argument('--level', choices=['numbers', 'tasks'], default='numbers',
+                        help=t('numbers: counts only; tasks: also one line per account'))
+    report.add_argument('--include-addresses', action='store_true', help=t('Add sign-in addresses to the task lines'))
+    report.add_argument('--export', type=Path, help=t('Save the report to a new private file instead of printing it'))
+    sub.add_parser('profiles', help=t('List your separate local profiles by name'))
     accounts = sub.add_parser('list-accounts', help=t('Show local account IDs for individual selections'))
     accounts.add_argument('--all', action='store_true', help=t('Include entries without reliable account evidence'))
     dis = sub.add_parser('discover', help=t('Mail provider hints; offline by default'))
@@ -167,7 +175,13 @@ def main(argv=None):
     t = lambda message, **values: translate(message, language, **values)
     args = parser(language).parse_args(argv)
     try:
-        data_dir = args.data_dir if args.data_dir is not None else default_data_dir(language)
+        if args.profile is not None and args.data_dir is not None:
+            raise UserFacingError('Choose either --profile or --data-dir')
+        if args.command == 'profiles':
+            print(json.dumps(list_profiles(data_root(), args.data_dir or default_data_dir(language)), ensure_ascii=False))
+            return 0
+        data_dir = (profile_dir(data_root(), args.profile) if args.profile is not None
+                    else args.data_dir if args.data_dir is not None else default_data_dir(language))
         if args.command in {'backup', 'restore'}:
             # Work on the files as they are, before any migration opens them.
             return backup_command(args, data_dir, t)
@@ -210,6 +224,13 @@ def main(argv=None):
             if session.failed_items:
                 print(t('{p0} item(s) were skipped or failed. Fix them, then run import --retry-failed to read only those.',
                         p0=len(session.failed_items)), file=sys.stderr)
+        elif args.command == 'report' and (args.text or args.export):
+            text = store.report_text(args.level, args.include_addresses, language)
+            if args.export:
+                write_private(args.export, text)
+                print(t('Report saved privately. It is not a security guarantee.'), file=sys.stderr)
+            else:
+                print(text, end='')
         elif args.command == 'report':
             snapshot = store.snapshot()
             print(json.dumps({**snapshot['summary'], 'result': snapshot['result'], 'next_task': snapshot['next_task']},

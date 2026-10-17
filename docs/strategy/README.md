@@ -40,7 +40,7 @@ Hauptnutzen kommt ohne sie aus.
 
 ## Umsetzungsstand der 15 Prioritäten
 
-Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S16 (2.4.0).
+Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S17.
 
 | Nr. | Priorität | Stand | Im Code |
 | --- | --- | --- | --- |
@@ -89,7 +89,7 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 | S14 | Importeinstellungen, nur Geändertes, Ressourcenbudget, Fortsetzen, gezielte Fehler, große Archive | A11, A13–A16, P3, 13 | ✅ |
 | S15 | Begrenzte Ordnerüberwachung → **2.3.0** | A12, 14 | ✅ (2.3.0) |
 | S16 | Bitwarden: Weg ohne Tresorlesen, Duplikatschutz, Übergabebereitschaft → **2.4.0** | B1, B3, A19, 11 | ✅ (2.4.0) |
-| S17 | Getrennte Profile, Verlaufsanalyse, datensparsame Berichte | P1, P2, P5 | offen |
+| S17 | Getrennte Profile, Verlaufsanalyse, datensparsame Berichte | P1, P2, P5 | ✅ |
 | S18 | E-Mail-Umzugsplan und Ablaufvorlagen → **2.5.0** | A21, A22, P4 | offen |
 | S19 | Importabdeckung, Barrierefreiheit, Maskierung, Katalogqualität | D4, D6 | offen |
 | S20 | Demoablauf, FAQ, vertrauenswürdige Releases → **2.6.0** | G2, G4, G6 | offen |

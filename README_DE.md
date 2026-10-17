@@ -701,6 +701,32 @@ Für einen Passwort-Direktlink sind `password_url`, `password_source` und
 Quelle. Danach lokal neu importieren bzw. `scan-imap --allow-imap --full-scan`
 ausführen und den Server mit dem gleichen Katalog neu starten.
 
+## Getrennte Profile, Fortschritt im Zeitverlauf und Berichte
+
+`--profile NAME` nutzt ein getrenntes, benanntes Profil, etwa eines für die
+Arbeit und eines für private Accounts. Jedes Profil ist ein eigener Ordner neben
+dem Standardprofil, mit eigener Datenbank, eigenen Postfach-Einstellungen,
+Katalogergänzungen, Sicherungen und Freigaben; nichts wird geteilt oder
+übergreifend gelesen. Ein zweites Dashboard läuft mit eigenem `--port`.
+`argus profiles` listet nur die Namen.
+
+Die Übersicht zeigt, wie sich deine Zahlen in der letzten Woche, im letzten
+Monat und Quartal verändert haben. Dafür behält ARGUS je Tag eine Zeile mit
+Zahlen (Hinweise, gefundene, bestätigte, abgeschlossene und noch offene
+Accounts, Unklares, offen mit hoher Priorität), nie Namen, Adressen oder Belege,
+für etwa dreizehn Monate. **Bericht ansehen** erstellt einen datensparsamen
+Fortschrittsbericht: nur Zahlen oder Zahlen und eine Zeile je Account.
+Anmeldeadressen kommen nur hinzu, wenn du sie ankreuzt. Der Text wird vollständig
+gezeigt, bevor dein Browser ihn speichert.
+
+```bash
+python -m argus_security --profile arbeit init --email du@arbeit.example
+python -m argus_security --profile arbeit serve --port 8766
+python -m argus_security profiles
+python -m argus_security report --text --level tasks
+python -m argus_security report --level numbers --export /lokaler/pfad/argus-bericht.txt
+```
+
 ## Profil sichern und wiederherstellen
 
 ARGUS legt automatisch eine Sicherung an, bevor eine neue Version die
@@ -821,6 +847,7 @@ Begründung mitziehen muss. `--json` gibt den vollständigen Bericht aus.
 | `argus_security/jobs.py` | Gemeinsame Vorgangszustände, globale Pause und minimales Aktivitätsprotokoll |
 | `argus_security/imports.py` | Index verarbeiteter Nachrichten, Importbudget und Fortsetzen |
 | `argus_security/watch.py` | Eng begrenzte, freigegebene Überwachung eines Exportordners |
+| `argus_security/profiles.py`, `history.py`, `reports.py` | Benannte Profile, tägliche Zahlen und datensparsame Berichte |
 | `argus_security/backup.py` | Lokale Profilsicherungen und Wiederherstellung |
 | `argus_security/workflow.py` | Lokale Sicherheits-Arbeitsliste und geführter nächster Schritt |
 | `argus_security/handoffs.py` | Dauerhaftes Journal für Bitwarden-Übertragungen |

@@ -129,3 +129,10 @@ Wird während der Umsetzung fortgeschrieben.
   Datei zweimal importiert), kostet aber einen Klick, wenn eine Datei verloren
   ging. Ein bestätigter Import setzt den Tresor-Schritt wie die CLI auf
   „vorbereitet“, nie auf „erledigt“.
+- **S17, Profile als Ordner:** Ein benanntes Profil ist ein eigener Ordner
+  unter `argus-profiles` neben dem Standardprofil; es gibt keinen gemeinsamen
+  Index und keine profilübergreifende Ansicht, damit die Trennung strikt bleibt.
+  Das Standardprofil bleibt, wo es ist. Der Verlauf speichert je Tag nur
+  sieben Zahlen; Berichte enthalten Adressen nur nach ausdrücklicher Wahl und
+  werden wie der Sitzungsbericht vollständig angezeigt, bevor der Browser sie
+  speichert.
