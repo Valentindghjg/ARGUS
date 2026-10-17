@@ -115,6 +115,30 @@
   verfügbar“, und tief verschachteltes JSON wird wie andere fehlerhafte Eingaben
   abgelehnt.
 
+## Kommandozeile, Release-Prüfung und Dokumentation
+
+- `scripts/release_check.py` erkennt auch `from urllib import request`,
+  `from http import client`, `os.system`, `os.popen`, `os.exec*`/`spawn*`,
+  `asyncio`, `socketserver`, `multiprocessing`, `poplib`, `xmlrpc`, dynamische
+  Importe, das Paket `account_finder` und jeden neuen Schlüssel im Manifest des
+  Browser-Begleiters. Der Release-Workflow führt zusätzlich dessen eigene
+  Prüfungen aus.
+- `import` gibt den Fortschritt auf stderr aus, sodass stdout JSON bleibt. Eine
+  vertippte Quelle oder ein falsches Format wird abgelehnt, bevor sie die
+  gemerkte `--again`-Quelle ersetzen kann. Ein `--retry-failed`-Lauf, der an
+  seinem Limit endet, behält die Elemente, die er nicht erreicht hat.
+- `demo` braucht `--data-dir` oder `--profile` und füllt nie das
+  Standardprofil; `init` in einem Demo-Ordner erklärt, was stattdessen zu tun
+  ist. Ports außerhalb 1–65535, eine fehlende `imap.json` oder
+  `--providers`-Datei, `setup-imap` ohne Terminal und ein zweites `setup-imap`
+  bekommen klare, übersetzte Meldungen ohne Pfade statt Tracebacks oder
+  Betriebssystemtexten.
+- `review-rule --months` behält den gespeicherten Geltungsbereich, `--scope`
+  allein behält die Monate. Die JSON-Ausgaben von `whats-new`, `unclear`,
+  `template list` und anderen folgen `--language`.
+- Die deutsche FAQ verweist auf die Richtlinie für private Meldungen, und die
+  Planabdeckung nennt G6 als teilweise umgesetzt.
+
 
 ## Plan abgeschlossen (S21)
 

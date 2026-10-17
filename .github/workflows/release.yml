@@ -24,7 +24,9 @@ jobs:
         with:
           python-version: '3.13'
       - name: Versions, connections and permissions
-        run: python scripts/release_check.py
+        run: |
+          python scripts/release_check.py
+          python browser-companion/tests/validate.py
       - name: Tag names this version
         if: github.ref_type == 'tag'
         run: python scripts/release_check.py tag "$GITHUB_REF_NAME"

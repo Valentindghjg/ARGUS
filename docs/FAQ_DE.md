@@ -68,4 +68,4 @@ nur Versionen, System und Zahlen, nie Adressen, Pfade oder Nachrichten.
 Beschreibe die Schritte mit erfundenen Nachrichten oder mit der Demo
 (`argus --data-dir .local/demo demo`). Hänge nie ein Profil, eine Datenbank,
 einen Vault-Export, echte E-Mails oder Zugangsdaten an. Sicherheitsprobleme
-meldest du privat, wie in [SICHERHEIT.md](SICHERHEIT.md) beschrieben.
+meldest du privat, wie in [SECURITY.md](../SECURITY.md) beschrieben.

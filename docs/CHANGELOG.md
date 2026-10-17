@@ -99,6 +99,29 @@
   after a dialog closes; the account dialog has an accessible name.
 - A busy database answers every request with "temporarily unavailable", and
   deeply nested JSON is refused like other malformed input.
+
+### Command line, release check and documentation
+
+- `scripts/release_check.py` also catches `from urllib import request`,
+  `from http import client`, `os.system`, `os.popen`, `os.exec*`/`spawn*`,
+  `asyncio`, `socketserver`, `multiprocessing`, `poplib`, `xmlrpc`, dynamic
+  imports, the `account_finder` package and any new key in the browser
+  companion's manifest. The release workflow also runs the companion's own
+  checks.
+- `import` prints progress on stderr, so stdout stays JSON. A mistyped source
+  or wrong format is refused before it can replace the remembered `--again`
+  source. A `--retry-failed` run that stops at its limit keeps the items it did
+  not reach.
+- `demo` needs `--data-dir` or `--profile` and never fills the default profile;
+  `init` in a demo folder explains what to do instead. Ports outside 1–65535,
+  a missing `imap.json` or `--providers` file, `setup-imap` without a terminal
+  and a second `setup-imap` get clear, translated messages without paths
+  instead of tracebacks or OS texts.
+- `review-rule --months` keeps the saved scope and `--scope` alone keeps the
+  months. JSON output of `whats-new`, `unclear`, `template list` and others
+  follows `--language`.
+- The German FAQ links the private reporting policy, and the plan coverage says
+  that G6 is partly done.
 ## 2.6.0 — Quality and trust (not yet tagged)
 
 ### Plan complete (S21)

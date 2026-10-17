@@ -6,8 +6,9 @@
 first, then more local automation. External access and writes need separate,
 target-bound approvals. Free stays a complete, safe workflow. The plan is a
 strategy paper, not an implementation order. This page tracks how far the code
-follows it. Since step S21 every plan item is implemented, deliberately limited or
-dropped by an owner decision; the coverage table at the end names where.
+follows it. Since step S21 every plan item is implemented, deliberately limited, partly
+done (G6: signatures still to come) or dropped by an owner decision; the
+coverage table at the end names where.
 
 ## Einordnung
 
@@ -98,8 +99,8 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 
 ## Abdeckung aller Plan-Punkte
 
-Stand nach S21: Jeder Punkt des Plans ist umgesetzt, bewusst begrenzt oder per
-Entscheidung entfallen. „Wo“ nennt den Einstieg im Code oder in der Oberfläche;
+Stand nach S21: Jeder Punkt des Plans ist umgesetzt, bewusst begrenzt, teilweise
+umgesetzt (G6: Signaturen folgen) oder per Entscheidung entfallen. „Wo“ nennt den Einstieg im Code oder in der Oberfläche;
 die Grenzen aus dem Plan gelten weiter.
 
 ### Fundament

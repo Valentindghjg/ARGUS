@@ -51,6 +51,8 @@ class ScanSession:
         self.pause_checked = None
         # Plan A16: keys of local items that were skipped or failed, for a targeted retry.
         self.failed_items = []
+        # Keys of items this run actually looked at, so a stopped retry knows what is left.
+        self.handled = set()
         self.new_work = {"messages": 0, "bytes": 0}
         self.kind = {"scheduled": "scheduled_scan", "watch": "folder_watch"}.get(
             trigger, "imap_scan" if source == "imap" else "import")
@@ -118,6 +120,8 @@ class ScanSession:
             self.info["limit_reached"] = True
             return dict(self.stats)
         self.stats["processed"] += 1
+        if key is not None:
+            self.handled.add(key)
         if known:
             self.stats["unchanged"] += 1
             return self._progress()
@@ -236,6 +240,18 @@ def file_messages(path: Path, kind: str):
         yield raw
 
 
+def check_source(path: Path, kind: str):
+    """Refuse a source that cannot be read in this format, before anything starts."""
+    if kind == "mbox" and not path.is_file():
+        raise ValueError("mbox file not found")
+    if kind == "maildir" and (not path.is_dir() or not (path / "cur").is_dir() or not (path / "new").is_dir()):
+        raise ValueError("Maildir requires cur/ and new/")
+    if kind == "eml" and not path.exists():
+        raise ValueError("EML path not found")
+    if kind not in {"mbox", "maildir", "eml"}:
+        raise ValueError("Unknown import format")
+
+
 def file_items(path: Path, kind: str, only=None):
     """Messages of a local source with a stable key each (plan A16).
 
@@ -243,9 +259,8 @@ def file_items(path: Path, kind: str, only=None):
     an mbox. ``only`` restricts reading to these keys, for retrying failures.
     """
     only = set(only) if only is not None else None
+    check_source(path, kind)
     if kind == "mbox":
-        if not path.is_file():
-            raise ValueError("mbox file not found")
         # mailbox.mbox opens the file itself (read/write when permitted, otherwise
         # read-only). ARGUS only reads: it never adds, removes, locks or flushes
         # changes, so the original stays unchanged. create=False never creates it.
@@ -261,16 +276,12 @@ def file_items(path: Path, kind: str, only=None):
         finally:
             box.close()
     elif kind == "maildir":
-        if not path.is_dir() or not (path / "cur").is_dir() or not (path / "new").is_dir():
-            raise ValueError("Maildir requires cur/ and new/")
         for folder in (path / "cur", path / "new"):
             for file in sorted(folder.iterdir()):
                 item = file.relative_to(path).as_posix()
                 if file.is_file() and not file.is_symlink() and (only is None or item in only):
                     yield item, _read_item(file)
     elif kind == "eml":
-        if not path.exists():
-            raise ValueError("EML path not found")
         # Exported files are named .eml or .EML depending on the program.
         files = [path] if path.is_file() else sorted(file for file in path.rglob("*")
                                                      if file.suffix.lower() == ".eml" and file.is_file())
