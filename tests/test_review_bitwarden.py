@@ -108,6 +108,13 @@ class ReviewBitwardenTests(unittest.TestCase):
                 self.assertEqual(Path(bw_executable(windows=True)), (folder / "bw.exe").resolve())
             with patch.dict(os.environ, {"PATH": str(self.root / "elsewhere")}):
                 self.assertIsNone(bw_executable(windows=True))
+        if os.name == "posix":
+            # A PATH entry that is a link (like /var on macOS) still counts as the same folder.
+            alias = self.root / "alias"
+            alias.symlink_to(folder, target_is_directory=True)
+            with patch("argus_security.bitwarden.shutil.which", return_value=str(alias / "bw.exe")), \
+                    patch.dict(os.environ, {"PATH": str(alias)}):
+                self.assertEqual(Path(bw_executable(windows=True)), (folder / "bw.exe").resolve())
 
     def test_a_move_plan_keeps_an_address_note_the_person_wrote(self):
         scan_messages(self.store, [synthetic_mail("noreply@dropbox.com", "Your account has been created", "",
