@@ -7,6 +7,12 @@ the history columns, report levels with and without addresses, invalid
 combinations, the private export file and the report API. The browser previews
 a progress report without addresses.
 
+Step S18a: **329 Python tests** and **40 browser check groups**. New tests cover
+the ordering with the mailbox account first, refusals (same, foreign or unused
+address, a second open plan), marking without changing any account, closing,
+and CLI and API shapes. The browser creates a plan, marks one account and closes
+it.
+
 # Test report — Version 2.4.0 (package E, not yet tagged)
 
 Step S16: **323 Python tests** and **38 browser check groups**. New tests cover

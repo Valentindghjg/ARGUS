@@ -403,6 +403,21 @@ class Handler(BaseHTTPRequestHandler):
                 data = self._json()
                 result = download_export(self.server.store, data.get("ids"), data.get("language", "en"))
                 self._send(200, result, attachment="argus-bitwarden.json")
+            elif path == "/api/moves":
+                data = self._json()
+                if set(data) != {"old", "new"}:
+                    raise UserFacingError("Choose two different addresses of your own")
+                self._send(200, self.server.store.create_move_plan(data["old"], data["new"]))
+            elif path == "/api/moves/item":
+                data = self._json()
+                if set(data) != {"plan_id", "account_id", "state"}:
+                    raise UserFacingError("Mark the item as changed, skipped or open")
+                self._send(200, self.server.store.mark_move(data["plan_id"], data["account_id"], data["state"]))
+            elif path == "/api/moves/close":
+                data = self._json()
+                if set(data) != {"plan_id"}:
+                    raise UserFacingError("This plan is closed or no longer exists")
+                self._send(200, self.server.store.close_move_plan(data["plan_id"]))
             elif path == "/api/bitwarden/assign":
                 data = self._json()
                 if set(data) != {"ids"}:

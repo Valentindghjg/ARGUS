@@ -7,6 +7,12 @@ Spalten der Verlaufstabelle, Berichtsstufen mit und ohne Adressen, ungültige
 Kombinationen, die private Exportdatei und die Berichts-API. Der Browser zeigt
 einen Fortschrittsbericht ohne Adressen in der Vorschau.
 
+Schritt S18a: **329 Python-Tests** und **40 Browser-Prüfgruppen**. Neue Tests
+prüfen die Reihenfolge mit dem Postfach-Account zuerst, Ablehnungen (gleiche,
+fremde oder unbenutzte Adresse, ein zweiter offener Plan), das Markieren ohne
+Änderung eines Accounts, das Schließen sowie CLI- und API-Formen. Der Browser
+erstellt einen Plan, markiert einen Account und schließt ihn.
+
 # Prüfbericht – Version 2.4.0 (Paket E, noch ohne Tag)
 
 Schritt S16: **323 Python-Tests** und **38 Browser-Prüfgruppen**. Neue Tests

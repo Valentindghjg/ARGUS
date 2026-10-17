@@ -727,6 +727,22 @@ python -m argus_security report --text --level tasks
 python -m argus_security report --level numbers --export /lokaler/pfad/argus-bericht.txt
 ```
 
+## Adresswechsel planen
+
+Wenn du eine Adresse aufgibst, listet „Adresswechsel planen“ unter „Postfach &
+Import“ jeden Account, der sich damit anmeldet: zuerst die, von denen andere
+abhängen (etwa der Postfach-Account), dann nach Priorität. Ändere die Adresse bei
+jedem Anbieter selbst und markiere den Account als geändert oder übersprungen;
+ARGUS ändert nichts bei Anbietern und verschiebt nie selbst die Anmeldung eines
+Accounts. Der Plan notiert außerdem, dass die alte Adresse durch die neue ersetzt
+wurde.
+
+```bash
+python -m argus_security move-address create alt@example.org neu@example.org
+python -m argus_security move-address mark PLAN_ID github --state changed
+python -m argus_security move-address list
+```
+
 ## Profil sichern und wiederherstellen
 
 ARGUS legt automatisch eine Sicherung an, bevor eine neue Version die
@@ -848,6 +864,7 @@ Begründung mitziehen muss. `--json` gibt den vollständigen Bericht aus.
 | `argus_security/imports.py` | Index verarbeiteter Nachrichten, Importbudget und Fortsetzen |
 | `argus_security/watch.py` | Eng begrenzte, freigegebene Überwachung eines Exportordners |
 | `argus_security/profiles.py`, `history.py`, `reports.py` | Benannte Profile, tägliche Zahlen und datensparsame Berichte |
+| `argus_security/moves.py` | Geordnete, manuelle Pläne für den Umzug von Accounts auf eine andere eigene Adresse |
 | `argus_security/backup.py` | Lokale Profilsicherungen und Wiederherstellung |
 | `argus_security/workflow.py` | Lokale Sicherheits-Arbeitsliste und geführter nächster Schritt |
 | `argus_security/handoffs.py` | Dauerhaftes Journal für Bitwarden-Übertragungen |

@@ -14,6 +14,17 @@
   (`report --text|--export`, `GET /api/report`). Schema version 9 adds the
   history table after the automatic backup.
 
+### Plan an address change (A21, P4)
+
+- “Plan an address change” orders every account that signs in with the old
+  address: dependent identity accounts first, then by priority. Each item is
+  marked changed, skipped or open by hand; plans can be closed. ARGUS changes
+  nothing at providers and never moves an account's sign-in identity. Creating
+  a plan notes the old address as replaced by the new one.
+- New CLI command `move-address create|list|mark|close`; API `POST /api/moves`,
+  `/api/moves/item` and `/api/moves/close`. Schema version 10 adds two tables
+  after the automatic backup.
+
 ## 2.4.0 — Package E: Bitwarden without surprises (not yet tagged)
 
 ### Three equal ways, readiness and one journal (B1, B3, A19)

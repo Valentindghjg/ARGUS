@@ -13,6 +13,18 @@
   dem Speichern (`report --text|--export`, `GET /api/report`). Schemaversion 9
   ergänzt die Verlaufstabelle nach der automatischen Sicherung.
 
+## Adresswechsel planen (A21, P4)
+
+- „Adresswechsel planen“ ordnet jeden Account, der sich mit der alten Adresse
+  anmeldet: zuerst Identitätskonten mit Abhängigen, dann nach Priorität. Jeder
+  Eintrag wird von Hand als geändert, übersprungen oder offen markiert; Pläne
+  lassen sich schließen. ARGUS ändert nichts bei Anbietern und verschiebt nie die
+  Anmeldeidentität eines Accounts. Ein neuer Plan notiert die alte Adresse als
+  durch die neue ersetzt.
+- Neuer CLI-Befehl `move-address create|list|mark|close`; API `POST /api/moves`,
+  `/api/moves/item` und `/api/moves/close`. Schemaversion 10 ergänzt zwei Tabellen
+  nach der automatischen Sicherung.
+
 # Änderungen – Version 2.4.0, Paket E: Bitwarden ohne Überraschungen (noch ohne Tag)
 
 ## Drei gleichwertige Wege, Bereitschaft und ein Journal (B1, B3, A19)

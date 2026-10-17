@@ -18,6 +18,7 @@ from .identity import SCHEMA as IDENTITY_SCHEMA, explain_priorities, load as loa
 from .jobs import SCHEMA as JOBS_SCHEMA
 from .imports import SCHEMA as IMPORTS_SCHEMA
 from .history import SCHEMA as HISTORY_SCHEMA
+from .moves import SCHEMA as MOVES_SCHEMA
 from .changes import ChangeBatch, planning
 from .digest import acknowledge, change_digest, next_revision, return_summary, review_mark, undo_acknowledge
 from .states import (DECISIONS, LEGACY_CHECKLIST, LEGACY_STEPS, REJECT_REASONS, STEPS, default_steps,
@@ -33,7 +34,7 @@ CHECKLIST = LEGACY_CHECKLIST
 #   2: ADR-0001 axes: decision, dated steps, planning only in the worklist, change log
 #   3: rule features per clue (plan E1); older clues gain them on their next import
 #   4: reversible sender-domain exclusions and relations between own addresses (E4, A9)
-SCHEMA_VERSION = 9
+SCHEMA_VERSION = 10
 
 
 def now():
@@ -198,6 +199,7 @@ class Store:
             db.executescript(JOBS_SCHEMA)
             db.executescript(IMPORTS_SCHEMA)
             db.executescript(HISTORY_SCHEMA)
+            db.executescript(MOVES_SCHEMA)
             queue_columns = {row["name"] for row in db.execute("PRAGMA table_info(instance_work_queue)")}
             if "resume_after" not in queue_columns:
                 db.execute("ALTER TABLE instance_work_queue ADD COLUMN resume_after TEXT")
@@ -526,6 +528,9 @@ class Store:
             snapshot["history"] = {"day": datetime.now(timezone.utc).date().isoformat(), "today": today,
                                    "comparisons": history.comparisons(db, today)}
         snapshot["profile_name"] = profile_name(self.data_dir)
+        from .moves import plans
+        with self.connect() as db:
+            snapshot["move_plans"] = plans(db)
         # Plan A11/A16: the remembered local source, shown with its commands; failed keys stay local.
         preset, failures = self.meta("import_preset"), self.meta("import_failures")
         snapshot["last_local_import"] = ({**preset, "failed": len(failures.get("items", []))
@@ -780,6 +785,32 @@ class Store:
             control = overview(db, schedule, watch=watch)
         control["watch"] = watch
         return control
+
+    def create_move_plan(self, old, new):
+        """Plan A21: order the accounts that sign in with ``old`` for a move to ``new``; nothing changes at providers."""
+        from .moves import create
+        if not isinstance(old, str) or not isinstance(new, str):
+            raise UserFacingError("Choose two different addresses of your own")
+        accounts = self.snapshot()["accounts"]
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            return {"id": create(db, accounts, normalize_email(old), normalize_email(new), owned_emails(db), now())}
+
+    def mark_move(self, plan_id, account_id, state):
+        from .moves import mark
+        if not isinstance(plan_id, str) or not isinstance(account_id, str):
+            raise UserFacingError("This account is not part of the plan")
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            mark(db, plan_id, account_id, state, now())
+        return {"ok": True}
+
+    def close_move_plan(self, plan_id):
+        from .moves import close
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            close(db, plan_id if isinstance(plan_id, str) else "", now())
+        return {"ok": True}
 
     def report_text(self, level="numbers", include_addresses=False, language="en"):
         """Plan P5: a data-minimal progress report; addresses only when asked for."""
