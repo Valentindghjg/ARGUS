@@ -1,4 +1,4 @@
-# ARGUS 2.4.0 – lokales Account-Inventar
+# ARGUS 2.5.0 – lokales Account-Inventar
 
 Deutsch · [English](README.md)
 
@@ -727,6 +727,23 @@ python -m argus_security report --text --level tasks
 python -m argus_security report --level numbers --export /lokaler/pfad/argus-bericht.txt
 ```
 
+## Ablaufvorlagen
+
+„Ablaufvorlagen“ in der Arbeitsliste planen wiederkehrende Arbeit. Eine Vorlage
+ist reine Daten, nie ein Skript oder Browsermakro: welche Accounts sie umfasst
+(Katalogkategorien, Mindestpriorität, nur bestätigte Accounts) und was sie plant
+(zur Arbeitsliste hinzufügen, ein Prüfdatum für gewählte Schritte). ARGUS bringt
+zwei Vorlagen mit, eine jährliche Prüfung wichtiger Accounts und eine
+Wiederherstellungsprüfung für Finanz-Accounts, und du kannst eigene speichern.
+**Vorschau** nennt zuerst jeden betroffenen Account; **Vorlage anwenden** ist eine
+Änderung, die du zurücknehmen kannst. Vorlagen handeln nie bei einem Anbieter.
+
+```bash
+python -m argus_security template list
+python -m argus_security template preview yearly-important
+python -m argus_security template apply yearly-important
+```
+
 ## Adresswechsel planen
 
 Wenn du eine Adresse aufgibst, listet „Adresswechsel planen“ unter „Postfach &
@@ -865,6 +882,7 @@ Begründung mitziehen muss. `--json` gibt den vollständigen Bericht aus.
 | `argus_security/watch.py` | Eng begrenzte, freigegebene Überwachung eines Exportordners |
 | `argus_security/profiles.py`, `history.py`, `reports.py` | Benannte Profile, tägliche Zahlen und datensparsame Berichte |
 | `argus_security/moves.py` | Geordnete, manuelle Pläne für den Umzug von Accounts auf eine andere eigene Adresse |
+| `argus_security/templates.py` | Deklarative Ablaufvorlagen mit Vorschau |
 | `argus_security/backup.py` | Lokale Profilsicherungen und Wiederherstellung |
 | `argus_security/workflow.py` | Lokale Sicherheits-Arbeitsliste und geführter nächster Schritt |
 | `argus_security/handoffs.py` | Dauerhaftes Journal für Bitwarden-Übertragungen |

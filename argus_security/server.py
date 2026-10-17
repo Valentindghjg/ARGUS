@@ -403,6 +403,18 @@ class Handler(BaseHTTPRequestHandler):
                 data = self._json()
                 result = download_export(self.server.store, data.get("ids"), data.get("language", "en"))
                 self._send(200, result, attachment="argus-bitwarden.json")
+            elif path == "/api/templates":
+                self._send(200, self.server.store.save_template(self._json()))
+            elif path in {"/api/templates/delete", "/api/templates/preview", "/api/templates/apply"}:
+                data = self._json()
+                if set(data) != {"id"}:
+                    raise UserFacingError("This template does not exist")
+                if path.endswith("delete"):
+                    self._send(200, self.server.store.delete_template(data["id"]))
+                elif path.endswith("preview"):
+                    self._send(200, self.server.store.template_plan(data["id"])[1])
+                else:
+                    self._send(200, self.server.store.apply_template(data["id"]))
             elif path == "/api/moves":
                 data = self._json()
                 if set(data) != {"old", "new"}:

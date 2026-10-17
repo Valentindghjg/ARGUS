@@ -1,4 +1,4 @@
-# Änderungen – unveröffentlicht (frühere Pro-Funktionen, kostenlos)
+# Änderungen – Version 2.5.0, frühere Pro-Funktionen, kostenlos (noch ohne Tag)
 
 ## Getrennte Profile, Fortschritt im Zeitverlauf und datensparsame Berichte (P1, P2, P5)
 
@@ -24,6 +24,17 @@
 - Neuer CLI-Befehl `move-address create|list|mark|close`; API `POST /api/moves`,
   `/api/moves/item` und `/api/moves/close`. Schemaversion 10 ergänzt zwei Tabellen
   nach der automatischen Sicherung.
+
+## Ablaufvorlagen (A22, P4)
+
+- Vorlagen planen wiederkehrende Arbeit als reine Daten: welche Accounts
+  (Kategorien, Mindestpriorität, nur bestätigte) und was (Arbeitsliste,
+  Prüfdaten für gewählte Schritte). Zwei Vorlagen sind dabei; eigene lassen sich
+  speichern und löschen.
+- Eine Vorschau nennt jeden betroffenen Account; das Anwenden ist eine
+  rücknehmbare Änderung und überspringt nicht zutreffende Schritte. Neuer
+  CLI-Befehl `template`; API `POST /api/templates`, `/api/templates/preview`,
+  `/api/templates/apply` und `/api/templates/delete`.
 
 # Änderungen – Version 2.4.0, Paket E: Bitwarden ohne Überraschungen (noch ohne Tag)
 

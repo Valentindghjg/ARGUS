@@ -95,6 +95,9 @@ def parser(language="en"):
     report.add_argument('--include-addresses', action='store_true', help=t('Add sign-in addresses to the task lines'))
     report.add_argument('--export', type=Path, help=t('Save the report to a new private file instead of printing it'))
     sub.add_parser('profiles', help=t('List your separate local profiles by name'))
+    template = sub.add_parser('template', help=t('List, preview or apply task templates; they plan locally and never act at providers'))
+    template.add_argument('action', choices=['list', 'preview', 'apply', 'delete'])
+    template.add_argument('id', nargs='?', help=t('Template ID from template list'))
     move = sub.add_parser('move-address', help=t('Plan moving your accounts from one own address to another'))
     move.add_argument('action', choices=['create', 'list', 'mark', 'close'])
     move.add_argument('values', nargs='*', help=t('create: OLD NEW; mark: PLAN_ID ACCOUNT_ID; close: PLAN_ID'))
@@ -350,6 +353,18 @@ def main(argv=None):
             print(json.dumps({'rule': snapshot['review_rule'],
                               'proposals': {a['id']: a['review_proposal'] for a in snapshot['accounts'] if a['review_proposal']},
                               'applied': bool(args.apply and proposed)}, ensure_ascii=False, indent=2))
+        elif args.command == 'template':
+            if args.action != 'list' and not args.id:
+                raise UserFacingError('This template does not exist')
+            if args.action == 'list':
+                print(json.dumps(store.snapshot()['templates'], ensure_ascii=False, indent=2))
+            elif args.action == 'preview':
+                print(json.dumps(store.template_plan(args.id)[1], ensure_ascii=False, indent=2))
+            elif args.action == 'apply':
+                result = store.apply_template(args.id)
+                print(t('Template applied to {p0} account(s). Undo restores the previous planning.', p0=result['accounts']))
+            else:
+                store.delete_template(args.id)
         elif args.command == 'move-address':
             needed = {'create': 2, 'list': 0, 'mark': 2, 'close': 1}[args.action]
             if len(args.values) != needed:

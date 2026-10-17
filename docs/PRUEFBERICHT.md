@@ -1,4 +1,4 @@
-# Prüfbericht – unveröffentlicht (frühere Pro-Funktionen)
+# Prüfbericht – Version 2.5.0 (frühere Pro-Funktionen, noch ohne Tag)
 
 Schritt S17: **326 Python-Tests** und **39 Browser-Prüfgruppen**. Neue Tests
 prüfen getrennte Profilordner, die einander nie lesen, Profilnamen, den Konflikt
@@ -12,6 +12,13 @@ prüfen die Reihenfolge mit dem Postfach-Account zuerst, Ablehnungen (gleiche,
 fremde oder unbenutzte Adresse, ein zweiter offener Plan), das Markieren ohne
 Änderung eines Accounts, das Schließen sowie CLI- und API-Formen. Der Browser
 erstellt einen Plan, markiert einen Account und schließt ihn.
+
+Schritt S18b: **332 Python-Tests** und **41 Browser-Prüfgruppen**. Neue Tests
+prüfen mitgelieferte Vorlagen mit Treffern, Vorschau, Anwenden und Rückgängig,
+die Ablehnung ohne Treffer, die Prüfung jedes Vorlagenfelds, eigene Vorlagen mit
+übersprungenen nicht zutreffenden Schritten, das Löschen sowie CLI- und
+API-Formen. Der Browser zeigt eine Vorlage in der Vorschau, wendet sie an und
+nimmt sie zurück.
 
 # Prüfbericht – Version 2.4.0 (Paket E, noch ohne Tag)
 

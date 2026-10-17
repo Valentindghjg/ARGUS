@@ -1,6 +1,6 @@
 # Change log
 
-## Unreleased — Former Pro features, free
+## 2.5.0 — Former Pro features, free (not yet tagged)
 
 ### Separate profiles, progress over time and data-minimal reports (P1, P2, P5)
 
@@ -24,6 +24,16 @@
 - New CLI command `move-address create|list|mark|close`; API `POST /api/moves`,
   `/api/moves/item` and `/api/moves/close`. Schema version 10 adds two tables
   after the automatic backup.
+
+### Task templates (A22, P4)
+
+- Templates plan recurring work as plain data: which accounts (categories,
+  minimum priority, only confirmed) and what (worklist, review dates for chosen
+  steps). Two templates ship with ARGUS; own templates can be saved and deleted.
+- A preview names every affected account; applying is one undoable change and
+  skips steps that do not apply. New CLI command `template`; API
+  `POST /api/templates`, `/api/templates/preview`, `/api/templates/apply` and
+  `/api/templates/delete`.
 
 ## 2.4.0 — Package E: Bitwarden without surprises (not yet tagged)
 
