@@ -127,11 +127,19 @@ def preview_export(store: Store, ids: list[str], language="en", target="file"):
             "already_created": already_created}
 
 
+def _journal_items(result):
+    return [(_field(item, ACCOUNT_FIELD), _field(item, PROVIDER_FIELD), item["login"]["username"])
+            for item in result["items"]]
+
+
 def download_export(store: Store, ids: list[str], language="en"):
-    """The password-free file, recorded in the hand-off journal so a second import is noticed (B3)."""
+    """The password-free file, recorded in the hand-off journal so a second import is noticed (B3).
+
+    The journal entry is written, and checked again under its lock, before the
+    file is handed out, so two downloads at once never both get a file.
+    """
     result = make_export(store, ids, language)
-    handoffs.record_export(store, [(_field(item, ACCOUNT_FIELD), _field(item, PROVIDER_FIELD), item["login"]["username"])
-                                   for item in result["items"]])
+    handoffs.record_export(store, _journal_items(result))
     return result
 
 
@@ -144,10 +152,13 @@ def export_file(store: Store, path: Path, ids: list[str], language="en"):
     if path.exists():
         raise FileExistsError(path)
     result = make_export(store, ids, language)
-    # Never overwrite an existing export or a vault file.
-    write_private(path, json.dumps(result, ensure_ascii=False, indent=2) + "\n")
-    handoffs.record_export(store, [(_field(item, ACCOUNT_FIELD), _field(item, PROVIDER_FIELD), item["login"]["username"])
-                                   for item in result["items"]])
+    recorded = handoffs.record_export(store, _journal_items(result))
+    try:
+        # Never overwrite an existing export or a vault file.
+        write_private(path, json.dumps(result, ensure_ascii=False, indent=2) + "\n")
+    except BaseException:
+        handoffs.forget_export(store, recorded)
+        raise
     return len(result["items"])
 
 
@@ -181,16 +192,43 @@ class BitwardenCliError(UserFacingError):
     """Safe failure that can be shown without exposing CLI output."""
 
 
+def bw_executable(windows=os.name == "nt"):
+    """The absolute path of the official CLI found on PATH, or None.
+
+    On Windows only ``bw.exe`` from a PATH folder is used: a script wrapper
+    such as npm's ``bw.cmd`` cannot be started safely without a shell, and a
+    file of the same name in the current folder is never run.
+    """
+    found = shutil.which("bw")
+    if not found:
+        return None
+    path = Path(found).resolve()
+    if windows:
+        if path.suffix.lower() != ".exe":
+            raise BitwardenCliError("Install the standalone Bitwarden CLI (bw.exe); script wrappers cannot be started safely.")
+        # Compared fully resolved, so links and short 8.3 names in PATH still match.
+        folders = {os.path.normcase(str(Path(folder).resolve())) for folder in os.environ.get("PATH", "").split(os.pathsep)
+                   if folder}
+        if os.path.normcase(str(path.parent)) not in folders:
+            return None
+    return str(path)
+
+
 def _run_cli(arguments: list[str], environment: dict[str, str], runner, stdin_data: str | None = None):
     """Run the official CLI without a shell and never surface its stdout/stderr.
 
     Item payloads travel through stdin (``bw create item`` reads its encoded
-    JSON there when no argument is given), so account names and sign-in
-    addresses never appear in the process list that other local users can read.
+    JSON there when no argument is given), so new items, their sign-in
+    addresses and notes never appear in the process list. The read-only audit
+    searches by provider name, which other local users can see there like any
+    command argument; it never includes an address.
     """
+    executable = bw_executable()
+    if executable is None:
+        raise BitwardenCliError("The official Bitwarden CLI is not installed or not on PATH.")
     source = {"input": stdin_data} if stdin_data is not None else {"stdin": subprocess.DEVNULL}
     try:
-        result = runner(["bw", *arguments], **source, stdout=subprocess.PIPE,
+        result = runner([executable, *arguments], **source, stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE, text=True, env=environment, timeout=20, check=False)
     except (OSError, subprocess.SubprocessError) as exc:
         raise BitwardenCliError("The Bitwarden CLI could not be started.") from exc
@@ -205,7 +243,7 @@ def _unlocked_environment(store: Store, environment, runner):
     environment = dict(os.environ if environment is None else environment)
     if not environment.get("BW_SESSION"):
         raise BitwardenCliError("Unlock Bitwarden first, then start ARGUS from that same terminal session.")
-    if not shutil.which("bw"):
+    if not bw_executable():
         raise BitwardenCliError("The official Bitwarden CLI is not installed or not on PATH.")
     try:
         status = json.loads(_run_cli(["status"], environment, runner))

@@ -55,8 +55,10 @@ def create(db, accounts, old, new, owned, moment):
                (plan_id, old, new, moment))
     for position, account in enumerate(items, start=1):
         db.execute("INSERT INTO move_items(plan_id,account_id,position) VALUES (?,?,?)", (plan_id, account["id"], position))
-    # The relation note from plan E4 explains the plan on both addresses' accounts.
-    relate(db, old, new, "replaced_by", owned, moment)
+    # The relation note from plan E4 explains the plan on both addresses' accounts;
+    # a note the person already wrote for these two addresses stays as it is.
+    if not db.execute("SELECT 1 FROM address_relations WHERE address=? AND other=?", (old, new)).fetchone():
+        relate(db, old, new, "replaced_by", owned, moment)
     return plan_id
 
 

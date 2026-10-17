@@ -31,18 +31,21 @@ def data_root():
     return Path.home() / '.local' / 'share'
 
 
-def default_data_dir(language="en"):
+def default_data_dir(language="en", migrate=True):
     """Return the default profile, moving a pre-rename profile there once.
 
     The old ``account-finder`` folder is renamed atomically inside the same
     parent, which keeps its private permissions and every file in it. Keyring
     entries use an opaque selector and the "ARGUS IMAP authorization" service
     name, so they need no migration. An explicit --data-dir is never moved.
+    With ``migrate=False`` (``about``, ``profiles``) nothing is moved or printed.
     """
     root = data_root()
     current, legacy = root / 'argus', root / 'account-finder'
     if legacy.is_symlink() or not legacy.is_dir():
         return current
+    if not migrate:
+        return current if current.exists() or current.is_symlink() else legacy
     if current.exists() or current.is_symlink():
         print(translate('An older profile folder still exists at {p0}; ARGUS does not use it. Check it, then move or delete it yourself.',
                         language, p0=legacy), file=sys.stderr)
@@ -127,6 +130,12 @@ def parser(language="en"):
                             help=t('Minutes between scheduled scans (15 to 10080)'))
     background.add_argument('--limit', type=int, default=DEFAULT_LIMIT,
                             help=t('Maximum messages in each scheduled scan (1 to 10000)'))
+    journal = sub.add_parser('bitwarden-journal', help=t('List Bitwarden hand-offs that wait for your check, or record what you found in your vault'))
+    journal.add_argument('action', choices=['list', 'resolve'])
+    journal.add_argument('id', nargs='?', help=t('Entry ID from bitwarden-journal list'))
+    found = journal.add_mutually_exclusive_group()
+    found.add_argument('--found', action='store_true', help=t('The item is in your vault'))
+    found.add_argument('--not-found', action='store_true', help=t('The item is not in your vault'))
     assign = sub.add_parser('bitwarden-assign', help=t('Mark accounts you found in your vault yourself as stored in Bitwarden'))
     assign.add_argument('--id', action='append', required=True, help=t('Account ID from list-accounts; may be repeated'))
     export = sub.add_parser('bitwarden-export', help=t('Selected metadata as Bitwarden JSON, no passwords'))
@@ -187,10 +196,17 @@ def main(argv=None):
         if args.profile is not None and args.data_dir is not None:
             raise UserFacingError('Choose either --profile or --data-dir')
         if args.command == 'profiles':
-            print(json.dumps(list_profiles(data_root(), args.data_dir or default_data_dir(language)), ensure_ascii=False))
+            print(json.dumps(list_profiles(data_root(), args.data_dir or default_data_dir(language, migrate=False)),
+                             ensure_ascii=False))
             return 0
         data_dir = (profile_dir(data_root(), args.profile) if args.profile is not None
-                    else args.data_dir if args.data_dir is not None else default_data_dir(language))
+                    else args.data_dir if args.data_dir is not None
+                    # Reading facts for a bug report never moves a profile (plan G4).
+                    else default_data_dir(language, migrate=args.command != 'about'))
+        if (args.profile is not None and args.command not in {'init', 'demo', 'restore', 'about'}
+                and not (data_dir / 'accounts.sqlite3').is_file()):
+            # A mistyped name must not create a new, empty profile.
+            raise UserFacingError('This profile does not exist yet; create it with init and --profile')
         if args.command in {'backup', 'restore'}:
             # Work on the files as they are, before any migration opens them.
             return backup_command(args, data_dir, t)
@@ -455,6 +471,18 @@ def main(argv=None):
             print(t('Undid one local change affecting {p0} account(s). Run undo again to go further back.', p0=len(result['accounts'])))
         elif args.command == 'bitwarden-export' and args.preview:
             print(json.dumps(preview_export(store, args.id, language), ensure_ascii=False, indent=2))
+        elif args.command == 'bitwarden-journal':
+            # Plan B3: a terminal-only person can close a download or an unclear transfer too.
+            from .handoffs import handoff_snapshot, resolve
+            if args.action == 'list':
+                fields = ('id', 'account_id', 'provider_id', 'email', 'state', 'updated')
+                print(json.dumps([{key: entry[key] for key in fields} for entry in handoff_snapshot(store)
+                                  if entry['can_resolve']], ensure_ascii=False, indent=2))
+            else:
+                if not args.id or not (args.found or args.not_found):
+                    raise UserFacingError('Name the entry and what you found: bitwarden-journal resolve ID --found or --not-found')
+                resolve(store, {'id': args.id, 'created': args.found, 'confirmed': True})
+                print(t('Recorded. ARGUS changed nothing in Bitwarden.'))
         elif args.command == 'bitwarden-assign':
             store.mark_in_vault(args.id)
             print(t('Marked as stored in Bitwarden. ARGUS did not read your vault; undo restores the previous state.'))

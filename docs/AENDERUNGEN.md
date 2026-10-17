@@ -73,6 +73,27 @@
   die README nennt jetzt, dass ein Widerruf innerhalb von etwa 15 Sekunden
   bemerkt wird.
 
+## Bitwarden, Profile und Umzugspläne
+
+- Zwei gleichzeitige Downloads oder ein Download neben einer direkten
+  Übertragung können nicht mehr beide eine Datei ausgeben: Das Journal wird vor
+  der Ausgabe unter seiner Sperre erneut geprüft. Eine Datei, die sich nicht
+  schreiben lässt, hinterlässt keinen Journaleintrag.
+- „Schon in deinem Tresor“ nimmt nur Accounts an, die ARGUS gefunden und du
+  nicht abgelehnt hast, legt nie einen leeren Account an und schließt einen
+  offenen Download-Eintrag.
+- Neu: `bitwarden-journal list|resolve`, damit auch im Terminal festgehalten
+  werden kann, was im Tresor steht; die Meldung nach einem Download nennt es.
+- Unter Windows startet nur die eigenständige `bw.exe` aus dem PATH, nie ein
+  Skript-Wrapper oder eine Datei im aktuellen Ordner. Der Code-Kommentar sagt
+  jetzt, dass die lesende Prüfung Anbieternamen in der Prozessliste zeigt.
+- `about` und `profiles` verschieben nie einen Profilordner aus der Zeit vor der
+  Umbenennung und geben keinen Pfad aus. `--profile default` und
+  Windows-Gerätenamen werden abgelehnt, und ein vertippter `--profile` legt kein
+  neues, leeres Profil mehr an.
+- Ein Umzugsplan behält eine Adressnotiz, die du für dieselben zwei Adressen
+  geschrieben hast.
+
 
 ## Plan abgeschlossen (S21)
 

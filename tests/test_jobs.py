@@ -139,7 +139,7 @@ class JobTests(unittest.TestCase):
                 return SimpleNamespace(returncode=0, stdout='{"status":"unlocked"}')
             return SimpleNamespace(returncode=0, stdout='{"id":"46caf902-0e99-4bc1-bb92-6075b813233c"}')
         self.store.set_automation_paused(True)
-        with patch("argus_security.bitwarden.shutil.which", return_value="/usr/bin/bw"):
+        with patch("argus_security.bitwarden.bw_executable", return_value="/fake/bw"):
             with self.assertRaises(UserFacingError):
                 add_to_unlocked_cli(self.store, ["github"], runner=runner, environment={"BW_SESSION": "x"})
             self.store.set_automation_paused(False)

@@ -918,16 +918,29 @@ class Store:
         return build(self.snapshot(), level, include_addresses, language)
 
     def mark_in_vault(self, ids):
-        """Plan B1: the person states these accounts are already in their vault; ARGUS reads nothing."""
+        """Plan B1: the person states these accounts are already in their vault; ARGUS reads nothing.
+
+        Only accounts ARGUS found and the person did not reject qualify, like a
+        download or a transfer. A downloaded file whose import was still open
+        counts as imported now, because the person says the item is there.
+        """
         if not isinstance(ids, list) or not ids or len(ids) > 10_000 or any(not isinstance(i, str) for i in ids):
             raise UserFacingError("Select the accounts that are already in your vault")
+        found = {a["id"] for a in self.snapshot()["accounts"] if a["classification"] != "unknown"}
+        if any(account_id not in found for account_id in ids):
+            raise UserFacingError("Mark only discovered accounts as stored in your vault")
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             batch, moment = ChangeBatch(db), now()
             for account_id in dict.fromkeys(ids):
-                account = self._account_row(db, account_id)
+                row = db.execute("SELECT * FROM account_instances WHERE id=?", (account_id,)).fetchone()
+                if row is None or row["decision"] == "rejected":
+                    raise UserFacingError("Mark only discovered accounts as stored in your vault")
+                account = dict(row)
                 if account["identity_review_required"]:
                     raise UserFacingError("Identify this account before marking it done")
+                db.execute("""UPDATE instance_bitwarden_handoffs SET state='created',lease_until=0,updated=?
+                              WHERE account_id=? AND state='exported'""", (moment, account_id))
                 current = read_steps(db, account_id, account["login_method"])["vault"]
                 if current["state"] == "done":
                     continue

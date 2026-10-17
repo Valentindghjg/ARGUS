@@ -633,7 +633,11 @@ Anmeldeadresse, sodass der Benutzername leer bleibt) oder „Jetzt nicht“
 Import oder schon in Bitwarden). Bereit ist keine Sicherheitsaussage. Das
 Übergabejournal listet jeden Download und jede CLI-Übertragung; ein unklarer
 Eintrag sperrt einen weiteren Versuch, bis du festhältst, was du im Tresor
-gefunden hast, damit keine Datei versehentlich doppelt importiert wird.
+gefunden hast, damit keine Datei versehentlich doppelt importiert wird. Im
+Terminal zeigt `bitwarden-journal list` diese Einträge, und
+`bitwarden-journal resolve ID --found` (oder `--not-found`) hält das Ergebnis
+fest. Unter Windows startet ARGUS nur die eigenständige `bw.exe` aus dem PATH,
+nicht den npm-Wrapper `bw.cmd`.
 
 Unter „Bitwarden vorbereiten“:
 

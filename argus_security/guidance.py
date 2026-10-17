@@ -37,6 +37,8 @@ HINTS = {
         "Check the free disk space and that the backup folder is writable, then try again.",
     "The backup is damaged; its checksums do not match":
         "Use another backup. ARGUS keeps the latest automatic backups in the backups folder of the profile.",
+    "This profile does not exist yet; create it with init and --profile":
+        "Check the name with argus profiles, or start a new profile with argus --profile NAME init --email followed by your address.",
     "This profile was updated by a newer ARGUS version; update ARGUS first":
         "Or restore a backup from before that update with argus restore.",
     # Local database
@@ -58,6 +60,8 @@ HINTS = {
         "Install the official Bitwarden CLI, or download the metadata as Bitwarden JSON instead; that needs no CLI.",
     "Check the unresolved Bitwarden transfer before trying again.":
         "Open Prepare Bitwarden, search your vault for the transfer ID shown there and record what you found.",
+    "This account was downloaded for Bitwarden. Record whether you imported it before adding it again.":
+        "Check your vault, then record what you found in Prepare Bitwarden or with bitwarden-journal resolve.",
     "Review this account's sign-in identity before transferring it.": IDENTIFY_ACCOUNT,
     "Review this account's sign-in identity before checking Bitwarden.": IDENTIFY_ACCOUNT,
     "Identify this account before marking it done": IDENTIFY_ACCOUNT,

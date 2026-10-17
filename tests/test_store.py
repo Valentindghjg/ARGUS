@@ -121,14 +121,14 @@ class StoreTests(unittest.TestCase):
                 return SimpleNamespace(returncode=0, stdout='{"status":"unlocked"}')
             self.assertEqual(arguments[1:3], ["create", "item"])
             return SimpleNamespace(returncode=0, stdout='{"id":"46caf902-0e99-4bc1-bb92-6075b813233c"}')
-        with patch("argus_security.bitwarden.shutil.which", return_value="/usr/bin/bw"):
+        with patch("argus_security.bitwarden.bw_executable", return_value="/fake/bw"):
             result = add_to_unlocked_cli(self.store, ["github"], runner=runner, environment={"BW_SESSION":"not-stored"})
         self.assertEqual(result, {"items": 1, "providers": ["github"], "status": "completed"})
         # The item has no password yet: prepared, never done (ADR-0001, B4).
         self.assertEqual(self.account()["steps"]["vault"]["state"], "prepared")
         self.assertFalse(self.account()["checklist"]["saved_in_bitwarden"])
         self.assertEqual(len(calls), 2)
-        self.assertEqual(calls[1][0], ["bw", "create", "item"])
+        self.assertEqual(calls[1][0], ["/fake/bw", "create", "item"])
         self.assertNotIn("stdin", calls[1][1])
         import base64
         payload = json.loads(base64.b64decode(calls[1][1]["input"]))
@@ -160,7 +160,7 @@ class StoreTests(unittest.TestCase):
                           "uris": [{"uri": "https://github.com/"}]},
             }]))
 
-        with patch("argus_security.bitwarden.shutil.which", return_value="/usr/bin/bw"):
+        with patch("argus_security.bitwarden.bw_executable", return_value="/fake/bw"):
             result = audit_unlocked_cli(self.store, ["github"], runner=runner,
                                         environment={"BW_SESSION": "not-stored"})
         self.assertEqual(result, {"accounts": [{"account_id": "github", "match": "found", "count": 1}]})

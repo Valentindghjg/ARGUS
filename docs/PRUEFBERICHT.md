@@ -24,6 +24,14 @@ Ordnerüberwachung, die scheitern, mittendrin beendet werden, auf eine geändert
 Adressliste treffen oder einen zu großen Ordner finden. Die Reproduktionsskripte
 des Prüfers zeigen jetzt das korrigierte Verhalten.
 
+Review-Korrekturen, Teil 4: **388 Python-Tests**. Neue Regressionstests prüfen
+zwei gleichzeitige Downloads, eine Datei, die sich nicht schreiben lässt,
+„Schon in deinem Tresor“ für unbekannte, abgelehnte und heruntergeladene
+Accounts, das Journal im Terminal, die Windows-Suche nach `bw.exe`, einen
+Umzugsplan neben einer vorhandenen Adressnotiz, reservierte und vertippte
+Profilnamen sowie `about`/`profiles` neben einem Ordner aus der Zeit vor der
+Umbenennung.
+
 # Prüfbericht – Version 2.6.0 (Qualität und Vertrauen, noch ohne Tag)
 
 Schritt S19: **336 Python-Tests** und **42 Browser-Prüfgruppen**. Neue Tests

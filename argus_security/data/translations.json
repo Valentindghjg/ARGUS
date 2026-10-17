@@ -1224,6 +1224,18 @@
     "Recheck everything without a message or size limit": "Alles ohne Nachrichten- oder Größenlimit erneut prüfen",
     "The folder holds more than 5,000 EML files. Import it once with import, then watch a folder for new files only.": "Der Ordner enthält mehr als 5.000 EML-Dateien. Importiere ihn einmal mit import und überwache dann einen Ordner nur für neue Dateien.",
     "The last pass failed; the job list shows it. The next pass follows at the usual interval.": "Der letzte Durchgang ist fehlgeschlagen; die Vorgangsliste zeigt ihn. Der nächste Durchgang folgt im üblichen Abstand.",
-    "A full scan rechecks every message; run it without --limit": "Ein Vollscan prüft jede Nachricht erneut; führe ihn ohne --limit aus"
+    "A full scan rechecks every message; run it without --limit": "Ein Vollscan prüft jede Nachricht erneut; führe ihn ohne --limit aus",
+    "Mark only discovered accounts as stored in your vault": "Markiere nur gefundene Accounts als im Tresor gespeichert",
+    "Install the standalone Bitwarden CLI (bw.exe); script wrappers cannot be started safely.": "Installiere die eigenständige Bitwarden-CLI (bw.exe); Skript-Wrapper lassen sich nicht sicher starten.",
+    "Check your vault, then record what you found in Prepare Bitwarden or with bitwarden-journal resolve.": "Sieh in deinem Tresor nach und halte fest, was du gefunden hast: unter „Bitwarden vorbereiten“ oder mit bitwarden-journal resolve.",
+    "List Bitwarden hand-offs that wait for your check, or record what you found in your vault": "Bitwarden-Übergaben auflisten, die auf deine Prüfung warten, oder festhalten, was du im Tresor gefunden hast",
+    "Entry ID from bitwarden-journal list": "Eintrags-ID aus bitwarden-journal list",
+    "The item is in your vault": "Der Eintrag ist in deinem Tresor",
+    "The item is not in your vault": "Der Eintrag ist nicht in deinem Tresor",
+    "Name the entry and what you found: bitwarden-journal resolve ID --found or --not-found": "Nenne den Eintrag und was du gefunden hast: bitwarden-journal resolve ID --found oder --not-found",
+    "Recorded. ARGUS changed nothing in Bitwarden.": "Festgehalten. ARGUS hat in Bitwarden nichts geändert.",
+    "This profile name is reserved; choose another one": "Dieser Profilname ist reserviert; wähle einen anderen",
+    "This profile does not exist yet; create it with init and --profile": "Dieses Profil gibt es noch nicht; lege es mit init und --profile an",
+    "Check the name with argus profiles, or start a new profile with argus --profile NAME init --email followed by your address.": "Prüfe den Namen mit argus profiles, oder lege ein neues Profil mit argus --profile NAME init --email und deiner Adresse an."
   }
 }

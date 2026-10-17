@@ -228,7 +228,7 @@ class WorkflowTests(ProfileFixture, unittest.TestCase):
 
 class HandoffTests(ProfileFixture, unittest.TestCase):
     def transfer(self, ids=None, runner=None):
-        with patch('argus_security.bitwarden.shutil.which', return_value='/fake/bw'):
+        with patch('argus_security.bitwarden.bw_executable', return_value='/fake/bw'):
             return add_to_unlocked_cli(self.store, ids or ['github'], runner=runner or self.success,
                                        environment={'BW_SESSION':'SESSION-MUST-NOT-BE-STORED'})
 

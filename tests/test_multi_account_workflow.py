@@ -37,7 +37,7 @@ class SeparateAccountWorkflowTests(unittest.TestCase):
                 if a["provider_id"] == "github" and a["identity_email"]}
 
     def run_cli(self, ids, runner):
-        with patch("argus_security.bitwarden.shutil.which", return_value="/fake/bw"):
+        with patch("argus_security.bitwarden.bw_executable", return_value="/fake/bw"):
             return add_to_unlocked_cli(self.store, ids, runner=runner,
                                        environment={"BW_SESSION": "FAKE-SESSION-NEVER-STORED"})
 
