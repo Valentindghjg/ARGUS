@@ -1,3 +1,10 @@
+# Prüfbericht – Version 2.7.0 (noch ohne Tag)
+
+Dauerhafte Abdeckung: **403 Python-Tests**. Ein neuer Test lässt alle Import-Jobs
+aus einer verkürzten Jobliste fallen und prüft, dass Läufe und Nachrichten
+weiter zählen, dass eine unverändert erneut gelesene Nachricht einmal zählt und
+dass andere Jobarten keine Summen hinterlassen.
+
 # Prüfbericht – Version 2.6.1 (Korrekturen aus dem Review, noch ohne Tag)
 
 Review-Korrekturen, Teil 1: **359 Python-Tests**. Neue Regressionstests

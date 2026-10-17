@@ -1,4 +1,4 @@
-# ARGUS 2.6.1 – lokales Account-Inventar
+# ARGUS 2.7.0 – lokales Account-Inventar
 
 Deutsch · [English](README.md)
 
@@ -94,8 +94,9 @@ Hinweis bleiben. Vor persönlichen Daten bitte das
 ## Abdeckung, Tastaturbedienung und maskierte Ansicht
 
 Die Übersicht nennt, was deine Importe abdecken: jede Quelle mit Läufen,
-Nachrichten und letztem Datum, den Zeitraum deiner Hinweise, Monate ohne Hinweis
-und eigene Adressen ohne Hinweis. ARGUS kann nicht wissen, wie viel deiner Mails
+Nachrichten und letztem Datum (jeder Lauf zählt, auch wenn die Jobliste ihn
+nicht mehr zeigt), den Zeitraum deiner Hinweise, Monate ohne Hinweis und eigene
+Adressen ohne Hinweis. ARGUS kann nicht wissen, wie viel deiner Mails
 oder deines Online-Lebens das ist, deshalb zeigt es keine Gesamtquote.
 
 Jedes Bedienelement ist per Tastatur erreichbar; ein Link **Zum Hauptinhalt

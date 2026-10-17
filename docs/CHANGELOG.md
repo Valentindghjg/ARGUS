@@ -1,5 +1,16 @@
 # Change log
 
+## 2.7.0 — Lasting coverage, build provenance and an accessibility audit (not yet tagged)
+
+### Coverage that outlives the job list (D4)
+
+- The coverage panel counts every run of a source. The job list still keeps
+  only the newest 100 jobs; source jobs that leave it are folded into one row
+  of totals per source (runs, messages, last run: numbers only) in the same
+  step, so no run is counted twice or lost. Database schema 11; ARGUS saves a
+  backup before the migration as usual. Jobs an older version already removed
+  cannot be recovered.
+
 ## 2.6.1 — Fixes from the review of 2.0–2.6 (not yet tagged)
 
 ### Change log, undo, backups and migrations

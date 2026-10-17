@@ -211,3 +211,13 @@ Regressionstest, der vor dem Fix fehlschlug. Dabei getroffene Entscheidungen:
 - **Lokaler Kalendertag:** Alle Tagesgrenzen für Personen (Prüfdaten,
   Zurückstellen, Verlauf, Berichte) folgen dem lokalen Datum, gespeicherte
   Zeitstempel bleiben UTC.
+
+## Nach dem Review (2.7.0)
+
+- **Abdeckung über die Jobliste hinaus:** Die Jobliste bleibt auf 100 Einträge
+  begrenzt. Quell-Jobs, die aus ihr fallen, werden in derselben Transaktion in
+  eine Summenzeile je Quelle übernommen (Läufe, Nachrichten, letzter Lauf); ein
+  Lauf steht damit immer an genau einer Stelle. Die Tabelle gehört zur
+  Abdeckung (`coverage.py`), das Kürzen bleibt im Jobmodell. Schema 11 statt
+  einer stillen Tabelle, damit ältere Versionen das Profil nicht öffnen und
+  ohne Übernahme kürzen. Bereits gelöschte Jobs sind nicht rekonstruierbar.
