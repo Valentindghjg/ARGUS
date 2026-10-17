@@ -593,7 +593,11 @@ empty) or “Not now” (sign-in address to choose, an unclear transfer, a downl
 whose import is not recorded, or already in Bitwarden). Ready is no security
 statement. The transfer journal lists every download and CLI transfer; an
 unclear one blocks another attempt until you record what you found in your
-vault, so a file is never imported twice by accident.
+vault, so a file is never imported twice by accident. In a terminal,
+`bitwarden-journal list` shows those entries and
+`bitwarden-journal resolve ID --found` (or `--not-found`) records the result.
+On Windows ARGUS runs only the standalone `bw.exe` found on PATH, not npm's
+`bw.cmd` wrapper.
 
 Under “Prepare Bitwarden”:
 

@@ -14,11 +14,16 @@ from .errors import UserFacingError
 
 FOLDER = "argus-profiles"
 NAME = re.compile(r"[a-z0-9][a-z0-9-]{0,39}")
+# "default" names the standard profile in listings; the others are Windows device
+# names, which cannot be folders there, so a profile stays portable.
+RESERVED = re.compile(r"default|con|prn|aux|nul|com[0-9]|lpt[0-9]")
 
 
 def profile_dir(root: Path, name) -> Path:
     if not isinstance(name, str) or not NAME.fullmatch(name):
         raise UserFacingError("Use a profile name with lowercase letters, digits and dashes (at most 40)")
+    if RESERVED.fullmatch(name):
+        raise UserFacingError("This profile name is reserved; choose another one")
     return root / FOLDER / name
 
 

@@ -36,15 +36,43 @@ def handoff_snapshot(store):
 
 
 def record_export(store, items):
-    """Plan B3: a downloaded file counts as a hand-off whose import is not yet confirmed."""
+    """Plan B3: a downloaded file counts as a hand-off whose import is not yet confirmed.
+
+    The journal is checked again under its lock: if another download or a
+    direct transfer claimed one of the accounts in the meantime, nothing is
+    recorded and no file may be handed out. Returns what ``forget_export`` needs.
+    """
+    recorded = []
     with store.connect() as db:
         db.execute("BEGIN IMMEDIATE")
         for account_id, provider_id, email in items:
+            row = db.execute("SELECT state FROM instance_bitwarden_handoffs WHERE account_id=? AND email=?",
+                             (account_id, email)).fetchone()
+            if row and row["state"] == "exported":
+                raise HandoffError("This account was downloaded for Bitwarden. Record whether you imported it before adding it again.")
+            if row and row["state"] != "not_created":
+                raise HandoffError("Check the unresolved Bitwarden transfer before trying again.")
+            operation = str(uuid.uuid4())
             db.execute("""INSERT INTO instance_bitwarden_handoffs(id,account_id,provider_id,email,state,operation_id,lease_until,updated)
                           VALUES (?,?,?,?,'exported',?,0,?) ON CONFLICT(account_id,email) DO UPDATE SET
                           state='exported',operation_id=excluded.operation_id,lease_until=0,vault_item_id=NULL,
-                          updated=excluded.updated WHERE instance_bitwarden_handoffs.state='not_created'""",
-                       (str(uuid.uuid4()), account_id, provider_id, email, str(uuid.uuid4()), now()))
+                          updated=excluded.updated""",
+                       (str(uuid.uuid4()), account_id, provider_id, email, operation, now()))
+            recorded.append((account_id, email, operation, row["state"] if row else None))
+    return recorded
+
+
+def forget_export(store, recorded):
+    """Undo ``record_export`` when the file could not be written, so nothing stays blocked."""
+    with store.connect() as db:
+        db.execute("BEGIN IMMEDIATE")
+        for account_id, email, operation, previous in recorded:
+            if previous is None:
+                db.execute("DELETE FROM instance_bitwarden_handoffs WHERE account_id=? AND email=? AND operation_id=?",
+                           (account_id, email, operation))
+            else:
+                db.execute("""UPDATE instance_bitwarden_handoffs SET state=? WHERE account_id=? AND email=?
+                              AND operation_id=?""", (previous, account_id, email, operation))
 
 
 def reserve(store, account_id, email):

@@ -64,6 +64,24 @@
 - The pause takes effect within about a second (it was checked every 25
   messages); the README now says that a revoke is noticed within about
   15 seconds.
+
+### Bitwarden, profiles and move plans
+
+- Two downloads at the same time, or a download next to a direct transfer, can
+  no longer both hand out a file: the journal is checked again under its lock
+  before a file leaves ARGUS. A file that cannot be written leaves no journal
+  entry behind.
+- "Already in your vault" accepts only accounts ARGUS found and you did not
+  reject, never creates an empty account, and closes an open download entry.
+- New `bitwarden-journal list|resolve`, so a terminal-only person can record
+  what they found in the vault; the error after a download names it.
+- On Windows only the standalone `bw.exe` from PATH is started, never a script
+  wrapper or a file in the current folder. The code comment now says that the
+  read-only audit shows provider names in the process list.
+- `about` and `profiles` never move a pre-rename profile folder or print its
+  path. `--profile default` and Windows device names are refused, and a
+  mistyped `--profile` no longer creates a new empty profile.
+- A move plan keeps an address note you wrote for the same two addresses.
 ## 2.6.0 — Quality and trust (not yet tagged)
 
 ### Plan complete (S21)
