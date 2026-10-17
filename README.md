@@ -674,7 +674,7 @@ before your browser saves it.
 
 ```bash
 python -m argus_security --profile work init --email you@work.example
-python -m argus_security --profile work dashboard --port 8766
+python -m argus_security --profile work serve --port 8766
 python -m argus_security profiles
 python -m argus_security report --text --level tasks
 python -m argus_security report --level numbers --export /local/path/argus-report.txt

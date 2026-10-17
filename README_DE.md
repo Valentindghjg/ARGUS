@@ -721,7 +721,7 @@ gezeigt, bevor dein Browser ihn speichert.
 
 ```bash
 python -m argus_security --profile arbeit init --email du@arbeit.example
-python -m argus_security --profile arbeit dashboard --port 8766
+python -m argus_security --profile arbeit serve --port 8766
 python -m argus_security profiles
 python -m argus_security report --text --level tasks
 python -m argus_security report --level numbers --export /lokaler/pfad/argus-bericht.txt
