@@ -1,3 +1,13 @@
+# Test report — Version 2.4.0 (package E, not yet tagged)
+
+Step S16: **323 Python tests** and **38 browser check groups**. New tests cover
+readiness (ready, check first, every blocking reason), journaled downloads in
+the dashboard and the CLI blocking a second download and a CLI transfer until
+resolved, a confirmed import becoming “prepared”, the existing-file check, and
+undoable manual assignment through store, CLI and API. The browser resolves an
+unclear transfer, sees a download journaled and released, and assigns and
+undoes an account without reading the vault.
+
 # Test report — Version 2.3.0 (package D, not yet tagged)
 
 Step S13a: **301 Python tests** and **35 browser check groups**. New tests cover

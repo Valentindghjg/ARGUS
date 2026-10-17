@@ -221,10 +221,11 @@ def main():
                 expect(page.locator('#handoff-review')).to_be_visible()
                 expect(page.locator('#handoff-items')).to_contain_text(attempt['operation_id'])
                 page.locator('#language').select_option('de')
-                expect(page.locator('#handoff-review')).to_contain_text('Unterbrochene Übertragung prüfen')
+                expect(page.locator('#handoff-review')).to_contain_text('Übergabejournal')
                 page.once('dialog', lambda dialog: dialog.accept())
                 page.locator('#handoff-items button').nth(1).click()
-                expect(page.locator('#handoff-review')).to_be_hidden()
+                expect(page.locator('#handoff-items')).to_contain_text('Nicht in Bitwarden; kann erneut vorbereitet werden.')
+                expect(page.locator('#handoff-items button')).to_have_count(0)
                 page.locator('#language').select_option('en')
                 checks.append('Ambiguous transfer review, explicit reconciliation and real-vault demo protection')
                 page.locator('#export-selection input[value="discord"]').check()
@@ -264,8 +265,26 @@ def main():
                 assert exported["items"][0]["login"]["username"] == "demo@example.invalid"
                 assert "Beleg:" in exported["items"][0]["notes"]
                 page.locator("#language").select_option("en")
-                expect(page.locator('#export-selection input[value="steam"]')).to_be_checked()
+                # Plan B3: the download is journaled and blocks a second one until the import is recorded.
+                expect(page.locator('#export-selection input[value="steam"]')).to_be_disabled()
+                expect(page.locator('#export-selection')).to_contain_text("Downloaded; record in the journal whether you imported it.")
+                steam_entry = page.locator('#handoff-items article').filter(has_text="Steam")
+                expect(steam_entry).to_contain_text("Downloaded. Record whether you imported the file into Bitwarden.")
+                page.once('dialog', lambda dialog: dialog.accept())
+                steam_entry.get_by_role("button", name="I did not import it").click()
+                expect(page.locator('#export-selection input[value="steam"]')).to_be_enabled()
+                # Plan B1: marking an account found in the vault reads nothing and can be undone.
+                for checkbox in page.locator("#export-selection input:not(:disabled)").all():
+                    checkbox.uncheck()
+                page.locator('#export-selection input[value="discord"]').check()
+                page.locator("#assign-button").click()
+                expect(page.locator("#toast-text")).to_contain_text("ARGUS did not read your vault")
+                expect(page.locator('#export-selection input[value="discord"]')).to_have_count(0)
+                page.locator("#toast-undo").click()
+                expect(page.locator('#export-selection input[value="discord"]')).to_have_count(1)
+                expect(page.locator("#audit-consent")).to_be_disabled()
                 checks.append("Password-free Bitwarden download after an exact preview; assigned entries excluded")
+                checks.append("Download journaled against duplicates; manual vault assignment without reading the vault, with undo")
                 checks.append("German Bitwarden notes; export selection preserved across language changes")
 
                 page.locator('[data-view="accounts"]').click()

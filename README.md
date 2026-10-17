@@ -1,4 +1,4 @@
-# ARGUS 2.3.0
+# ARGUS 2.4.0
 
 [Deutsch](README_DE.md) · English
 
@@ -560,6 +560,21 @@ password-free item that ARGUS created is shown as “prepared” until you tick 
 vault step. The toast after each change and “Your recent changes” in the
 worklist undo your local decisions and steps; Bitwarden items and scans are
 never undone. You can confirm a catalog provider even without email evidence.
+
+### Three equal ways, readiness and one journal
+
+“Prepare Bitwarden” offers three equal ways, none of which needs ARGUS to read
+your vault: **1 · Already in your vault** marks the selected accounts as stored
+after you looked yourself (undoable; also `bitwarden-assign --id …`), **2 ·
+Download a password-free file**, and **3 · Optional: Bitwarden CLI** for direct
+creation. Checking existing items with the CLI reads your vault and needs its own
+tick for that one check. Each account shows its readiness first: “Ready”,
+“Check first” (not confirmed by you, or no sign-in address so the username stays
+empty) or “Not now” (sign-in address to choose, an unclear transfer, a download
+whose import is not recorded, or already in Bitwarden). Ready is no security
+statement. The transfer journal lists every download and CLI transfer; an
+unclear one blocks another attempt until you record what you found in your
+vault, so a file is never imported twice by accident.
 
 Under “Prepare Bitwarden”:
 

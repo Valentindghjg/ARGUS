@@ -56,6 +56,8 @@ def _export_plan(store: Store, ids: list[str], language="en"):
             state = previous.get((account["id"], email))
             if state in {"running", "uncertain"}:
                 raise handoffs.HandoffError("Check the unresolved Bitwarden transfer before trying again.")
+            if state == "exported":
+                raise handoffs.HandoffError("This account was downloaded for Bitwarden. Record whether you imported it before adding it again.")
             if state == "created":
                 already_created.append(account["id"])
                 continue
@@ -125,11 +127,54 @@ def preview_export(store: Store, ids: list[str], language="en", target="file"):
             "already_created": already_created}
 
 
+def download_export(store: Store, ids: list[str], language="en"):
+    """The password-free file, recorded in the hand-off journal so a second import is noticed (B3)."""
+    result = make_export(store, ids, language)
+    handoffs.record_export(store, [(_field(item, ACCOUNT_FIELD), _field(item, PROVIDER_FIELD), item["login"]["username"])
+                                   for item in result["items"]])
+    return result
+
+
+def _field(item, name):
+    return next(field["value"] for field in item["fields"] if field["name"] == name)
+
+
 def export_file(store: Store, path: Path, ids: list[str], language="en"):
+    # An existing file is reported first; write_private still refuses atomically.
+    if path.exists():
+        raise FileExistsError(path)
     result = make_export(store, ids, language)
     # Never overwrite an existing export or a vault file.
     write_private(path, json.dumps(result, ensure_ascii=False, indent=2) + "\n")
+    handoffs.record_export(store, [(_field(item, ACCOUNT_FIELD), _field(item, PROVIDER_FIELD), item["login"]["username"])
+                                   for item in result["items"]])
     return len(result["items"])
+
+
+READINESS_BLOCKED = ("unknown", "rejected", "identify", "transfer_unclear", "downloaded", "in_vault")
+
+
+def readiness(account, journal_state=None):
+    """Plan A19: what a hand-off of this account needs first. Ready is no security statement."""
+    issues = []
+    if account["classification"] == "unknown":
+        issues.append("unknown")
+    if account["decision"] == "rejected":
+        issues.append("rejected")
+    if account.get("identity_review_required"):
+        issues.append("identify")
+    if journal_state in {"running", "uncertain"}:
+        issues.append("transfer_unclear")
+    if journal_state == "exported":
+        issues.append("downloaded")
+    if journal_state == "created" or account["steps"]["vault"]["state"] != "open":
+        issues.append("in_vault")
+    if account["decision"] == "undecided":
+        issues.append("not_confirmed")
+    if not (account.get("identity_email") or account.get("manual_email")):
+        issues.append("no_address")
+    status = "blocked" if any(issue in READINESS_BLOCKED for issue in issues) else "check" if issues else "ready"
+    return {"status": status, "issues": issues}
 
 
 class BitwardenCliError(UserFacingError):

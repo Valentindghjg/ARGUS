@@ -110,6 +110,8 @@ def parser(language="en"):
                             help=t('Minutes between scheduled scans (15 to 10080)'))
     background.add_argument('--limit', type=int, default=DEFAULT_LIMIT,
                             help=t('Maximum messages in each scheduled scan (1 to 10000)'))
+    assign = sub.add_parser('bitwarden-assign', help=t('Mark accounts you found in your vault yourself as stored in Bitwarden'))
+    assign.add_argument('--id', action='append', required=True, help=t('Account ID from list-accounts; may be repeated'))
     export = sub.add_parser('bitwarden-export', help=t('Selected metadata as Bitwarden JSON, no passwords'))
     export.add_argument('path', type=Path)
     export.add_argument('--id', action='append', required=True, help=t('Account ID from list-accounts; may be repeated'))
@@ -392,6 +394,9 @@ def main(argv=None):
             print(t('Undid one local change affecting {p0} account(s). Run undo again to go further back.', p0=len(result['accounts'])))
         elif args.command == 'bitwarden-export' and args.preview:
             print(json.dumps(preview_export(store, args.id, language), ensure_ascii=False, indent=2))
+        elif args.command == 'bitwarden-assign':
+            store.mark_in_vault(args.id)
+            print(t('Marked as stored in Bitwarden. ARGUS did not read your vault; undo restores the previous state.'))
         elif args.command == 'bitwarden-export':
             count = export_file(store, args.path, args.id, language=language)
             print(t('Saved {p0} metadata items privately; password fields are empty. Import the file into Bitwarden yourself, only once.', p0=count))

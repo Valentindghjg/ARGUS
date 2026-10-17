@@ -1,3 +1,21 @@
+# Änderungen – Version 2.4.0, Paket E: Bitwarden ohne Überraschungen (noch ohne Tag)
+
+## Drei gleichwertige Wege, Bereitschaft und ein Journal (B1, B3, A19)
+
+- „Bitwarden vorbereiten“ bietet drei gleichwertige Wege: selbst im Tresor
+  gefundene Accounts markieren (rücknehmbar, `bitwarden-assign`), eine
+  passwortfreie Datei herunterladen oder die optionale CLI. Das Prüfen vorhandener
+  Einträge liest den Tresor und braucht für genau diese Prüfung ein eigenes
+  Häkchen.
+- Jeder Account zeigt seine Bereitschaft (bereit, erst prüfen, jetzt nicht) mit
+  Gründen; bereit ist keine Sicherheitsaussage.
+- Downloads (Dashboard und `bitwarden-export`) werden als „heruntergeladen“ im
+  Journal geführt: Ein weiterer Download oder eine CLI-Übertragung dieses Accounts
+  wartet, bis du festhältst, ob du importiert hast. Das Journal listet jeden
+  Download und jede Übertragung mit Datum. Eine vorhandene Exportdatei wird
+  gemeldet, bevor etwas ins Journal kommt.
+- Neue API `POST /api/bitwarden/assign`; Snapshot-Feld `bitwarden_readiness`.
+
 # Änderungen – Version 2.3.0, Paket D: verlässliche Automatik (noch ohne Tag)
 
 ## Vorgänge, Aktivitätsprotokoll und eine Pause für alles (A24, A25, A27, D5, Priorität 07)
