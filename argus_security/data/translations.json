@@ -1202,6 +1202,15 @@
     "This template does not exist": "Diese Vorlage existiert nicht",
     "Use a template name with 1 to 80 characters": "Verwende einen Vorlagennamen mit 1 bis 80 Zeichen",
     "Yearly check of important accounts": "Jährliche Prüfung wichtiger Accounts",
-    "Recovery check for finance accounts": "Wiederherstellungsprüfung für Finanz-Accounts"
+    "Recovery check for finance accounts": "Wiederherstellungsprüfung für Finanz-Accounts",
+    "ARGUS cannot know how much of your mail or online life this is, so it shows no total percentage.": "ARGUS kann nicht wissen, wie viel deiner Mails oder deines Online-Lebens das ist, deshalb zeigt es keine Gesamtquote.",
+    "Clues from {first} to {last}": "Hinweise von {first} bis {last}",
+    "Hide personal details": "Persönliche Angaben verbergen",
+    "No clue yet for: {addresses}": "Noch kein Hinweis für: {addresses}",
+    "Nothing imported yet.": "Noch nichts importiert.",
+    "Skip to main content": "Zum Hauptinhalt springen",
+    "What your imports cover": "Was deine Importe abdecken",
+    "{count} month(s) in that period have no clue, most recently: {months}": "{count} Monat(e) in diesem Zeitraum ohne Hinweis, zuletzt: {months}",
+    "{kind}: {runs} run(s), {messages} message(s), last on {date}": "{kind}: {runs} Lauf/Läufe, {messages} Nachricht(en), zuletzt am {date}"
   }
 }

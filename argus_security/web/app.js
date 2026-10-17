@@ -87,7 +87,18 @@ const titles = {
   control:["Jobs, activity and the pause in one place.","See what runs, what waits and what happened; pause everything at once.","Control"]
 };
 function node(tag, text, className) { const e=document.createElement(tag); if(text!==undefined)e.textContent=text; if(className)e.className=className; return e; }
-function accountEmail(account){return account.identity_email||account.manual_email||account.registered_emails[0]||"";}
+// Plan D6: an optional masked view for screen sharing. It changes only what is shown, not data or exports.
+let maskPersonal=false;
+try{maskPersonal=localStorage.getItem("argus.mask")==="1";}catch(_){}
+function shown(text){
+  if(!maskPersonal||!text)return text;
+  return String(text).replace(/([^\s@<>,;]+)@([^\s@<>,;]+)/g,(_,local,domain)=>{
+    const labels=domain.split(".");
+    return `${local[0]}•••@${labels.map((label,i)=>i===labels.length-1?label:label[0]+"•••").join(".")}`;
+  });
+}
+function emailOption(e){return new Option(shown(e),e);}
+function accountEmail(account){return shown(account.identity_email||account.manual_email||account.registered_emails[0]||"");}
 function accountTitle(account){
   const identity=[account.label,accountEmail(account)].filter(Boolean);
   if(!identity.length&&state.accounts.filter(a=>(a.provider_id||a.id)===(account.provider_id||account.id)).length>1)identity.push(t("Address not assigned"));
@@ -156,7 +167,7 @@ function renderState() {
   const previous=$("category").value;
   $("category").replaceChildren(new Option(t("All categories"),""),...Array.from(new Set(state.accounts.map(a=>a.category))).sort().map(c=>new Option(t(c),c)));
   $("category").value=previous;
-  $("profile-email").textContent=t("Configured addresses: {p0}",{p0:(state.emails.join(", "))});
+  $("profile-email").textContent=t("Configured addresses: {p0}",{p0:(state.emails.map(shown).join(", "))});
   const scheduled=state.background_scan||{};
   let scheduledText;
   if(scheduled.enabled&&!scheduled.target_confirmed) scheduledText=t("Scheduled IMAP scans wait for approval of the current IMAP settings and will not connect. Run background-imap enable in a local terminal.");
@@ -174,7 +185,7 @@ function renderState() {
   $("alias-email").disabled=state.demo;$("alias-owned").disabled=state.demo;
   if(state.demo)setMessage("alias-message","Add real own addresses in a personal profile on your computer. The demo profile stays separate.");
   renderRows();renderCandidates();renderExport();renderBitwardenAudit();renderWorklist();renderGuided();renderHandoffs();renderHistory();
-  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();renderChanges();renderMailboxes();renderSession();renderReviewRule();renderControl();renderLastImport();renderTrend();renderMoves();renderTemplates();
+  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();renderChanges();renderMailboxes();renderSession();renderReviewRule();renderControl();renderLastImport();renderTrend();renderMoves();renderTemplates();renderCoverage();
 }
 // Plan A1-A4, A7, A28: what is new since the last review, in one place and one summary.
 const changeReasons={
@@ -322,7 +333,7 @@ function renderMailboxes(){
     if(entry&&![...select.options].some(option=>option.value===entry.account_id))select.append(new Option(t("No longer confirmed"),entry.account_id));
     select.value=entry?entry.account_id:"";
     select.onchange=()=>reviewAction("/api/profile/mailboxes",{address,account_id:select.value||null},"Saved locally.");
-    card.append(node("strong",address),select);
+    card.append(node("strong",shown(address)),select);
     if(entry&&!entry.active)card.append(node("p",t("This note is inactive until you confirm the account again."),"small-muted"));
     return card;
   }));
@@ -332,13 +343,13 @@ const moveStates={open:"Open",changed:"Changed at the provider",skipped:"Skipped
 function renderMoves(){
   for(const id of ["move-old","move-new"]){
     const select=$(id),previous=select.value;
-    select.replaceChildren(...state.emails.map(e=>new Option(e,e)));if(state.emails.includes(previous))select.value=previous;
+    select.replaceChildren(...state.emails.map(emailOption));if(state.emails.includes(previous))select.value=previous;
   }
   if($("move-new").value===$("move-old").value&&state.emails.length>1)$("move-new").value=state.emails.find(e=>e!==$("move-old").value);
   $("move-create").disabled=state.emails.length<2;
   $("move-plans").replaceChildren(...state.move_plans.filter(plan=>!plan.closed_at).map(plan=>{
     const card=node("article",undefined,"worklist-item");
-    card.append(node("strong",t("{old} → {new}",{old:plan.old,new:plan.new})),node("p",t("{done} of {total} handled",{done:plan.done,total:plan.items.length}),"small-muted"));
+    card.append(node("strong",t("{old} → {new}",{old:shown(plan.old),new:shown(plan.new)})),node("p",t("{done} of {total} handled",{done:plan.done,total:plan.items.length}),"small-muted"));
     const list=node("ol",undefined,"move-items");
     for(const item of plan.items){
       const account=state.accounts.find(a=>a.id===item.account_id),row=node("li");
@@ -360,11 +371,11 @@ async function createMovePlan(event){
 function renderRelations(){
   for(const id of ["relation-address","relation-other"]){
     const select=$(id),previous=select.value;
-    select.replaceChildren(...state.emails.map(e=>new Option(e,e)));if(state.emails.includes(previous))select.value=previous;
+    select.replaceChildren(...state.emails.map(emailOption));if(state.emails.includes(previous))select.value=previous;
   }
   $("relation-save").disabled=state.demo||state.emails.length<2;
   $("relation-items").replaceChildren(...state.relations.map(entry=>{
-    const card=node("article",undefined,"worklist-item");card.append(node("p",t(relationTexts[entry.kind],{a:entry.address,b:entry.other})));
+    const card=node("article",undefined,"worklist-item");card.append(node("p",t(relationTexts[entry.kind],{a:shown(entry.address),b:shown(entry.other)})));
     const actions=node("div",undefined,"bitwarden-actions");actions.append(actionButton("Remove note",()=>reviewAction("/api/profile/relations/remove",{address:entry.address,other:entry.other},"Note removed locally.")));
     card.append(actions);return card;
   }));
@@ -481,7 +492,7 @@ function renderScan(scan){
 function navigate(next,clearError=true){
   view=next;if(clearError)$("error").classList.add("hidden");
   const [title,description,crumb]=titles[next].map(value=>t(value));$("page-title").textContent=t(title);$("page-description").textContent=t(description);$("breadcrumb").textContent=t(crumb);
-  document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===next));
+  document.querySelectorAll("[data-view]").forEach(b=>{b.classList.toggle("active",b.dataset.view===next);if(b.dataset.view===next)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});
   $("dashboard-view").classList.toggle("hidden",next!=="dashboard");
   $("inventory-view").classList.toggle("hidden",!["dashboard","accounts","security"].includes(next));
   $("bitwarden-view").classList.toggle("hidden",next!=="bitwarden");
@@ -656,12 +667,12 @@ function renderDetail(){
   $("sign-in-with").replaceChildren(new Option(t("Not noted"),""),...confirmedOptions(a.id));
   if(a.signs_in_with&&![...$("sign-in-with").options].some(option=>option.value===a.signs_in_with))$("sign-in-with").append(new Option(t("No longer confirmed"),a.signs_in_with));
   $("sign-in-with").value=a.signs_in_with||"";
-  $("registered-email").replaceChildren(new Option(t("Email evidence only / unknown"),""),...state.emails.map(e=>new Option(e,e)));
+  $("registered-email").replaceChildren(new Option(t("Email evidence only / unknown"),""),...state.emails.map(emailOption));
   $("registered-email").value=a.identity_email||a.manual_email||"";
   const addForm=$("add-account-form");
   if(addForm.dataset.account!==a.id){addForm.reset();$("add-account-panel").open=false;addForm.dataset.account=a.id;$("new-account-error").classList.add("hidden");}
   const newAccountEmail=$("new-account-email"),previousEmail=newAccountEmail.value;
-  newAccountEmail.replaceChildren(new Option(t("Sign-in address not known from evidence"),""),...state.emails.map(e=>new Option(e,e)));
+  newAccountEmail.replaceChildren(new Option(t("Sign-in address not known from evidence"),""),...state.emails.map(emailOption));
   newAccountEmail.value=state.emails.includes(previousEmail)?previousEmail:"";
   for(const id of ["new-account-email","new-account-label","new-account-owned","add-account-button"])$(id).disabled=busy;
   $("sso-note").classList.toggle("hidden",a.login_method==="password");
@@ -977,6 +988,16 @@ async function previewProgressReport(){
 }
 // Plan P2: how the counts moved; only daily numbers are kept for this.
 const trendLabels={clues:"Clues",found:"Accounts found",confirmed:"Confirmed by you",complete:"Complete",open:"Still open",unclear:"Unclear items",high_priority_open:"Open with high priority"};
+// Plan D4: sources, period and gaps of what was imported; never a total percentage.
+const sourceKinds={import:"Email import",imap_scan:"IMAP scan",scheduled_scan:"Scheduled IMAP scan",folder_watch:"Folder watch"};
+function renderCoverage(){
+  const c=state.coverage,lines=c.sources.map(s=>node("li",t("{kind}: {runs} run(s), {messages} message(s), last on {date}",{kind:t(sourceKinds[s.kind]),runs:s.runs,messages:s.messages,date:localDate(s.last_run)})));
+  if(c.first_clue)lines.push(node("li",t("Clues from {first} to {last}",{first:c.first_clue,last:c.last_clue})));
+  if(c.months_without_clues_total)lines.push(node("li",t("{count} month(s) in that period have no clue, most recently: {months}",{count:c.months_without_clues_total,months:c.months_without_clues.slice(-6).join(", ")})));
+  if(c.addresses_without_clues.length)lines.push(node("li",t("No clue yet for: {addresses}",{addresses:c.addresses_without_clues.map(shown).join(", ")})));
+  if(!lines.length)lines.push(node("li",t("Nothing imported yet.")));
+  $("coverage-lines").replaceChildren(...lines);
+}
 function renderTrend(){
   const history=state.history,lines=history.comparisons.map(c=>{
     const changes=Object.entries(c.delta).filter(([,v])=>v).map(([k,v])=>`${t(trendLabels[k])} ${v>0?"+":""}${v}`);
@@ -1085,7 +1106,7 @@ function renderHandoffs(){
   $("handoff-review").classList.toggle("hidden",!entries.length);
   $("handoff-items").replaceChildren(...entries.map(item=>{
     const account=state.accounts.find(a=>a.id===(item.account_id||item.provider_id)),card=node("article",undefined,"worklist-item");
-    card.append(node("strong",`${account?accountTitle(account):item.provider_id}${account&&accountEmail(account)===item.email?"":" · "+(item.email||t("Email evidence only / unknown"))}`),node("p",`${t(journalTexts[item.state])} · ${localDateTime(item.updated)}`));
+    card.append(node("strong",`${account?accountTitle(account):item.provider_id}${account&&accountEmail(account)===shown(item.email)?"":" · "+(shown(item.email)||t("Email evidence only / unknown"))}`),node("p",`${t(journalTexts[item.state])} · ${localDateTime(item.updated)}`));
     if(["running","uncertain"].includes(item.state))card.append(node("code",item.operation_id));
     if(item.can_resolve){
       const actions=node("div",undefined,"bitwarden-actions"),download=item.state==="exported";
@@ -1120,7 +1141,7 @@ function renderPreview(){
   $("preview-target").textContent=preview.target==="file"?t("Download a Bitwarden JSON file with the folder {folder}. Import it once, then delete it; it contains personal metadata.",{folder:preview.folder}):t("Create these password-free items in your already-unlocked Bitwarden vault. Existing items are never changed. Each item gets a transfer ID so you can find it if the reply is lost.");
   $("preview-items").replaceChildren(...preview.items.map(item=>{
     const row=node("tr"),name=node("td");name.append(node("strong",item.name),node("small",item.notes,"preview-notes"));
-    row.append(name,node("td",item.uri),node("td",item.username||t("Empty: no confirmed sign-in address")),node("td",item.fields.join(", ")));
+    row.append(name,node("td",item.uri),node("td",shown(item.username)||t("Empty: no confirmed sign-in address")),node("td",item.fields.join(", ")));
     return row;
   }));
   const skipped=preview.already_created.map(id=>accounts.get(id)).filter(Boolean).map(accountTitle);
@@ -1273,7 +1294,9 @@ $("session-report").onclick=previewReport;
 $("report-save").onclick=saveReport;
 $("report-create").onclick=previewProgressReport;
 $("move-form").onsubmit=createMovePlan;
-$("template-form").onsubmit=saveTemplate;$("report-level").onchange=renderTrend;
+$("template-form").onsubmit=saveTemplate;
+$("mask-toggle").checked=maskPersonal;
+$("mask-toggle").onchange=()=>{maskPersonal=$("mask-toggle").checked;try{localStorage.setItem("argus.mask",maskPersonal?"1":"0");}catch(_){}renderState();if($("account-dialog").open)renderDetail();};$("report-level").onchange=renderTrend;
 for(const id of ["report-close","report-cancel"])$(id).onclick=()=>$("report-dialog").close();
 $("review-save").onclick=saveReviewRule;$("review-apply").onclick=applyReviewProposals;
 $("review-proposal-use").onclick=()=>{const a=state.accounts.find(x=>x.id===selected);if(a&&a.review_proposal)setStep("identity",{review_after:a.review_proposal});};

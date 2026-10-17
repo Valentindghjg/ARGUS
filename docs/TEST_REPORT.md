@@ -1,3 +1,11 @@
+# Test report — unreleased (quality and trust)
+
+Step S19: **336 Python tests** and **42 browser check groups**. New tests cover
+the coverage summary (sources, period, gap months, addresses without clues, no
+total) and the catalog quality rules. The browser masks and unmasks addresses,
+checks the current-page marker, the coverage panel, that every visible button
+and field has an accessible name, and that the skip link comes first.
+
 # Test report — Version 2.5.0 (former Pro features, not yet tagged)
 
 Step S17: **326 Python tests** and **39 browser check groups**. New tests cover

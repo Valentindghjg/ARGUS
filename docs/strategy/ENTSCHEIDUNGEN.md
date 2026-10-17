@@ -143,3 +143,10 @@ Wird während der Umsetzung fortgeschrieben.
   nur zwei Wirkungen (Arbeitsliste, Prüfdatum) und keine Bedingungslogik, damit
   sie nie zu Skripten werden. P6 (Offline-Lizenz) entfällt nach der
   Entscheidung „alles als Free“.
+- **S19, Maskierung nur in der Anzeige:** Die maskierte Ansicht ersetzt
+  E-Mail-Adressen beim Darstellen; gespeicherte Daten, Exporte und Berichte
+  bleiben unverändert (Berichte haben eigene Datensparsamkeit). Die Wahl liegt im
+  Browser-Speicher, weil sie eine Ansichtsvorliebe ist. Barrierefreiheit wird mit
+  einer einfachen Regel im Browsertest gesichert (jede sichtbare Schaltfläche und
+  jedes Feld braucht einen zugänglichen Namen), nicht mit einem externen
+  Prüfwerkzeug, damit die Prüfung ohne zusätzliche Abhängigkeit läuft.

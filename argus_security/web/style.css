@@ -33,3 +33,5 @@ p.small-muted{white-space:normal;overflow-wrap:anywhere}
 #trend-panel{margin-bottom:22px}#profile-label{display:block;margin-bottom:4px}
 .move-items{padding-left:20px;margin:8px 0;font-size:12px}.move-items li{padding:6px 0;border-bottom:1px solid #edf0f5;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}.move-actions{display:flex;gap:6px;flex-wrap:wrap}
 .template-steps{border:1px solid var(--border);border-radius:7px;padding:8px 12px;margin:6px 0}.template-steps legend{font-size:11px;color:#697990}#template-categories{min-height:96px}
+.skip-link{position:absolute;left:-9999px;top:8px;z-index:200;background:#fff;color:var(--blue);padding:10px 14px;border-radius:7px;border:2px solid var(--blue)}.skip-link:focus{left:12px}main:focus{outline:none}.mask-toggle{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}#coverage-panel{margin-bottom:22px}
+@media(max-width:700px){.mask-toggle span{display:none}}

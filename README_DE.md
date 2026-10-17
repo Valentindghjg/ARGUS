@@ -88,6 +88,21 @@ Telefon, SSO, andere Postfächer oder gelöschte Nachrichten können ohne lokale
 Hinweis bleiben. Vor persönlichen Daten bitte das
 [Sicherheitsmodell](docs/SICHERHEIT.md) lesen.
 
+## Abdeckung, Tastaturbedienung und maskierte Ansicht
+
+Die Übersicht nennt, was deine Importe abdecken: jede Quelle mit Läufen,
+Nachrichten und letztem Datum, den Zeitraum deiner Hinweise, Monate ohne Hinweis
+und eigene Adressen ohne Hinweis. ARGUS kann nicht wissen, wie viel deiner Mails
+oder deines Online-Lebens das ist, deshalb zeigt es keine Gesamtquote.
+
+Jedes Bedienelement ist per Tastatur erreichbar; ein Link **Zum Hauptinhalt
+springen** kommt zuerst, die aktuelle Seite wird angesagt, und Dialoge halten den
+Fokus. **Persönliche Angaben verbergen** in der oberen Leiste maskiert
+E-Mail-Adressen auf dem Bildschirm (etwa `d•••@e•••.invalid`), was beim Teilen
+des Bildschirms hilft. Die Maskierung ändert nur die Anzeige: Sie ist weder
+Verschlüsselung noch ein bereinigter Export, und die Wahl merkt sich nur dieser
+Browser.
+
 ## Sprache wählen
 
 Im Dashboard oben **Sprache → Deutsch / English** wählen. Der Schalter ist auch
@@ -883,6 +898,7 @@ Begründung mitziehen muss. `--json` gibt den vollständigen Bericht aus.
 | `argus_security/profiles.py`, `history.py`, `reports.py` | Benannte Profile, tägliche Zahlen und datensparsame Berichte |
 | `argus_security/moves.py` | Geordnete, manuelle Pläne für den Umzug von Accounts auf eine andere eigene Adresse |
 | `argus_security/templates.py` | Deklarative Ablaufvorlagen mit Vorschau |
+| `argus_security/coverage.py` | Was Importe abdecken: Quellen, Zeitraum und Lücken |
 | `argus_security/backup.py` | Lokale Profilsicherungen und Wiederherstellung |
 | `argus_security/workflow.py` | Lokale Sicherheits-Arbeitsliste und geführter nächster Schritt |
 | `argus_security/handoffs.py` | Dauerhaftes Journal für Bitwarden-Übertragungen |

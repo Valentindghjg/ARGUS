@@ -539,6 +539,32 @@ def main():
                 expect(page.locator("#toast-text")).to_contain_text("Change undone locally.")
                 page.locator('[data-view="setup"]').click()
                 checks.append("Task template previewed, applied as one change and undone")
+                page.locator('[data-view="accounts"]').click()
+                expect(page.locator("#account-rows")).to_contain_text("demo@example.invalid")
+                page.locator("#mask-toggle").check()
+                expect(page.locator("#account-rows")).to_contain_text("d•••@e•••.invalid")
+                expect(page.locator("#account-rows")).not_to_contain_text("demo@example.invalid")
+                page.locator("#mask-toggle").uncheck()
+                expect(page.locator("#account-rows")).to_contain_text("demo@example.invalid")
+                expect(page.locator('[data-view="accounts"]')).to_have_attribute("aria-current", "page")
+                page.locator('[data-view="dashboard"]').click()
+                expect(page.locator("#coverage-panel")).to_contain_text("Email import")
+                unnamed = page.evaluate("""() => {
+                  const visible = e => e.offsetParent !== null;
+                  const buttons = [...document.querySelectorAll('button')].filter(visible)
+                    .filter(b => !(b.textContent.trim() || b.getAttribute('aria-label')));
+                  const fields = [...document.querySelectorAll('input,select,textarea')].filter(visible)
+                    .filter(f => f.type !== 'hidden' && !(f.labels && f.labels.length) && !f.getAttribute('aria-label'));
+                  return buttons.length + fields.length;
+                }""")
+                assert unnamed == 0, unnamed
+                # The skip link comes before everything else in the tab order.
+                page.locator(".brand").focus()
+                page.keyboard.press("Shift+Tab")
+                expect(page.locator(".skip-link")).to_be_focused()
+                expect(page.locator(".skip-link")).to_be_in_viewport()
+                page.locator('[data-view="setup"]').click()
+                checks.append("Masked view for screen sharing, current page marked, coverage shown, named controls and a skip link")
 
                 page.set_viewport_size({"width":390,"height":844})
                 expect(page.locator("#page-title")).to_be_visible()

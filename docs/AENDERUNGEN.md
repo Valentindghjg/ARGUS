@@ -1,3 +1,17 @@
+# Änderungen – unveröffentlicht (Qualität und Vertrauen)
+
+## Abdeckung, Barrierefreiheit, maskierte Ansicht und Katalogqualität (D4, D6)
+
+- Die Übersicht zeigt, was Importe abdecken: Quellen mit Läufen, Nachrichten und
+  letztem Datum, den Zeitraum der Hinweise, Monate ohne Hinweis und eigene
+  Adressen ohne Hinweis; nie eine Gesamtquote.
+- Ein Sprunglink, die aktuelle Seite für Hilfstechniken markiert, überall
+  benannte Bedienelemente (im Browsertest geprüft) und **Persönliche Angaben
+  verbergen**, das E-Mail-Adressen nur auf dem Bildschirm maskiert.
+- Neue Tests zur Katalogqualität: eindeutige Namen und Domainwurzeln, bekannte
+  Kategorien, saubere IDs, keine gemeinsam genutzten Versanddienste,
+  HTTPS-Links auf eigenen Domains und datierte Quellen für Passwortseiten.
+
 # Änderungen – Version 2.5.0, frühere Pro-Funktionen, kostenlos (noch ohne Tag)
 
 ## Getrennte Profile, Fortschritt im Zeitverlauf und datensparsame Berichte (P1, P2, P5)

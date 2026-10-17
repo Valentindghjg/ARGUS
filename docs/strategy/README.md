@@ -40,12 +40,12 @@ Hauptnutzen kommt ohne sie aus.
 
 ## Umsetzungsstand der 15 Prioritäten
 
-Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S18 (2.5.0).
+Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S19.
 
 | Nr. | Priorität | Stand | Im Code |
 | --- | --- | --- | --- |
 | 01 | Zustände sauber trennen | **umgesetzt** | [ADR-0001](../architecture/ADR-0001-zustands-und-freigabemodell.md): getrennte Achsen, Migration mit Sicherung, drei Marken im Dashboard |
-| 02 | Importergebnisse und Grenzen erklären | weitgehend | Scanstatistik mit Lücken und nächsten Schritten (F4), ehrliche Ergebniszusammenfassung (F3); Abdeckungsansicht folgt (D4) |
+| 02 | Importergebnisse und Grenzen erklären | **umgesetzt** | Scanstatistik mit Lücken und nächsten Schritten (F4), ehrliche Ergebniszusammenfassung (F3), Abdeckung mit Quellen, Zeitraum und Lücken ohne Gesamtquote (D4) |
 | 03 | Erkennungsbegründungen | **umgesetzt** | Regelmerkmale, Hinweisart, Alter, Stärke und Einschränkung je Beleg; Belegbegründung bleibt neben der Entscheidung sichtbar |
 | 04 | Mehrdeutigkeiten gesammelt prüfen | **umgesetzt** | Sammelliste „Unklares“: Identitäten, Hinweise ohne Account, neue Belege nach Verwerfen, unbekannte Domains |
 | 05 | Änderungen automatisch zusammenstellen | **umgesetzt** | „Neu seit…“: neue und anders bewertete Hinweise nach Account gruppiert, Unklares zuerst; Zusammenfassung beim Wiederkommen (A1, A3, A4, A7, A28) |
@@ -91,6 +91,6 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 | S16 | Bitwarden: Weg ohne Tresorlesen, Duplikatschutz, Übergabebereitschaft → **2.4.0** | B1, B3, A19, 11 | ✅ (2.4.0) |
 | S17 | Getrennte Profile, Verlaufsanalyse, datensparsame Berichte | P1, P2, P5 | ✅ |
 | S18 | E-Mail-Umzugsplan und Ablaufvorlagen → **2.5.0** | A21, A22, P4 | ✅ (2.5.0) |
-| S19 | Importabdeckung, Barrierefreiheit, Maskierung, Katalogqualität | D4, D6 | offen |
+| S19 | Importabdeckung, Barrierefreiheit, Maskierung, Katalogqualität | D4, D6 | ✅ |
 | S20 | Demoablauf, FAQ, vertrauenswürdige Releases → **2.6.0** | G2, G4, G6 | offen |
 | S21 | Abschluss: Abdeckung aller Plan-Punkte | – | offen |
