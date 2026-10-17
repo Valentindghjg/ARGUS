@@ -46,10 +46,12 @@ class ChangeBatch:
     def close(self):
         """Prune the oldest entries beyond the retention limit."""
         if self.count:
-            # Whole batches only, so a remaining batch can always be undone completely.
-            self.db.execute("""DELETE FROM change_log WHERE batch IN (
+            # Whole older batches only, never the one just written, so every
+            # remaining batch, however large, can be undone completely.
+            self.db.execute("""DELETE FROM change_log WHERE batch<>? AND batch IN (
                                  SELECT batch FROM change_log WHERE id <= (
-                                   SELECT id FROM change_log ORDER BY id DESC LIMIT 1 OFFSET ?))""", (KEEP_ENTRIES,))
+                                   SELECT id FROM change_log ORDER BY id DESC LIMIT 1 OFFSET ?))""",
+                            (self.id, KEEP_ENTRIES))
         return self.id if self.count else None
 
 
@@ -61,16 +63,35 @@ def current_value(db, account_id, field):
     if row is None:
         return None
     if field == "decision":
-        return {"decision": row["decision"], "reason": row["decision_reason"], "decided_at": row["decided_at"]}
+        return decision_value(row)
+    if field == "method":
+        return row["login_method"]
     if field.startswith("step:"):
         return read_steps(db, account_id, row["login_method"]).get(field[5:])
     return None
+
+
+def decision_value(row):
+    """Axis B of one account row in the logged form; the evidence mark keeps ADR rule 2 after an undo."""
+    return {"decision": row["decision"], "reason": row["decision_reason"], "decided_at": row["decided_at"],
+            "evidence_mark": row["decided_evidence_id"]}
+
+
+def _comparable(field, current, logged):
+    # Entries written before 2.6.1 have no evidence mark; compare what they hold.
+    if field == "decision" and isinstance(current, dict) and isinstance(logged, dict) and "evidence_mark" not in logged:
+        return {key: value for key, value in current.items() if key != "evidence_mark"}
+    return current
 
 
 def apply_value(db, account_id, field, value):
     if field == "decision":
         db.execute("UPDATE account_instances SET decision=?,decision_reason=?,decided_at=?,updated=? WHERE id=?",
                    (value["decision"], value["reason"], value["decided_at"], timestamp(), account_id))
+        if "evidence_mark" in value:
+            db.execute("UPDATE account_instances SET decided_evidence_id=? WHERE id=?", (value["evidence_mark"], account_id))
+    elif field == "method":
+        db.execute("UPDATE account_instances SET login_method=?,updated=? WHERE id=?", (value, timestamp(), account_id))
     elif field.startswith("step:"):
         write_step(db, account_id, field[5:], value)
     elif field == "planning":
@@ -93,18 +114,19 @@ def undo(db, batch=None):
     decision is never overwritten silently.
     """
     if batch is None:
-        row = db.execute("""SELECT batch FROM change_log WHERE undone_by IS NULL AND undo_of IS NULL
-                            ORDER BY id DESC LIMIT 1""").fetchone()
-        if row is None:
+        batch = next((row["batch"] for row in db.execute(
+            "SELECT batch FROM change_log WHERE undone_by IS NULL GROUP BY batch ORDER BY MAX(id) DESC")
+            if not _reverts(db, row["batch"])), None)
+        if batch is None:
             raise UserFacingError("There is no local change to undo")
-        batch = row["batch"]
     if not isinstance(batch, str):
         raise UserFacingError("There is no local change to undo")
     entries = db.execute("SELECT * FROM change_log WHERE batch=? ORDER BY id", (batch,)).fetchall()
     if not entries or any(entry["undone_by"] for entry in entries):
         raise UserFacingError("There is no local change to undo")
     for entry in entries:
-        if current_value(db, entry["account_id"], entry["field"]) != json.loads(entry["new"]):
+        logged = json.loads(entry["new"])
+        if _comparable(entry["field"], current_value(db, entry["account_id"], entry["field"]), logged) != logged:
             raise UserFacingError("This change was changed again later; undo the later change first")
     reverse = ChangeBatch(db, undo_of=batch)
     for entry in reversed(entries):
@@ -114,6 +136,18 @@ def undo(db, batch=None):
     db.execute("UPDATE change_log SET undone_by=? WHERE batch=?", (reverse.id, batch))
     reverse.close()
     return {"undone": batch, "batch": reverse.id, "accounts": sorted({entry["account_id"] for entry in entries})}
+
+
+def _reverts(db, batch):
+    """True for an undo; an undo of an undo (a redo) counts as a change again."""
+    depth, seen = 0, set()
+    while batch is not None and batch not in seen:
+        seen.add(batch)
+        row = db.execute("SELECT undo_of FROM change_log WHERE batch=? LIMIT 1", (batch,)).fetchone()
+        if row is None or row["undo_of"] is None:
+            break
+        depth, batch = depth + 1, row["undo_of"]
+    return depth % 2 == 1
 
 
 def recent(db, limit=20):

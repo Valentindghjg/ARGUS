@@ -1,4 +1,4 @@
-# ARGUS 2.6.0 – lokales Account-Inventar
+# ARGUS 2.6.1 – lokales Account-Inventar
 
 Deutsch · [English](README.md)
 

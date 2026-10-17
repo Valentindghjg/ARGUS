@@ -1,4 +1,4 @@
-# ARGUS 2.6.0
+# ARGUS 2.6.1
 
 [Deutsch](README_DE.md) · English
 

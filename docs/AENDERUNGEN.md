@@ -1,4 +1,30 @@
-# Änderungen – Version 2.6.0, Qualität und Vertrauen (noch ohne Tag)
+# Änderungen – Version 2.6.1, Korrekturen aus dem Review von 2.0–2.6 (noch ohne Tag)
+
+## Änderungsprotokoll, Rückgängig, Sicherungen und Migrationen
+
+- Eine Änderung mit mehr als 1.000 Einträgen (etwa eine Vorlage auf viele
+  Accounts) löscht beim Aufräumen des Protokolls nicht mehr sich selbst und die
+  ganze Historie; sie bleibt rückgängig zu machen.
+- Rückgängig stellt die Anmeldeart zusammen mit dem Passwortschritt wieder her,
+  behält den Hinweis „neuer starker Hinweis nach deiner Ablehnung“, und nach
+  einem Wiederherstellen nimmt das nächste Rückgängig dieses zurück statt einer
+  älteren Änderung.
+- Ein entfernter neuester Hinweis vererbt seine Nummer nicht mehr an den
+  nächsten; ein neuer Hinweis nach Ablehnung oder Ausblenden gilt immer als neu.
+- Erneut importierte alte Hinweise mit unveränderter Bewertung erscheinen nicht
+  mehr als geändert; Hinweise aus älteren Regeln zeigen „Ältere Belege“ statt
+  „Keine Belege“.
+- Sicherungen enthalten die eigenen Katalogergänzungen. Eine Wiederherstellung
+  löscht nie die Sicherung, aus der sie kommt, lehnt Sicherungen einer neueren
+  ARGUS-Version ab, bevor sich etwas ändert (Sicherungsformat 2; Archive im
+  Format 1 lassen sich weiter einspielen), und ersetzt ein beschädigtes Profil,
+  nachdem dessen Rohdaten gesichert sind. Ein selbst gewählter Sicherungsordner
+  behält seine Rechte.
+- Zwei Prozesse, die gleichzeitig ein altes Profil öffnen, scheitern nicht mehr
+  an der Migration. Prüfdaten, fällige Prüfungen, Zurückstellungen, Verlaufstage
+  und Berichtsdatum folgen deinem lokalen Kalendertag. Eigene Vorlagen werden
+  unter einer Sperre gespeichert.
+
 
 ## Plan abgeschlossen (S21)
 

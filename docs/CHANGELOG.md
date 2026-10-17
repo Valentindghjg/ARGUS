@@ -1,5 +1,27 @@
 # Change log
 
+## 2.6.1 — Fixes from the review of 2.0–2.6 (not yet tagged)
+
+### Change log, undo, backups and migrations
+
+- A change with more than 1,000 entries (for example a template on many
+  accounts) no longer deletes itself and the whole history when the log is
+  pruned; it stays undoable.
+- Undo restores the sign-in method together with the password step, keeps the
+  "new strong clue after your rejection" hint, and after a redo the next undo
+  reverts the redo instead of an older change.
+- A removed newest clue no longer lends its number to the next one, so a new
+  clue after a rejection or an exclusion is always recognised as new.
+- Re-importing old clues whose rating is unchanged no longer lists them as
+  changed; clues from older rules show as "Older evidence" instead of "No
+  evidence".
+- Backups include your own catalog additions. A restore never deletes the
+  backup it restores from, refuses backups from a newer ARGUS before changing
+  anything (backup format 2; format 1 archives still restore), and replaces a damaged profile after saving its raw bytes. A backup
+  folder you choose keeps its permissions.
+- Two processes opening an old profile at the same time no longer fail during
+  the migration. Review dates, due reviews, snoozes, progress days and report
+  dates all use your local calendar day. Own templates are saved under one lock.
 ## 2.6.0 — Quality and trust (not yet tagged)
 
 ### Plan complete (S21)

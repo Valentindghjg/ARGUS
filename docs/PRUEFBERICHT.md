@@ -1,3 +1,14 @@
+# Prüfbericht – Version 2.6.1 (Korrekturen aus dem Review, noch ohne Tag)
+
+Review-Korrekturen, Teil 1: **359 Python-Tests**. Neue Regressionstests
+reproduzieren jeden behobenen Fund zuerst: ein Stapel über der Protokollgrenze,
+Rückgängig für Anmeldeart und Entscheidung, Wiederherstellen und danach
+Rückgängig, wiederverwendete Hinweisnummern, stille Neuimporte, ältere Belege,
+der lokale Kalendertag westlich von UTC, die Wiederherstellung aus der ältesten
+automatischen Sicherung, ein beschädigtes Profil, eine neuere Sicherung,
+Katalogergänzungen in Sicherungen und ein gewählter Sicherungsordner. Ein
+Migrationsrennen mit drei Prozessen lief 90-mal ohne Fehler.
+
 # Prüfbericht – Version 2.6.0 (Qualität und Vertrauen, noch ohne Tag)
 
 Schritt S19: **336 Python-Tests** und **42 Browser-Prüfgruppen**. Neue Tests

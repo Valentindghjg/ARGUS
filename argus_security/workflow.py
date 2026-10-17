@@ -53,7 +53,8 @@ def custom_snooze_date(value, current):
         selected = date.fromisoformat(value)
     except ValueError as exc:
         raise UserFacingError("Choose a future local date") from exc
-    if not current.date() < selected <= current.date() + timedelta(days=365):
+    today = current.astimezone().date()  # the person's calendar day
+    if not today < selected <= today + timedelta(days=365):
         raise UserFacingError("Choose a future local date")
     return datetime.combine(selected, time.min, tzinfo=timezone.utc).isoformat()
 

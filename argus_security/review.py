@@ -8,6 +8,7 @@ exclusion only hides clues of one sender domain outside the catalog from the
 review, and a relation between two own addresses is a note for the person.
 New clues after an exclusion bring the domain back for review.
 """
+from .digest import evidence_mark
 from .errors import UserFacingError
 from .registry import normalize_domain
 
@@ -40,7 +41,7 @@ def exclude_domain(db, domain, reason, moment):
         raise UserFacingError("Invalid domain")
     if not db.execute("SELECT 1 FROM evidence WHERE provider_id IS NULL AND sender_domain=?", (domain,)).fetchone():
         raise UserFacingError("Only sender domains outside the catalog can be hidden")
-    mark = db.execute("SELECT COALESCE(MAX(id),0) FROM evidence").fetchone()[0]
+    mark = evidence_mark(db)
     db.execute("""INSERT INTO exclusions(domain,reason,created_at,evidence_mark) VALUES (?,?,?,?)
                   ON CONFLICT(domain) DO UPDATE SET reason=excluded.reason,created_at=excluded.created_at,
                   evidence_mark=excluded.evidence_mark""", (domain, reason, moment, mark))
