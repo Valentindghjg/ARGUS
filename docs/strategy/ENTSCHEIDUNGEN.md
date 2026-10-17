@@ -136,3 +136,10 @@ Wird während der Umsetzung fortgeschrieben.
   sieben Zahlen; Berichte enthalten Adressen nur nach ausdrücklicher Wahl und
   werden wie der Sitzungsbericht vollständig angezeigt, bevor der Browser sie
   speichert.
+- **S18, Umzugsplan und Vorlagen ohne Identitätswechsel:** Ein Umzugsplan
+  verschiebt keine Anmeldeidentität, weil eine Identität in ADR-0001 fest an
+  ihren Account gebunden ist; der Plan ist eine geordnete Liste mit Häkchen,
+  und neue Hinweise an die neue Adresse erscheinen wie gewohnt. Vorlagen kennen
+  nur zwei Wirkungen (Arbeitsliste, Prüfdatum) und keine Bedingungslogik, damit
+  sie nie zu Skripten werden. P6 (Offline-Lizenz) entfällt nach der
+  Entscheidung „alles als Free“.

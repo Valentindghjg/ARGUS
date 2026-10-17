@@ -1,4 +1,4 @@
-# ARGUS 2.4.0
+# ARGUS 2.5.0
 
 [Deutsch](README_DE.md) · English
 
@@ -680,6 +680,22 @@ python -m argus_security report --text --level tasks
 python -m argus_security report --level numbers --export /local/path/argus-report.txt
 ```
 
+## Task templates
+
+“Task templates” in the worklist plan recurring work. A template is plain data,
+never a script or browser macro: which accounts it covers (catalog categories,
+a minimum priority, only confirmed accounts) and what it plans (add them to the
+worklist, a review date for chosen steps). ARGUS ships two templates, a yearly
+check of important accounts and a recovery check for finance accounts, and you
+can save your own. **Preview** names every affected account first; **Apply
+template** is one change you can undo. Templates never act at a provider.
+
+```bash
+python -m argus_security template list
+python -m argus_security template preview yearly-important
+python -m argus_security template apply yearly-important
+```
+
 ## Plan an address change
 
 When you give up an address, “Plan an address change” under “Mailbox & Import”
@@ -800,6 +816,7 @@ report.
 | `argus_security/watch.py` | The narrow, opt-in watch of one export folder |
 | `argus_security/profiles.py`, `history.py`, `reports.py` | Named profiles, daily counts and data-minimal reports |
 | `argus_security/moves.py` | Ordered, manual plans for moving accounts to another own address |
+| `argus_security/templates.py` | Declarative task templates with preview |
 | `argus_security/backup.py` | Local profile backups and restore |
 | `argus_security/workflow.py` | Local security worklist and guided next step |
 | `argus_security/handoffs.py` | Durable Bitwarden transfer journal |

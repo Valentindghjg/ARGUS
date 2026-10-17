@@ -174,7 +174,7 @@ function renderState() {
   $("alias-email").disabled=state.demo;$("alias-owned").disabled=state.demo;
   if(state.demo)setMessage("alias-message","Add real own addresses in a personal profile on your computer. The demo profile stays separate.");
   renderRows();renderCandidates();renderExport();renderBitwardenAudit();renderWorklist();renderGuided();renderHandoffs();renderHistory();
-  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();renderChanges();renderMailboxes();renderSession();renderReviewRule();renderControl();renderLastImport();renderTrend();renderMoves();
+  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();renderChanges();renderMailboxes();renderSession();renderReviewRule();renderControl();renderLastImport();renderTrend();renderMoves();renderTemplates();
 }
 // Plan A1-A4, A7, A28: what is new since the last review, in one place and one summary.
 const changeReasons={
@@ -994,6 +994,51 @@ function saveReport(){
   const a=document.createElement("a");a.href=url;a.download=reportFile;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   $("report-dialog").close();toast(t("Report saved by your browser. It stays on this computer."));
 }
+// Plan A22, P4: templates are data; a preview names every account before one undoable change.
+let templatePreview=null;
+function renderTemplates(){
+  $("template-items").replaceChildren(...state.templates.map(template=>{
+    const card=node("article",undefined,"worklist-item");
+    card.append(node("strong",template.builtin?t(template.name):template.name),node("p",t("Covers {count} account(s) right now.",{count:template.matches}),"small-muted"));
+    const actions=node("div",undefined,"bitwarden-actions");
+    actions.append(actionButton("Preview",()=>previewTemplate(template.id),!template.matches));
+    if(!template.builtin)actions.append(actionButton("Delete template",()=>reviewAction("/api/templates/delete",{id:template.id},"Template deleted.")));
+    card.append(actions);
+    if(templatePreview&&templatePreview.id===template.id){
+      const plan=templatePreview.plan,names=plan.accounts.map(id=>{const a=state.accounts.find(x=>x.id===id);return a?accountTitle(a):id;});
+      const box=node("div",undefined,"notice");
+      box.append(node("p",t("Affects: {names}",{names:names.join(", ")})));
+      if(plan.worklist_additions.length)box.append(node("p",t("Adds {count} account(s) to the worklist.",{count:plan.worklist_additions.length})));
+      if(plan.review_date)box.append(node("p",t("Sets the review date {date} for: {steps}",{date:localDate(plan.review_date),steps:plan.review_steps.map(step=>t(stepNames[step])).join(", ")})));
+      const apply=node("div",undefined,"bitwarden-actions");apply.append(actionButton("Apply template",()=>applyTemplate(template.id)));box.append(apply);
+      card.append(box);
+    }
+    return card;
+  }));
+  const categories=$("template-categories");
+  if(!categories.options.length)categories.replaceChildren(...state.catalog.categories.map(c=>new Option(t(c),c)));
+  const steps=$("template-steps");
+  if(steps.querySelectorAll("input").length===0)for(const step of STEP_ORDER){
+    const label=node("label",undefined,"alias-confirm"),box=node("input");box.type="checkbox";box.value=step;label.append(box,node("span",t(stepNames[step])));steps.append(label);
+  }
+}
+async function previewTemplate(id){
+  try{const plan=await api("/api/templates/preview",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})});templatePreview={id,plan};renderTemplates();}
+  catch(e){failure(e);}
+}
+async function applyTemplate(id){
+  try{const result=await api("/api/templates/apply",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})});templatePreview=null;await refresh();toast(t("Template applied to {count} account(s).",{count:result.accounts}),result.batch);}
+  catch(e){failure(e);}
+}
+async function saveTemplate(event){
+  event.preventDefault();$("template-error").classList.add("hidden");
+  const steps=Array.from($("template-steps").querySelectorAll("input:checked")).map(x=>x.value);
+  const data={name:$("template-name").value,categories:Array.from($("template-categories").selectedOptions).map(o=>o.value),
+    min_priority:$("template-priority").value,confirmed_only:$("template-confirmed").checked,worklist:$("template-worklist").checked,
+    review_steps:steps,review_days:steps.length?Number($("template-days").value):null};
+  try{await api("/api/templates",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});$("template-form").reset();await refresh();toast(t("Template saved locally."));}
+  catch(e){problem("template-error",e.message,e.hint);}
+}
 // Plan A10: proposals only; applying them is one undoable change.
 function renderReviewRule(){
   const rule=state.review_rule,proposed=state.accounts.filter(a=>a.review_proposal);
@@ -1227,7 +1272,8 @@ $("session-end").onclick=()=>sessionAction({action:"end"},"Session ended. Your s
 $("session-report").onclick=previewReport;
 $("report-save").onclick=saveReport;
 $("report-create").onclick=previewProgressReport;
-$("move-form").onsubmit=createMovePlan;$("report-level").onchange=renderTrend;
+$("move-form").onsubmit=createMovePlan;
+$("template-form").onsubmit=saveTemplate;$("report-level").onchange=renderTrend;
 for(const id of ["report-close","report-cancel"])$(id).onclick=()=>$("report-dialog").close();
 $("review-save").onclick=saveReviewRule;$("review-apply").onclick=applyReviewProposals;
 $("review-proposal-use").onclick=()=>{const a=state.accounts.find(x=>x.id===selected);if(a&&a.review_proposal)setStep("identity",{review_after:a.review_proposal});};

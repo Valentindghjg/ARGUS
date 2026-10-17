@@ -40,7 +40,7 @@ Hauptnutzen kommt ohne sie aus.
 
 ## Umsetzungsstand der 15 Prioritäten
 
-Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S18 (Teil 1).
+Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S18 (2.5.0).
 
 | Nr. | Priorität | Stand | Im Code |
 | --- | --- | --- | --- |
@@ -58,7 +58,7 @@ Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S18 (Teil 1).
 | 12 | Unklare Schreibausgänge blockieren | umgesetzt | Status `uncertain`, keine blinde Wiederholung, manuelle Klärung |
 | 13 | Wiederkehrende lokale Importe vereinfachen | **umgesetzt** | letzte Quelle wiederholen, nur Geändertes, Budget, Fortsetzen, gezielt nachholen, Vorprüfung |
 | 14 | Begrenzte Ordnerüberwachung | **umgesetzt** | ein freigegebener lokaler Ordner, nur `*.eml` direkt darin, nur mit laufendem Dashboard, sichtbar und beendbar |
-| 15 | Belegten Pro-Komfortbedarf bedienen | entschieden | Alles wird als Free umgesetzt; die Lizenzgrundlage ist entfernt (S1) |
+| 15 | Belegten Pro-Komfortbedarf bedienen | **umgesetzt als Free** | Profile, Verlauf, Berichte, große Archive, Ordnerüberwachung, Umzugsplan und Vorlagen kostenlos; keine Lizenz (S1, S14, S15, S17, S18) |
 
 Außerdem ist F1 (einheitlicher Produktname) mit der Umbenennung auf ARGUS
 umgesetzt, inklusive Migration.
@@ -90,7 +90,7 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 | S15 | Begrenzte Ordnerüberwachung → **2.3.0** | A12, 14 | ✅ (2.3.0) |
 | S16 | Bitwarden: Weg ohne Tresorlesen, Duplikatschutz, Übergabebereitschaft → **2.4.0** | B1, B3, A19, 11 | ✅ (2.4.0) |
 | S17 | Getrennte Profile, Verlaufsanalyse, datensparsame Berichte | P1, P2, P5 | ✅ |
-| S18 | E-Mail-Umzugsplan und Ablaufvorlagen → **2.5.0** | A21, A22, P4 | A21 ✅ · A22, P4 offen |
+| S18 | E-Mail-Umzugsplan und Ablaufvorlagen → **2.5.0** | A21, A22, P4 | ✅ (2.5.0) |
 | S19 | Importabdeckung, Barrierefreiheit, Maskierung, Katalogqualität | D4, D6 | offen |
 | S20 | Demoablauf, FAQ, vertrauenswürdige Releases → **2.6.0** | G2, G4, G6 | offen |
 | S21 | Abschluss: Abdeckung aller Plan-Punkte | – | offen |

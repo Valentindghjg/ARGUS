@@ -1,4 +1,4 @@
-# Test report — unreleased (former Pro features)
+# Test report — Version 2.5.0 (former Pro features, not yet tagged)
 
 Step S17: **326 Python tests** and **39 browser check groups**. New tests cover
 separate profile folders that never read each other, profile names, the
@@ -12,6 +12,12 @@ the ordering with the mailbox account first, refusals (same, foreign or unused
 address, a second open plan), marking without changing any account, closing,
 and CLI and API shapes. The browser creates a plan, marks one account and closes
 it.
+
+Step S18b: **332 Python tests** and **41 browser check groups**. New tests cover
+built-in templates with matches, preview, apply and undo, refusal without
+matches, validation of every template field, own templates with skipped
+not-applicable steps, deleting, and CLI and API shapes. The browser previews,
+applies and undoes a template.
 
 # Test report — Version 2.4.0 (package E, not yet tagged)
 

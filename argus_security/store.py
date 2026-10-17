@@ -531,6 +531,9 @@ class Store:
         from .moves import plans
         with self.connect() as db:
             snapshot["move_plans"] = plans(db)
+        from .templates import all_templates, select
+        snapshot["templates"] = [{"id": ident, **template, "matches": len(select(accounts, template))}
+                                 for ident, template in all_templates(self).items()]
         # Plan A11/A16: the remembered local source, shown with its commands; failed keys stay local.
         preset, failures = self.meta("import_preset"), self.meta("import_failures")
         snapshot["last_local_import"] = ({**preset, "failed": len(failures.get("items", []))
@@ -785,6 +788,54 @@ class Store:
             control = overview(db, schedule, watch=watch)
         control["watch"] = watch
         return control
+
+    def save_template(self, data):
+        """Plan A22/P4: store an own template; it is data, never a script."""
+        from .catalog import categories
+        from .templates import save
+        return {"id": save(self, data, categories(self.registry))}
+
+    def delete_template(self, ident):
+        from .templates import delete
+        delete(self, ident)
+        return {"ok": True}
+
+    def template_plan(self, ident):
+        """Exactly which accounts a template covers and what it would plan for them."""
+        from .templates import all_templates, preview
+        template = all_templates(self).get(ident) if isinstance(ident, str) else None
+        if template is None:
+            raise UserFacingError("This template does not exist")
+        snapshot = self.snapshot()
+        return template, preview(snapshot["accounts"], template, {item["id"] for item in snapshot["workflow"]["items"]})
+
+    def apply_template(self, ident):
+        """Apply a template as one undoable change: worklist additions and review dates."""
+        template, plan = self.template_plan(ident)
+        if not plan["accounts"]:
+            raise UserFacingError("No account matches this template")
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            batch = ChangeBatch(db)
+            for account_id in plan["worklist_additions"]:
+                if db.execute("SELECT 1 FROM instance_work_queue WHERE account_id=?", (account_id,)).fetchone():
+                    continue
+                before = planning(db, account_id)
+                position = db.execute("SELECT COALESCE(MAX(position),0) FROM instance_work_queue").fetchone()[0] + 1
+                db.execute("INSERT INTO instance_work_queue(account_id,position) VALUES (?,?)", (account_id, position))
+                batch.record(account_id, "planning", before, planning(db, account_id))
+            for account_id in plan["accounts"]:
+                account = self._account_row(db, account_id)
+                steps = read_steps(db, account_id, account["login_method"])
+                for step in plan["review_steps"]:
+                    current = steps[step]
+                    if current["state"] == "not_applicable":
+                        continue
+                    new = {**current, "review_after": plan["review_date"]}
+                    if new != current:
+                        write_step(db, account_id, step, new)
+                        batch.record(account_id, "step:" + step, current, new)
+            return {"ok": True, "batch": batch.close(), "accounts": len(plan["accounts"])}
 
     def create_move_plan(self, old, new):
         """Plan A21: order the accounts that sign in with ``old`` for a move to ``new``; nothing changes at providers."""
