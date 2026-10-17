@@ -18,6 +18,7 @@ from typing import Any, Callable, Protocol
 from uuid import UUID, uuid4
 
 from .imap_client import IMAPConfig, imap_messages, load_config, with_keep_alive
+from .jobs import PAUSE, JobPaused
 from .mailbox_lease import MailboxBusy, MailboxLease
 from .store import UNCHANGED, atomic_meta_update
 from .scan import scan_messages
@@ -205,7 +206,7 @@ def _default_runner(store: MetaStore, config: IMAPConfig, secret: str, *, limit:
                     keep_alive: Callable[[], None]) -> dict[str, Any]:
     """The only network path, reached after explicit schedule + runtime consent."""
     messages = imap_messages(store, config, secret, allow_network=True, full_scan=False, limit=limit)
-    return scan_messages(store, with_keep_alive(messages, keep_alive), "imap")
+    return scan_messages(store, with_keep_alive(messages, keep_alive), "imap", trigger="scheduled")
 
 
 class BackgroundScanService:
@@ -424,6 +425,9 @@ class BackgroundScanService:
         """
         if not allow_network:
             return {"status": "authorization_required"}
+        # Plan A27: a global pause blocks new scheduled runs; nothing is claimed.
+        if self.store.meta(PAUSE):
+            return {"status": "paused"}
         claimed = self._claim_due()
         if claimed["status"] != "claimed":
             return claimed
@@ -440,6 +444,9 @@ class BackgroundScanService:
             return self._fail(run_id)
         if not approved:
             committed = self._require_reauthorization(run_id)
+            record = getattr(self.store, "record_activity", None)
+            if committed and record:
+                record("approval_refused", "scheduled_scan", "needs_approval")
             return {"status": "reauthorization_required" if committed else "cancelled",
                     "error": TARGET_CHANGED_ERROR}
         # A manual scan-imap of the same profile may hold the mailbox. Give the
@@ -464,6 +471,10 @@ class BackgroundScanService:
                                                   "removed_evidence", "ignored", "skipped", "errors", "headers_only")
                     if type(result.get(key)) is int and result[key] >= 0}
             return {"status": "completed" if committed else "cancelled", "result": outcome, **safe}
+        except JobPaused:
+            # Stopped between two messages by the global pause; the checkpoint keeps progress.
+            committed = self._finish_claim(run_id, outcome="paused")
+            return {"status": "paused" if committed else "cancelled"}
         except Exception:
             return self._fail(run_id)
         finally:

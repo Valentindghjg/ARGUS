@@ -401,6 +401,26 @@ python -m argus_security sign-in-with notion google
 python -m argus_security sign-in-with notion --remove
 ```
 
+## Kontrolle: Vorgänge, Aktivität und eine Pause für alles
+
+„Kontrolle“ listet jeden Import, IMAP-Scan und jede Bitwarden-Prüfung oder
+-Übertragung mit Zustand (läuft, pausiert, abgeschlossen, mit Lücken
+abgeschlossen, fehlgeschlagen, abgebrochen, braucht Freigabe, Ergebnis unklar,
+unterbrochen) und zeigt einen geplanten Scan als wartend bis zu seiner nächsten
+Zeit; keine Hintergrundarbeit bleibt verborgen. **Gesamte Automatik pausieren**
+sperrt neue Vorgänge und beendet laufende zwischen zwei Nachrichten; gespeicherte
+Hinweise und IMAP-Checkpoints bleiben, und nichts, was außerhalb von ARGUS schon
+geschah, wird rückgängig gemacht. Die Übersicht zeigt die Pause, bis du
+fortsetzt. Das Aktivitätsprotokoll enthält nur Zeit, Vorgangsart, Ergebnis und
+Anzahlen (keinen E-Mail-Text, keine Adressen, Geheimnisse oder
+Befehlsausgaben), höchstens 500 Einträge für 180 Tage.
+
+```bash
+python -m argus_security automation status
+python -m argus_security automation pause
+python -m argus_security automation resume
+```
+
 ## Kurze Sitzungen, Prüfdaten und Checkliste nach Anmeldeart
 
 Unter „Sicherheits-Arbeitsliste“ startet **Eine Aufgabe** oder **Drei Aufgaben**
@@ -722,6 +742,7 @@ Begründung mitziehen muss. `--json` gibt den vollständigen Bericht aus.
 | `argus_security/digest.py` | Neues seit der letzten Durchsicht und Zusammenfassung beim Wiederkommen |
 | `argus_security/identity.py` | Bestätigte Anmelde- und Postfachbeziehungen und begründete Prioritäten |
 | `argus_security/sessions.py`, `reviews.py` | Kurze Arbeitssitzungen mit Bericht und die Prüfregel |
+| `argus_security/jobs.py` | Gemeinsame Vorgangszustände, globale Pause und minimales Aktivitätsprotokoll |
 | `argus_security/backup.py` | Lokale Profilsicherungen und Wiederherstellung |
 | `argus_security/workflow.py` | Lokale Sicherheits-Arbeitsliste und geführter nächster Schritt |
 | `argus_security/handoffs.py` | Dauerhaftes Journal für Bitwarden-Übertragungen |

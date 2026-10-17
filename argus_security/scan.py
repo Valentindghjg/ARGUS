@@ -10,13 +10,20 @@ import uuid
 
 from .analysis import ANALYSIS_VERSION, HEADERS_ONLY_MARKER, analyze, MAX_MESSAGE_BYTES
 from .guidance import scan_next_steps
+from . import jobs
 from .store import Store, now
+
+# Plan A24/A27: a running job looks at the global pause between messages.
+PAUSE_CHECK_EVERY = 25
+# How a finished scan maps to the shared job states (ADR-0001, section 3.4).
+JOB_STATES = {"completed": "completed", "completed_with_gaps": "completed_with_gaps", "limited": "completed_with_gaps"}
 
 
 class ScanSession:
     """One durable scan, including multi-file imports; no message contents retained."""
 
-    def __init__(self, store: Store, source="eml", expected=None, progress=None, info=None, emails=None):
+    def __init__(self, store: Store, source="eml", expected=None, progress=None, info=None, emails=None,
+                 trigger="manual"):
         self.store = store
         self.emails = list(emails) if emails is not None else store.meta("emails", [])
         if not self.emails:
@@ -31,6 +38,11 @@ class ScanSession:
                       "ignored": 0, "skipped": 0, "errors": 0, "headers_only": 0,
                       "expected": expected, "running": True, "started": now(),
                       "analysis_version": ANALYSIS_VERSION, "rule_changes": [], "rule_changes_count": 0}
+        self.kind = "scheduled_scan" if trigger == "scheduled" else "imap_scan" if source == "imap" else "import"
+        with store.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            jobs.require_running(db)
+            jobs.start(db, self.stats["id"], self.kind, source)
         self.publish()
 
     def publish(self):
@@ -43,6 +55,8 @@ class ScanSession:
         self.stats["updated_at"] = now()
         self.last_activity = time.monotonic()
         self.store.set_meta("last_scan", self.stats)
+        with self.store.connect() as db:
+            jobs.update(db, self.stats["id"], self.stats)
         if self.progress:
             self.progress(dict(self.stats))
         # Derived, never stored: the advice follows the current rules.
@@ -61,8 +75,15 @@ class ScanSession:
         self.stats["skipped"] += count
         return self.publish()
 
+    def _check_pause(self):
+        if self.stats["processed"] % PAUSE_CHECK_EVERY == 0:
+            with self.store.connect() as db:
+                if jobs.paused(db):
+                    raise jobs.JobPaused("Automation was paused; the job stopped between two messages. Saved clues stay.")
+
     def process(self, raw):
         self._ensure_capacity()
+        self._check_pause()
         self.stats["processed"] += 1
         if not isinstance(raw, bytes) or not raw or len(raw) > MAX_MESSAGE_BYTES:
             self.stats["skipped"] += 1
@@ -89,10 +110,11 @@ class ScanSession:
             self.publish()
         return dict(self.stats)
 
-    def finish(self, result=None):
+    def finish(self, result=None, job_state=None):
+        """End the scan. ``job_state`` names why a partial scan stopped (paused, failed, cancelled)."""
         if not self.stats["running"]:
             return dict(self.stats)
-        if result not in {None, "partial"}:
+        if result not in {None, "partial"} or job_state not in {None, "paused", "failed", "cancelled"}:
             raise ValueError("Invalid completion status")
         if result is None:
             if self.info.get("scope_changed"):
@@ -106,12 +128,15 @@ class ScanSession:
             else:
                 result = "completed"
         self.stats.update(result=result, running=False, finished=now())
-        return self.publish()
+        published = self.publish()
+        with self.store.connect() as db:
+            jobs.finish(db, self.stats["id"], JOB_STATES.get(result, job_state or "cancelled"), self.stats)
+        return published
 
 
-def scan_messages(store: Store, messages, source="eml", progress=None, *, session=None):
+def scan_messages(store: Store, messages, source="eml", progress=None, *, session=None, trigger="manual"):
     session = session or ScanSession(store, source, progress=progress, info=getattr(messages, "scan_info", None),
-                                    emails=getattr(messages, "scan_emails", None))
+                                    emails=getattr(messages, "scan_emails", None), trigger=trigger)
     iterator = None
     try:
         iterator = iter(messages)
@@ -119,8 +144,14 @@ def scan_messages(store: Store, messages, source="eml", progress=None, *, sessio
             session.process(raw)
             if session.info.get("scope_changed"):
                 break
+    except jobs.JobPaused:
+        session.finish("partial", "paused")
+        raise
+    except (KeyboardInterrupt, GeneratorExit):
+        session.finish("partial", "cancelled")
+        raise
     except BaseException:
-        session.finish("partial")
+        session.finish("partial", "failed")
         raise
     finally:
         close = getattr(iterator, "close", None)

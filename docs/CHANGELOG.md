@@ -1,5 +1,22 @@
 # Change log
 
+## Unreleased — Package D: dependable automation
+
+### Jobs, activity log and one pause for everything (A24, A25, A27, D5, priority 07)
+
+- Every import, IMAP scan (manual or scheduled) and Bitwarden check or transfer
+  is a job with one shared state; a waiting scheduled scan is listed with its
+  next time. Jobs that stopped reporting show as interrupted.
+- **Pause all automation** (dashboard “Control” or `automation pause`) blocks
+  new jobs and stops running ones between two messages; `scan-imap` refuses
+  before asking for a password. Scheduled scans wait and keep their checkpoint.
+  The overview summary shows the pause until you resume.
+- A minimal activity log keeps time, job type, result and counts only, at most
+  500 entries for 180 days.
+- New CLI command `automation status|pause|resume`; API `GET /api/control` and
+  `POST /api/control`. Schema version 7 adds two tables after the automatic
+  backup.
+
 ## 2.2.0 — Package C: local preparation (not yet tagged)
 
 ### What's new since your last review (A1–A4, A7, A28, priorities 05 and 06)

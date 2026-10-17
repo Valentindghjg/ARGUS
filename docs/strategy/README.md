@@ -40,7 +40,7 @@ Hauptnutzen kommt ohne sie aus.
 
 ## Umsetzungsstand der 15 Prioritäten
 
-Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S12 (2.2.0).
+Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S13 (Teil 1).
 
 | Nr. | Priorität | Stand | Im Code |
 | --- | --- | --- | --- |
@@ -50,7 +50,7 @@ Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S12 (2.2.0).
 | 04 | Mehrdeutigkeiten gesammelt prüfen | **umgesetzt** | Sammelliste „Unklares“: Identitäten, Hinweise ohne Account, neue Belege nach Verwerfen, unbekannte Domains |
 | 05 | Änderungen automatisch zusammenstellen | **umgesetzt** | „Neu seit…“: neue und anders bewertete Hinweise nach Account gruppiert, Unklares zuerst; Zusammenfassung beim Wiederkommen (A1, A3, A4, A7, A28) |
 | 06 | Unverändertes nicht erneut vorlegen | **umgesetzt** | Revision je Hinweis und Durchsicht-Markierung; identische Neuimporte bleiben still, Importlücken bleiben sichtbar (A2) |
-| 07 | Jobs, Pause, Wiederaufnahme vereinheitlichen | teilweise | Importsitzungen, Leases, Abbruch zwischen Nachrichten; gemeinsames Jobmodell in ADR-0001 |
+| 07 | Jobs, Pause, Wiederaufnahme vereinheitlichen | weitgehend | gemeinsames Jobmodell für Importe, Scans und Bitwarden, globale Pause, Kontrollübersicht; Fortsetzen folgt (S14) |
 | 08 | Korrekturen erhalten und rückgängig machen | **umgesetzt** | Entscheidungen überstehen Neuauswertung; Protokoll und Rückgängig für Entscheidung, Schritte und Planung in Dashboard, API und CLI |
 | 09 | Nächste Aufgabe begründet vorbereiten | **umgesetzt** | eine begründete nächste Aufgabe in der Übersicht (D1), geführter Ablauf, Arbeitsliste |
 | 10 | Freigaben vor externen Jobs prüfen | **umgesetzt** für geplante Scans | Zielbindung aus Host, Port, Benutzer, Anmeldeart und Ordnern; allgemeines Muster in ADR-0001 |
@@ -85,7 +85,7 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 | S10 | Unbekannte Domains, eigener Katalog, Regeländerungen, Benchmark → **2.1.0** | E5, E6, G3, G5 | ✅ (2.1.0) |
 | S11 | Änderungszentrale und Rückkehr-Zusammenfassung | A1–A4, A7, A28, 05, 06 | ✅ |
 | S12 | Passende Checkliste, Arbeitsliste, Sitzungen, Prioritäten, Identitätskonten, Bericht → **2.2.0** | A5, A6, A8, A10, A17, A18, A20, D3, B6 | ✅ (2.2.0) |
-| S13 | Jobmodell, globale Pause, Freigaben, Aktivitätsprotokoll, Kontrollübersicht | A23–A27, D5, 07, 10 | offen |
+| S13 | Jobmodell, globale Pause, Freigaben, Aktivitätsprotokoll, Kontrollübersicht | A23–A27, D5, 07, 10 | A24, A25, A27, D5 ✅ · A23, A26 offen |
 | S14 | Importeinstellungen, nur Geändertes, Ressourcenbudget, Fortsetzen, gezielte Fehler, große Archive | A11, A13–A16, P3, 13 | offen |
 | S15 | Begrenzte Ordnerüberwachung → **2.3.0** | A12, 14 | offen |
 | S16 | Bitwarden: Weg ohne Tresorlesen, Duplikatschutz, Übergabebereitschaft → **2.4.0** | B1, B3, A19, 11 | offen |

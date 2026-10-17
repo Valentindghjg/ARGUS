@@ -111,6 +111,8 @@ def parser(language="en"):
     rule.add_argument('--scope', choices=['important', 'all'], default='important')
     rule.add_argument('--off', action='store_true', help=t('Switch the rule off'))
     rule.add_argument('--apply', action='store_true', help=t('Set every proposed review date; undo restores them'))
+    automation = sub.add_parser('automation', help=t('Show jobs and activity, or pause and resume all automation'))
+    automation.add_argument('action', choices=['status', 'pause', 'resume'])
     session = sub.add_parser('session', help=t('Work on one or three worklist tasks and keep a short report'))
     session.add_argument('action', choices=['start', 'report', 'end'])
     session.add_argument('--size', type=int, choices=[1, 3], default=3)
@@ -208,6 +210,8 @@ def main(argv=None):
                 raise ValueError('IMAP requires an initialized personal local profile')
             if args.limit is not None and args.limit < 1:
                 raise ValueError('The scan limit must be positive')
+            # A paused profile is refused before any password prompt or connection.
+            store.ensure_not_paused()
             config = load_config(store.data_dir / 'imap.json')
             print(t('Authorized TLS host: {p0}:{p1}; read-only access.', p0=config.host, p1=config.port))
             if not sys.stdin.isatty():
@@ -279,6 +283,13 @@ def main(argv=None):
             print(json.dumps({'rule': snapshot['review_rule'],
                               'proposals': {a['id']: a['review_proposal'] for a in snapshot['accounts'] if a['review_proposal']},
                               'applied': bool(args.apply and proposed)}, ensure_ascii=False, indent=2))
+        elif args.command == 'automation':
+            if args.action != 'status':
+                store.set_automation_paused(args.action == 'pause')
+                print(t('All automation is paused. New jobs wait; running ones stop between two messages. Nothing already done outside ARGUS is undone.')
+                      if args.action == 'pause' else t('Automation resumed. Scheduled scans continue at their next time.'), file=sys.stderr)
+            schedule = BackgroundScanService(store, KeyringCredentialStore()).snapshot()
+            print(json.dumps(store.control_overview(schedule), ensure_ascii=False, indent=2))
         elif args.command == 'session':
             if args.action == 'start':
                 store.start_session(args.size)

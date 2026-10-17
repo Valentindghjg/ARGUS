@@ -87,3 +87,13 @@ Wird während der Umsetzung fortgeschrieben.
   Sitzungsbericht wird aus dem Zustand der Accounts abgeleitet, nicht
   mitprotokolliert, und folgt damit jedem Rückgängig. Gespeichert wird er nur
   über den Browser nach vollständiger Vorschau; die CLI gibt ihn nur aus.
+- **S13, Pause und Vorgangszustände:** Die globale Pause sperrt alle neuen
+  Vorgänge, auch selbst gestartete Importe und manuelle Scans, weil der Plan
+  „neue Jobs sperren“ verlangt und eine Pause sonst unklar bliebe; die Oberfläche
+  nennt den Grund und den Weg zurück. Laufende Vorgänge prüfen die Pause alle 25
+  Nachrichten und enden als „pausiert“. Zusätzlich zu den Zuständen aus ADR-0001
+  gibt es „uncertain“ für eine Bitwarden-Übertragung mit unklarem Ausgang
+  (Priorität 12) und das abgeleitete „unterbrochen“ für Vorgänge, die seit zehn
+  Minuten nichts gemeldet haben. Geplante Scans stehen als wartend in der
+  Liste statt als Warteschlangen-Datensatz, weil ihr Zeitplan die einzige Quelle
+  bleibt.

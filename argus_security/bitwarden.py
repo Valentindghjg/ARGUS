@@ -14,7 +14,7 @@ import uuid
 from .errors import UserFacingError
 from .store import Store, write_private
 from .i18n import translate, validate_language
-from . import handoffs
+from . import handoffs, jobs
 
 # Custom field that links a vault item to its local ARGUS account. Items created
 # before the ARGUS rename carry the legacy name; the read-only audit accepts both.
@@ -230,6 +230,8 @@ def audit_unlocked_cli(store: Store, ids: list[str], language="en", *, runner=su
     inside this function to derive a tiny local result and are neither persisted,
     logged nor returned to the browser.
     """
+    with store.connect() as db:
+        jobs.require_running(db)
     selected = _audit_accounts(store, ids, language)
     environment = _unlocked_environment(store, environment, runner)
     results = []
@@ -241,6 +243,8 @@ def audit_unlocked_cli(store: Store, ids: list[str], language="en", *, runner=su
         if not isinstance(payload, list) or len(payload) > 10_000:
             raise BitwardenCliError("The Bitwarden CLI returned an unexpected vault response.")
         results.append(_audit_result(account, payload))
+    with store.connect() as db:
+        jobs.single(db, "bitwarden_check", "completed", {"items": len(results)})
     return {"accounts": results}
 
 
@@ -252,7 +256,22 @@ def add_to_unlocked_cli(store: Store, ids: list[str], language="en", *, runner=s
     Existing vault items are never read, changed or overwritten.
     """
     validate_language(language)
+    with store.connect() as db:
+        jobs.require_running(db)
+    # A selection that cannot be exported is refused before anything counts as a transfer.
     exported = make_export(store, ids, language)
+    result = {"items": 0, "status": "failed"}
+    try:
+        result = _create_items(store, exported, runner, environment)
+        return result
+    finally:
+        # Plan A25: only the outcome and the item count are logged, never vault data.
+        with store.connect() as db:
+            jobs.single(db, "bitwarden_write", {"completed": "completed", "needs_review": "uncertain"}.get(
+                result["status"], "failed"), {"items": result["items"]})
+
+
+def _create_items(store, exported, runner, environment):
     environment = _unlocked_environment(store, environment, runner)
 
     created = 0
