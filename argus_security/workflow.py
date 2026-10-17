@@ -187,14 +187,15 @@ def change_worklist(store, data):
             other = index - 1 if data["direction"] == "up" else index + 1
             if not 0 <= other < len(order):
                 return {"ok": True, "batch": None}
-            if rows[index]["position"] == rows[other]["position"]:
-                # Equal positions cannot be swapped; number them in their shown order first.
+            before = {account_id: planning(db, account_id) for account_id in order}
+            if len({row["position"] for row in rows}) != len(rows):
+                # Equal positions anywhere cannot be swapped reliably; number them in
+                # their shown order first. It is logged with the move, so undo restores both.
                 for position, account_id in enumerate(order, start=1):
                     db.execute("UPDATE instance_work_queue SET position=? WHERE account_id=?", (position, account_id))
                 rows = db.execute("SELECT account_id,position FROM instance_work_queue ORDER BY position,account_id").fetchall()
             pair = (rows[index], rows[other])
             batch = ChangeBatch(db)
-            before = {row["account_id"]: planning(db, row["account_id"]) for row in pair}
             # Only the two rows trade places, so undoing this change restores the order exactly.
             db.execute("UPDATE instance_work_queue SET position=? WHERE account_id=?", (pair[1]["position"], pair[0]["account_id"]))
             db.execute("UPDATE instance_work_queue SET position=? WHERE account_id=?", (pair[0]["position"], pair[1]["account_id"]))

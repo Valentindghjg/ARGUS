@@ -22,6 +22,22 @@
 - Two processes opening an old profile at the same time no longer fail during
   the migration. Review dates, due reviews, snoozes, progress days and report
   dates all use your local calendar day. Own templates are saved under one lock.
+
+### Catalog additions, "What's new", worklist order, identity links and sessions
+
+- An own catalog addition that a newer catalog (or a `--providers` file) now
+  covers no longer locks the whole profile: it is skipped, shown with a note
+  under "Mailbox & Import" and can be removed; its clues wait for a re-import. Malformed
+  `--providers` rows are refused with a message instead of a crash. An addition
+  can no longer take a sub-domain of a catalog provider.
+- "What's new" leaves hidden sender domains alone until a newer clue arrives,
+  and groups clues under the account that holds them, not a labelled sibling.
+- Moving a worklist task next to equal positions moves it exactly one place,
+  and the renumbering is undone with the move.
+- A rejected account no longer counts as signing in with another account.
+- Clearing a review date that is due counts as reviewing that step today, so a
+  review rule proposes the next date from today instead of tomorrow.
+- The session report names decisions you made in the session.
 ## 2.6.0 — Quality and trust (not yet tagged)
 
 ### Plan complete (S21)

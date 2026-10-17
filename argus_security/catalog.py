@@ -73,25 +73,28 @@ def add_provider(store, data):
     suffix = 2
     while ident in taken:
         ident, suffix = f"{_slug(name)}-{suffix}", suffix + 1
-    target = store.data_dir / PERSONAL_CATALOG
-    rows = _personal_rows(target) + [{"id": ident, "name": name.strip(), "website": website, "category": category,
-                                      "domains": domains, "priority": priority}]
-    candidate = _write_private(target, rows)
+    row = {"id": ident, "name": name.strip(), "website": website, "category": category,
+           "domains": domains, "priority": priority}
+    # A sub-domain of a catalog provider would take its mail away from it.
+    if any(store.registry.match(domain) for domain in domains):
+        raise UserFacingError("This domain already belongs to a provider in the catalog")
     try:
-        try:
-            Registry(store.registry.custom, candidate)
-        except UserFacingError:
-            raise
-        except ValueError as exc:
-            # The registry's own texts may contain data; show only fixed messages.
-            message = str(exc)
-            if message.startswith("Ambiguous domain in the catalog"):
-                raise UserFacingError("This domain already belongs to a provider in the catalog") from None
-            if message == "Provider links must be valid HTTPS URLs":
-                raise UserFacingError("The official website must be an HTTPS address") from None
-            if message == "The link is outside the provider domains":
-                raise UserFacingError("The official website must belong to one of the sender domains") from None
-            raise UserFacingError("Check the provider details") from None
+        store.registry.check_addition(row)
+    except UserFacingError:
+        raise
+    except ValueError as exc:
+        # The registry's own texts may contain data; show only fixed messages.
+        message = str(exc)
+        if message.startswith("Ambiguous domain in the catalog"):
+            raise UserFacingError("This domain already belongs to a provider in the catalog") from None
+        if message == "Provider links must be valid HTTPS URLs":
+            raise UserFacingError("The official website must be an HTTPS address") from None
+        if message == "The link is outside the provider domains":
+            raise UserFacingError("The official website must belong to one of the sender domains") from None
+        raise UserFacingError("Check the provider details") from None
+    target = store.data_dir / PERSONAL_CATALOG
+    candidate = _write_private(target, _personal_rows(target) + [row])
+    try:
         os.replace(candidate, target)
     finally:
         candidate.unlink(missing_ok=True)
@@ -100,16 +103,17 @@ def add_provider(store, data):
 
 
 def remove_provider(store, ident):
-    """Remove an addition that no clue, decision or step refers to yet."""
+    """Remove an addition that no clue, decision or step refers to yet, or one the catalog now skips."""
     provider = store.registry.providers.get(ident) if isinstance(ident, str) else None
-    if provider is None or provider.source != "personal":
+    skipped = isinstance(ident, str) and any(entry["id"] == ident for entry in store.registry.skipped_personal)
+    if not skipped and (provider is None or provider.source != "personal"):
         raise UserFacingError("Only providers you added yourself can be removed")
     with store.connect() as db:
         used = (db.execute("SELECT 1 FROM evidence WHERE provider_id=?", (ident,)).fetchone()
                 or db.execute("""SELECT 1 FROM account_instances WHERE provider_id=? AND (decision<>'undecided'
                                  OR EXISTS (SELECT 1 FROM account_steps s WHERE s.account_id=account_instances.id))""",
                               (ident,)).fetchone())
-    if used:
+    if used and not skipped:
         raise UserFacingError("This provider already has clues or your decisions; keep it or reject the account instead")
     target = store.data_dir / PERSONAL_CATALOG
     rows = [row for row in _personal_rows(target) if row.get("id") != ident]

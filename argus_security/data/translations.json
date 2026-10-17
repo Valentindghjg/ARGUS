@@ -1218,6 +1218,8 @@
     "Security worklist: continue with PayPal, which is already reviewed": "Sicherheits-Arbeitsliste: mach mit PayPal weiter, das bereits geprüft ist",
     "Prepare Bitwarden: preview the handover, which never contains passwords": "Bitwarden vorbereiten: sieh dir die Übergabe an, die nie Passwörter enthält",
     "Progress report: preview what you could share": "Fortschrittsbericht: sieh dir an, was du weitergeben könntest",
-    "Show versions and counts for a bug report; never addresses, paths or messages": "Versionen und Zahlen für einen Fehlerbericht zeigen; nie Adressen, Pfade oder Nachrichten"
+    "Show versions and counts for a bug report; never addresses, paths or messages": "Versionen und Zahlen für einen Fehlerbericht zeigen; nie Adressen, Pfade oder Nachrichten",
+    "The catalog now covers this domain, or the entry is no longer valid. ARGUS ignores it; you can remove it.": "Der Katalog deckt diese Domain inzwischen ab, oder der Eintrag ist nicht mehr gültig. ARGUS ignoriert ihn; du kannst ihn entfernen.",
+    "Nothing more to do": "Nichts weiter zu tun"
   }
 }

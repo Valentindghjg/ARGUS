@@ -84,6 +84,44 @@ def _rows(path: Path, source: str):
     return [(row, source) for row in rows]
 
 
+def _provider(row, source, owners, providers):
+    """Validate one catalog row against the rows before it; raises ValueError, changes nothing."""
+    if (not all(isinstance(row.get(key), str) for key in ("id", "name", "website", "category"))
+            or not isinstance(row.get("domains"), list) or any(not isinstance(d, str) for d in row["domains"])
+            or any(row.get(key) is not None and not isinstance(row[key], str)
+                   for key in ("priority", "password_url", "password_source", "password_verified"))):
+        raise ValueError("Invalid provider entry")
+    domains = tuple(normalize_domain(d) for d in row["domains"])
+    if any(is_shared_sender(domain) for domain in domains):
+        raise ValueError("A shared sending service cannot identify a provider")
+    if not domains or not re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,79}", row["id"]):
+        raise ValueError("Invalid provider entry")
+    if row["id"] in providers:
+        raise ValueError("Duplicate provider ID")
+    if not 1 <= len(row["name"]) <= 100:
+        raise ValueError("Invalid provider name")
+    if not 1 <= len(row["category"]) <= 60:
+        raise ValueError("Invalid category")
+    for index, domain in enumerate(domains):
+        if domain in owners or domain in domains[:index]:
+            raise ValueError("Ambiguous domain in the catalog: " + domain)
+    website = validate_url(row["website"], domains)
+    password_url = row.get("password_url")
+    source_url, verified = row.get("password_source"), row.get("password_verified")
+    if password_url:
+        validate_url(password_url, domains)
+        if not source_url or not verified or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", verified):
+            raise ValueError("A password link requires documented verification")
+        validate_url(source_url, domains)
+    if row.get("priority", "normal") not in {"critical", "high", "normal"}:
+        raise ValueError("Invalid priority")
+    return Provider(
+        row["id"], row["name"], website, row["category"], domains,
+        row.get("priority", "normal"), password_url, source_url, verified,
+        bool(row.get("historical", False)), source,
+    )
+
+
 class Registry:
     def __init__(self, custom: Path | None = None, personal: Path | None = None):
         self.custom, self.personal = custom, personal
@@ -93,40 +131,28 @@ class Registry:
         if personal and personal.is_file() and not personal.is_symlink():
             rows += _rows(personal, "personal")
         self.providers: dict[str, Provider] = {}
+        # Own additions that a newer catalog now covers, or that no longer pass
+        # validation, are skipped instead of locking the whole profile (plan E5).
+        self.skipped_personal: list[dict] = []
         owners: dict[str, str] = {}
         for row, source in rows:
-            domains = tuple(normalize_domain(d) for d in row["domains"])
-            if any(is_shared_sender(domain) for domain in domains):
-                raise ValueError("A shared sending service cannot identify a provider")
-            if not domains or not re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,79}", row["id"]):
-                raise ValueError("Invalid provider entry")
-            if row["id"] in self.providers:
-                raise ValueError("Duplicate provider ID")
-            if not isinstance(row["name"], str) or not 1 <= len(row["name"]) <= 100:
-                raise ValueError("Invalid provider name")
-            if not isinstance(row["category"], str) or not 1 <= len(row["category"]) <= 60:
-                raise ValueError("Invalid category")
-            for domain in domains:
-                if domain in owners:
-                    raise ValueError("Ambiguous domain in the catalog: " + domain)
-                owners[domain] = row["id"]
-            website = validate_url(row["website"], domains)
-            password_url = row.get("password_url")
-            source_url, verified = row.get("password_source"), row.get("password_verified")
-            if password_url:
-                validate_url(password_url, domains)
-                if not source_url or not verified or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", verified):
-                    raise ValueError("A password link requires documented verification")
-                validate_url(source_url, domains)
-            if row.get("priority", "normal") not in {"critical", "high", "normal"}:
-                raise ValueError("Invalid priority")
-            self.providers[row["id"]] = Provider(
-                row["id"], row["name"], website, row["category"], domains,
-                row.get("priority", "normal"), password_url, source_url, verified,
-                bool(row.get("historical", False)), source,
-            )
+            try:
+                provider = _provider(row, source, owners, self.providers)
+            except ValueError:
+                if source != "personal":
+                    raise
+                if isinstance(row.get("id"), str):
+                    self.skipped_personal.append({"id": row["id"], "name": str(row.get("name") or row["id"])[:100]})
+                continue
+            for domain in provider.domains:
+                owners[domain] = provider.id
+            self.providers[provider.id] = provider
         self._domains = sorted(owners, key=len, reverse=True)
         self._owners = owners
+
+    def check_addition(self, row):
+        """Validate one new own provider against this catalog; raises ValueError like loading would."""
+        _provider(row, "personal", self._owners, self.providers)
 
     def with_personal(self, path: Path):
         """This catalog plus the profile's own providers (plan E5), as a new registry."""
