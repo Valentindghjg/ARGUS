@@ -1,10 +1,17 @@
-# Test report — unreleased (quality and trust)
+# Test report — Version 2.6.0 (quality and trust, not yet tagged)
 
 Step S19: **336 Python tests** and **42 browser check groups**. New tests cover
 the coverage summary (sources, period, gap months, addresses without clues, no
 total) and the catalog quality rules. The browser masks and unmasks addresses,
 checks the current-page marker, the coverage panel, that every visible button
 and field has an accessible name, and that the skip link comes first.
+
+Step S20: **343 Python tests** and **43 browser check groups**. New tests cover
+the release check (versions, declared connections and permissions, the release
+notes template, checksums, a workflow that only reads), `argus about` (counts
+without addresses, paths or providers; the database stays byte-identical; a
+missing profile is not created) and the bug report form. The browser follows
+the five demo tour steps and checks that the report field gets the focus.
 
 # Test report — Version 2.5.0 (former Pro features, not yet tagged)
 

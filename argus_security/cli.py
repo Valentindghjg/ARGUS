@@ -23,6 +23,7 @@ from .scan import ScanSession, file_items, load_demo, scan_messages
 from .server import serve
 from .store import Store, now as result_time, write_private
 from .profiles import list_profiles, profile_dir
+from .about import about
 
 
 def data_root():
@@ -95,6 +96,7 @@ def parser(language="en"):
     report.add_argument('--include-addresses', action='store_true', help=t('Add sign-in addresses to the task lines'))
     report.add_argument('--export', type=Path, help=t('Save the report to a new private file instead of printing it'))
     sub.add_parser('profiles', help=t('List your separate local profiles by name'))
+    sub.add_parser('about', help=t('Show versions and counts for a bug report; never addresses, paths or messages'))
     template = sub.add_parser('template', help=t('List, preview or apply task templates; they plan locally and never act at providers'))
     template.add_argument('action', choices=['list', 'preview', 'apply', 'delete'])
     template.add_argument('id', nargs='?', help=t('Template ID from template list'))
@@ -192,6 +194,10 @@ def main(argv=None):
         if args.command in {'backup', 'restore'}:
             # Work on the files as they are, before any migration opens them.
             return backup_command(args, data_dir, t)
+        if args.command == 'about':
+            kind = 'named' if args.profile is not None else 'custom' if args.data_dir is not None else 'default'
+            print(json.dumps(about(data_dir, kind), ensure_ascii=False, indent=2))
+            return 0
         registry = Registry(args.providers)
         store = Store(data_dir, registry)
         if args.command == 'init':

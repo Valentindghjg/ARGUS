@@ -150,3 +150,18 @@ Wird während der Umsetzung fortgeschrieben.
   einer einfachen Regel im Browsertest gesichert (jede sichtbare Schaltfläche und
   jedes Feld braucht einen zugänglichen Namen), nicht mit einem externen
   Prüfwerkzeug, damit die Prüfung ohne zusätzliche Abhängigkeit läuft.
+- **S20, Releases ohne Veröffentlichung durch Automatik:** Nach der Entscheidung
+  „Version erhöhen, kein Release“ erstellt kein Workflow ein Release, auch keinen
+  Entwurf. Der Workflow „Release files“ läuft nur bei einem Versions-Tag oder von
+  Hand, braucht nur Leserechte, baut die Dateien und listet ihre Prüfsummen; der
+  Owner legt Releases selbst an. Ein Artefakt-Upload entfällt, damit keine
+  zusätzliche, nicht geprüfte Action nötig ist. Das Rad wird mit
+  `SOURCE_DATE_EPOCH` reproduzierbar gebaut und lässt sich lokal gegen die
+  Prüfsumme im Lauf prüfen; das Quellarchiv ist nicht byte-gleich. Signaturen
+  folgen später (G6). Welche Module ins Netz gehen oder Programme starten,
+  prüft `scripts/release_check.py` über die Importe; ein neues solches Modul
+  scheitert, bis es angegeben und in den Release-Hinweisen genannt ist.
+- **S20, `argus about` liest nur:** Die Ausgabe für Fehlerberichte liest die
+  Datenbank schreibgeschützt und legt kein fehlendes Profil an; ein Profil mit
+  anderer Schemaversion wird nicht geöffnet, damit die Diagnose nie eine
+  Migration auslöst. Sie enthält nur Versionen, System und Zahlen.

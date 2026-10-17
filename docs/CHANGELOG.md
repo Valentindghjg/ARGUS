@@ -1,6 +1,23 @@
 # Change log
 
-## Unreleased — Quality and trust
+## 2.6.0 — Quality and trust (not yet tagged)
+
+### Demo tour, data-minimal bug reports and checked releases (G2, G4, G6)
+
+- The demo overview offers “Try this path”: five steps from what the import
+  found through unclear items, the worklist and the Bitwarden handover to a
+  progress report. `docs/DEMO.md` and `docs/DEMO_DE.md` describe them.
+- `argus about` prints versions, platform and counts for a bug report, never
+  addresses, providers, paths or messages. It only reads an existing profile
+  and never creates one. The bug report form asks for it, for synthetic steps
+  and for a confirmed data check. New FAQ in English and German.
+- `scripts/release_check.py` checks one version across the package and both
+  change logs, that every module able to reach the network or start a program
+  is declared, and that the browser companion keeps only `activeTab`; it also
+  checks tag names and writes `SHA256SUMS`. The read-only “Release files”
+  workflow runs it on version tags and lists the checksums; it publishes
+  nothing. A release notes template always names new connections and
+  permissions.
 
 ### Coverage, accessibility, a masked view and catalog quality (D4, D6)
 
