@@ -107,6 +107,12 @@ des Bildschirms hilft. Die Maskierung ändert nur die Anzeige: Sie ist weder
 Verschlüsselung noch ein bereinigter Export, und die Wahl merkt sich nur dieser
 Browser.
 
+Jeder Prüflauf untersucht alle Ansichten und Dialoge auf Deutsch und Englisch,
+in Desktop- und Handybreite, mit [axe-core](https://github.com/dequelabs/axe-core)
+gegen WCAG 2.2 Stufe AA; jeder Verstoß lässt den Lauf scheitern. Eine
+automatische Prüfung findet nur einen Teil dessen, was WCAG verlangt; eine
+Prüfung mit Screenreadern steht noch aus.
+
 ## Sprache wählen
 
 Im Dashboard oben **Sprache → Deutsch / English** wählen. Der Schalter ist auch
@@ -863,6 +869,14 @@ Laufzeitabhängigkeiten:
 ```bash
 python scripts/browser_smoke.py --browser /usr/bin/chromium
 python scripts/browser_multi_account.py --browser /usr/bin/chromium
+```
+
+Die Barrierefreiheitsprüfung braucht zusätzlich Node.js für das gepinnte
+axe-core, ein reines Testwerkzeug, das nie mit ARGUS ausgeliefert wird:
+
+```bash
+npm ci --prefix scripts/accessibility --ignore-scripts
+python scripts/browser_accessibility.py --browser /usr/bin/chromium
 ```
 
 Der Test erzeugt ein temporäres Demo-Profil, sperrt ausgehende Browseranfragen

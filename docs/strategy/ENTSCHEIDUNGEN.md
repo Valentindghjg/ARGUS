@@ -149,7 +149,8 @@ Wird während der Umsetzung fortgeschrieben.
   Browser-Speicher, weil sie eine Ansichtsvorliebe ist. Barrierefreiheit wird mit
   einer einfachen Regel im Browsertest gesichert (jede sichtbare Schaltfläche und
   jedes Feld braucht einen zugänglichen Namen), nicht mit einem externen
-  Prüfwerkzeug, damit die Prüfung ohne zusätzliche Abhängigkeit läuft.
+  Prüfwerkzeug, damit die Prüfung ohne zusätzliche Abhängigkeit läuft. (In
+  2.7.0 durch eine WCAG-2.2-AA-Prüfung mit axe-core ergänzt, siehe unten.)
 - **S20, Releases ohne Veröffentlichung durch Automatik:** Nach der Entscheidung
   „Version erhöhen, kein Release“ erstellt kein Workflow ein Release, auch keinen
   Entwurf. Der Workflow „Release files“ läuft nur bei einem Versions-Tag oder von
@@ -168,7 +169,7 @@ Wird während der Umsetzung fortgeschrieben.
 - **S21, Abschluss und was offen bleibt:** Alle Plan-Punkte sind einem Schritt
   zugeordnet und in der Abdeckungstabelle der [Strategie-Übersicht](README.md)
   mit Ort im Code belegt. Bewusst offen bleiben: Signaturen für Releases (G6,
-  in 2.7.0 nachgeholt), ein vollständiges WCAG-Audit über die geprüften Grundlagen hinaus (D6) sowie
+  in 2.7.0 nachgeholt), ein vollständiges WCAG-Audit (in 2.7.0 automatisch nachgeholt) über die geprüften Grundlagen hinaus (D6) sowie
   Tags und Releases selbst, die nach der Entscheidung „Version erhöhen, kein
   Release“ beim Owner liegen. P6 entfällt nach „alles als Free“. Die Grenzen aus
   dem Plan (keine Logins, keine Passwortänderungen, keine unbestätigten
@@ -232,3 +233,13 @@ Regressionstest, der vor dem Fix fehlschlug. Dabei getroffene Entscheidungen:
   eine Build-Abhängigkeit nie eine Signatur anfordern kann. Dafür ist ein
   Artefakt-Upload nötig (Entscheidung aus S20 revidiert). Ein Lauf von Hand
   baut und prüft nur, er lädt nichts hoch und bestätigt nichts.
+- **WCAG 2.2 AA mit axe-core, CI blockiert (D6):** axe-core ist eine
+  Testabhängigkeit, kein Teil des Pakets; es liegt mit Lockfile und
+  Integritäts-Hash in `scripts/accessibility` (Dependabot hält es aktuell) und
+  wird mit `--ignore-scripts` installiert. Die Prüfung liest Ansichten und
+  Dialoge aus der Seite und scheitert, wenn ein Dialog keinen Prüfweg hat. Nur
+  Verstöße blockieren; „needs review“ wird ausgegeben, weil axe-core es nicht
+  sicher entscheiden kann. Kontraste werden über wenige Farb-Tokens
+  (`--muted`, `--faint`, `--nav-muted`, `--amber`) statt einzelner Grautöne
+  gesichert. axe-core wird per DevTools-Protokoll geladen, die strenge CSP des
+  Dashboards bleibt im Test unverändert.

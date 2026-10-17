@@ -2,6 +2,7 @@
 # Copyright (c) 2026 ARGUS contributors
 """Repository-wide rules: source headers, a standard-library-only runtime and working doc links."""
 import ast
+import json
 from pathlib import Path
 import re
 import sys
@@ -17,7 +18,7 @@ class SourceHeaderTests(unittest.TestCase):
         missing = []
         for folder in folders:
             for path in (ROOT / folder).rglob("*"):
-                if path.suffix not in {".py", ".js", ".html", ".css"} or "dist" in path.parts:
+                if path.suffix not in {".py", ".js", ".html", ".css"} or {"dist", "node_modules"} & set(path.parts):
                     continue
                 head = path.read_text(encoding="utf-8").split("\n", 4)[:4]
                 if not any("SPDX-License-Identifier: MPL-2.0" in line for line in head) or \
@@ -65,6 +66,29 @@ class DocumentationLinkTests(unittest.TestCase):
                     broken.append(f"{document.relative_to(ROOT)}: {target}")
         self.assertEqual(broken, [])
 
+
+
+class AccessibilityAuditTests(unittest.TestCase):
+    """Plan D6: a WCAG 2.2 AA audit with a pinned, test-only axe-core blocks CI."""
+
+    def test_axe_core_is_pinned_and_only_a_test_tool(self):
+        folder = ROOT / "scripts" / "accessibility"
+        package = json.loads((folder / "package.json").read_text(encoding="utf-8"))
+        version = package["devDependencies"]["axe-core"]
+        self.assertRegex(version, r"^\d+\.\d+\.\d+$")
+        self.assertEqual(set(package) & {"dependencies", "scripts"}, set())
+        locked = json.loads((folder / "package-lock.json").read_text(encoding="utf-8"))["packages"]
+        self.assertEqual(set(locked), {"", "node_modules/axe-core"})
+        self.assertEqual(locked["node_modules/axe-core"]["version"], version)
+        self.assertTrue(locked["node_modules/axe-core"]["integrity"].startswith("sha512-"))
+
+    def test_the_audit_runs_in_ci_against_wcag_2_2_aa(self):
+        workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+        self.assertIn("npm ci --prefix scripts/accessibility --ignore-scripts", workflow)
+        self.assertIn("python scripts/browser_accessibility.py", workflow)
+        script = (ROOT / "scripts" / "browser_accessibility.py").read_text(encoding="utf-8")
+        tags = ast.literal_eval(re.search(r"^TAGS = (\[.*\])$", script, re.M).group(1))
+        self.assertEqual(tags, ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
 
 if __name__ == "__main__":
     unittest.main()

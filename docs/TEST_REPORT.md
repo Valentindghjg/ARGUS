@@ -12,6 +12,17 @@ attests the wheel and the source archive and that every action is pinned to a
 full commit. `actionlint` 1.7 accepts both workflows. The attestation itself
 runs only for a tag pushed by the owner and was not triggered here.
 
+WCAG 2.2 AA audit: **405 Python tests**, **38 browser check groups**, the
+multi-account check and **88 audited states** (9 views × 2 languages × desktop
+and phone width for the demo and a new profile, plus 4 dialogs per language and
+width) with **0 violations**, 0 page errors and 0 external requests. The first
+run found 101 violations in two rules (`color-contrast`,
+`scrollable-region-focusable`); a run with one old grey restored fails again.
+Results axe-core cannot decide alone (text over icons, partly covered text,
+headers of an empty table) are listed as "needs review" and were checked by
+hand: none has a measured contrast below 4.5:1. New tests check the pinned,
+test-only axe-core, its lock entry and the CI step.
+
 # Test report — Version 2.6.1 (review fixes, not yet tagged)
 
 Review fixes, part 1: **359 Python tests**. New regression tests reproduce each

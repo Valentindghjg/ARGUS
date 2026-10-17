@@ -97,6 +97,11 @@ example `d•••@e•••.invalid`), which helps when you share your screen
 only changes the display: it is neither encryption nor a cleaned export, and
 the choice is remembered only in this browser.
 
+Every check run audits all views and dialogs in German and English, on desktop
+and phone width, with [axe-core](https://github.com/dequelabs/axe-core) against
+WCAG 2.2 level AA; any violation fails the run. An automated audit finds only
+part of what WCAG asks for; a review with screen readers is still to come.
+
 ## Choose your language
 
 Use **Language → English / Deutsch** in the dashboard header. The same selector
@@ -799,6 +804,14 @@ Chromium, neither of which is required to run the app:
 ```bash
 python scripts/browser_smoke.py --browser /usr/bin/chromium --screenshots-dir docs/preview
 python scripts/browser_multi_account.py --browser /usr/bin/chromium
+```
+
+The accessibility audit also needs Node.js for the pinned axe-core, a test tool
+that never ships with ARGUS:
+
+```bash
+npm ci --prefix scripts/accessibility --ignore-scripts
+python scripts/browser_accessibility.py --browser /usr/bin/chromium
 ```
 
 ### Synthetic detection benchmark

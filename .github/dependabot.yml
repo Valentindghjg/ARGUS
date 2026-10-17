@@ -10,3 +10,9 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+  # axe-core for the accessibility audit only; never part of the package.
+  - package-ecosystem: npm
+    directory: /scripts/accessibility
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

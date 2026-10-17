@@ -115,9 +115,11 @@ jobs:
         run: |
           python -m pip install 'playwright==1.64.0'
           python -m playwright install --with-deps chromium
+          npm ci --prefix scripts/accessibility --ignore-scripts --no-audit --no-fund
       - name: Run local browser tests with synthetic data
         shell: bash
         run: |
           BROWSER_PATH="$(python -c 'from playwright.sync_api import sync_playwright; p = sync_playwright().start(); print(p.chromium.executable_path); p.stop()')"
           python scripts/browser_smoke.py --browser "$BROWSER_PATH"
           python scripts/browser_multi_account.py --browser "$BROWSER_PATH"
+          python scripts/browser_accessibility.py --browser "$BROWSER_PATH"

@@ -134,7 +134,7 @@ die Grenzen aus dem Plan gelten weiter.
 | D3 | Prioritäten erklären und anpassen | umgesetzt | S12 | `identity.explain_priorities`, Reihenfolge in der Arbeitsliste änderbar |
 | D4 | Importabdeckung zeigen | umgesetzt | S19 | `coverage.py`, Panel „Was deine Importe abdecken“, ohne Gesamtquote |
 | D5 | Zentrale Kontrollübersicht | umgesetzt | S13 | Ansicht „Kontrolle“, `jobs.py` |
-| D6 | Barrierefreiheit und Verbergen persönlicher Angaben | umgesetzt (Grundlagen) | S19 | Sprunglink, `aria-current`, Namen für alle Bedienelemente, maskierte Ansicht; kein vollständiges WCAG-Audit |
+| D6 | Barrierefreiheit und Verbergen persönlicher Angaben | umgesetzt | S19, 2.7.0 | Sprunglink, `aria-current`, Namen für alle Bedienelemente, maskierte Ansicht; automatische WCAG-2.2-AA-Prüfung mit axe-core in CI (`scripts/browser_accessibility.py`); Prüfung mit Screenreadern offen |
 
 ### Bitwarden
 
