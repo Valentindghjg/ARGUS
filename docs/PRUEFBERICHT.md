@@ -1,3 +1,14 @@
+# Prüfbericht – Version 2.4.0 (Paket E, noch ohne Tag)
+
+Schritt S16: **323 Python-Tests** und **38 Browser-Prüfgruppen**. Neue Tests
+prüfen die Bereitschaft (bereit, erst prüfen, jeden sperrenden Grund),
+journalgeführte Downloads in Dashboard und CLI, die einen zweiten Download und
+eine CLI-Übertragung bis zur Klärung sperren, einen bestätigten Import als
+„vorbereitet“, die Prüfung vorhandener Dateien und die rücknehmbare manuelle
+Zuordnung über Store, CLI und API. Der Browser klärt eine unklare Übertragung,
+sieht einen Download im Journal samt Freigabe und ordnet einen Account ohne
+Tresor-Lesen zu und wieder zurück.
+
 # Prüfbericht – Version 2.3.0 (Paket D, noch ohne Tag)
 
 Schritt S13a: **301 Python-Tests** und **35 Browser-Prüfgruppen**. Neue Tests

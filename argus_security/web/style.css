@@ -29,3 +29,4 @@ html,body{max-width:100%;overflow-x:clip}
 p.small-muted{white-space:normal;overflow-wrap:anywhere}
 .report-text{white-space:pre-wrap;overflow-wrap:anywhere;background:#f6f8fb;border:1px solid var(--border);border-radius:7px;padding:12px;font-size:11px;max-height:50vh;overflow:auto}
 .activity-line{font-size:11px;margin:0;padding:6px 0;border-bottom:1px solid #edf0f5;overflow-wrap:anywhere}
+.bitwarden-paths{margin:18px 0}.bitwarden-paths .start-card .button{margin-top:8px}.export-selection small{display:block;color:#8b98a9;font-size:10px}

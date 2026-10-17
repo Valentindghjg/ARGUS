@@ -121,3 +121,11 @@ Wird während der Umsetzung fortgeschrieben.
   beendet werden kann auch im Dashboard. Netzwerk-Mounts unter Linux und macOS
   lassen sich ohne Zusatzbibliothek nicht sicher erkennen; abgelehnt werden
   daher UNC- und `//`-Pfade, und die Dokumentation verlangt einen lokalen Ordner.
+- **S16, Downloads im Übergabejournal:** Ob eine heruntergeladene Datei
+  importiert wurde, kann ARGUS nicht wissen. Ein Download zählt deshalb als
+  Übergabe mit offenem Ausgang („heruntergeladen“) und sperrt einen weiteren
+  Download oder eine CLI-Übertragung desselben Accounts, bis die Person festhält,
+  was sie im Tresor gefunden hat. Das schützt vor dem häufigsten Duplikat (eine
+  Datei zweimal importiert), kostet aber einen Klick, wenn eine Datei verloren
+  ging. Ein bestätigter Import setzt den Tresor-Schritt wie die CLI auf
+  „vorbereitet“, nie auf „erledigt“.

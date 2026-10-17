@@ -1,4 +1,4 @@
-# ARGUS 2.3.0 – lokales Account-Inventar
+# ARGUS 2.4.0 – lokales Account-Inventar
 
 Deutsch · [English](README.md)
 
@@ -596,6 +596,23 @@ gilt als „vorbereitet“, bis du den Tresor-Schritt abhakst. Der Hinweis nach 
 Änderung und „Deine letzten Änderungen“ in der Arbeitsliste machen lokale
 Entscheidungen und Schritte rückgängig; Bitwarden-Einträge und Scans werden nie
 zurückgenommen. Katalogdienste ohne Mailbeleg kannst du ebenfalls bestätigen.
+
+### Drei gleichwertige Wege, Bereitschaft und ein Journal
+
+„Bitwarden vorbereiten“ bietet drei gleichwertige Wege, von denen keiner ein
+Lesen deines Tresors durch ARGUS braucht: **1 · Schon in deinem Tresor**
+markiert die gewählten Accounts als gespeichert, nachdem du selbst nachgesehen
+hast (rücknehmbar; auch `bitwarden-assign --id …`), **2 · Passwortfreie Datei
+herunterladen** und **3 · Optional: Bitwarden-CLI** zum direkten Anlegen. Das
+Prüfen vorhandener Einträge mit der CLI liest deinen Tresor und braucht für genau
+diese Prüfung ein eigenes Häkchen. Jeder Account zeigt zuerst seine
+Bereitschaft: „Bereit“, „Erst prüfen“ (nicht von dir bestätigt oder keine
+Anmeldeadresse, sodass der Benutzername leer bleibt) oder „Jetzt nicht“
+(Anmeldeadresse zu wählen, unklare Übertragung, Download ohne festgehaltenen
+Import oder schon in Bitwarden). Bereit ist keine Sicherheitsaussage. Das
+Übergabejournal listet jeden Download und jede CLI-Übertragung; ein unklarer
+Eintrag sperrt einen weiteren Versuch, bis du festhältst, was du im Tresor
+gefunden hast, damit keine Datei versehentlich doppelt importiert wird.
 
 Unter „Bitwarden vorbereiten“:
 

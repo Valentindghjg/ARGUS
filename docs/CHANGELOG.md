@@ -1,5 +1,21 @@
 # Change log
 
+## 2.4.0 — Package E: Bitwarden without surprises (not yet tagged)
+
+### Three equal ways, readiness and one journal (B1, B3, A19)
+
+- “Prepare Bitwarden” offers three equal ways: mark accounts you found in your
+  vault yourself (undoable, `bitwarden-assign`), download a password-free file,
+  or the optional CLI. Checking existing items reads the vault and needs its own
+  tick for that one check.
+- Each account shows its readiness (ready, check first, not now) with the
+  reasons; ready is no security statement.
+- Downloads (dashboard and `bitwarden-export`) are journaled as “downloaded”:
+  another download or CLI transfer of that account waits until you record
+  whether you imported it. The journal lists every download and transfer with
+  its date. An existing export file is reported before anything is journaled.
+- New API `POST /api/bitwarden/assign`; snapshot field `bitwarden_readiness`.
+
 ## 2.3.0 — Package D: dependable automation (not yet tagged)
 
 ### Jobs, activity log and one pause for everything (A24, A25, A27, D5, priority 07)

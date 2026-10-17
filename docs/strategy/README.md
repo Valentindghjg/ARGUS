@@ -40,7 +40,7 @@ Hauptnutzen kommt ohne sie aus.
 
 ## Umsetzungsstand der 15 Prioritäten
 
-Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S15 (2.3.0).
+Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S16 (2.4.0).
 
 | Nr. | Priorität | Stand | Im Code |
 | --- | --- | --- | --- |
@@ -54,7 +54,7 @@ Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S15 (2.3.0).
 | 08 | Korrekturen erhalten und rückgängig machen | **umgesetzt** | Entscheidungen überstehen Neuauswertung; Protokoll und Rückgängig für Entscheidung, Schritte und Planung in Dashboard, API und CLI |
 | 09 | Nächste Aufgabe begründet vorbereiten | **umgesetzt** | eine begründete nächste Aufgabe in der Übersicht (D1), geführter Ablauf, Arbeitsliste |
 | 10 | Freigaben vor externen Jobs prüfen | **umgesetzt** | Zielbindung aus Host, Port, Benutzer, Anmeldeart und Ordnern; sichtbare Freigabe mit Widerruf und Vorschau; übrige externe Zugriffe je Aufruf |
-| 11 | Bitwarden-Vorschau und Übergabestatus | weitgehend | Übergabejournal und Status; genaue Vorschau vor jedem Schreiben (B2) |
+| 11 | Bitwarden-Vorschau und Übergabestatus | **umgesetzt** | genaue Vorschau (B2), Bereitschaft je Account (A19), ein Journal über Download und CLI (B3), drei gleichwertige Wege ohne Tresor-Lesen (B1) |
 | 12 | Unklare Schreibausgänge blockieren | umgesetzt | Status `uncertain`, keine blinde Wiederholung, manuelle Klärung |
 | 13 | Wiederkehrende lokale Importe vereinfachen | **umgesetzt** | letzte Quelle wiederholen, nur Geändertes, Budget, Fortsetzen, gezielt nachholen, Vorprüfung |
 | 14 | Begrenzte Ordnerüberwachung | **umgesetzt** | ein freigegebener lokaler Ordner, nur `*.eml` direkt darin, nur mit laufendem Dashboard, sichtbar und beendbar |
@@ -88,7 +88,7 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 | S13 | Jobmodell, globale Pause, Freigaben, Aktivitätsprotokoll, Kontrollübersicht | A23–A27, D5, 07, 10 | ✅ |
 | S14 | Importeinstellungen, nur Geändertes, Ressourcenbudget, Fortsetzen, gezielte Fehler, große Archive | A11, A13–A16, P3, 13 | ✅ |
 | S15 | Begrenzte Ordnerüberwachung → **2.3.0** | A12, 14 | ✅ (2.3.0) |
-| S16 | Bitwarden: Weg ohne Tresorlesen, Duplikatschutz, Übergabebereitschaft → **2.4.0** | B1, B3, A19, 11 | offen |
+| S16 | Bitwarden: Weg ohne Tresorlesen, Duplikatschutz, Übergabebereitschaft → **2.4.0** | B1, B3, A19, 11 | ✅ (2.4.0) |
 | S17 | Getrennte Profile, Verlaufsanalyse, datensparsame Berichte | P1, P2, P5 | offen |
 | S18 | E-Mail-Umzugsplan und Ablaufvorlagen → **2.5.0** | A21, A22, P4 | offen |
 | S19 | Importabdeckung, Barrierefreiheit, Maskierung, Katalogqualität | D4, D6 | offen |

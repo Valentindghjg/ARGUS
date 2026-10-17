@@ -488,6 +488,11 @@ class Store:
             account["next_step"] = next_step(account)
         snapshot["workflow"] = worklist_snapshot(self, accounts)
         snapshot["bitwarden_handoffs"] = handoff_snapshot(self)
+        from .bitwarden import readiness
+        journal = {(entry["account_id"], entry["email"]): entry["state"] for entry in snapshot["bitwarden_handoffs"]}
+        for account in accounts:
+            email = account["identity_email"] or account["manual_email"] or ""
+            account["bitwarden_readiness"] = readiness(account, journal.get((account["id"], email)))
         from .summary import next_task, result_summary
         from .review import unclear_items
         for account in accounts:
@@ -763,6 +768,25 @@ class Store:
             control = overview(db, schedule, watch=watch)
         control["watch"] = watch
         return control
+
+    def mark_in_vault(self, ids):
+        """Plan B1: the person states these accounts are already in their vault; ARGUS reads nothing."""
+        if not isinstance(ids, list) or not ids or len(ids) > 10_000 or any(not isinstance(i, str) for i in ids):
+            raise UserFacingError("Select the accounts that are already in your vault")
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            batch, moment = ChangeBatch(db), now()
+            for account_id in dict.fromkeys(ids):
+                account = self._account_row(db, account_id)
+                if account["identity_review_required"]:
+                    raise UserFacingError("Identify this account before marking it done")
+                current = read_steps(db, account_id, account["login_method"])["vault"]
+                if current["state"] == "done":
+                    continue
+                new = {**current, "state": "done", "done_at": moment}
+                write_step(db, account_id, "vault", new)
+                batch.record(account_id, "step:vault", current, new)
+            return {"ok": True, "batch": batch.close()}
 
     def set_review_rule(self, months, scope=None):
         """Save the person's rule for proposing review dates (plan A10); None switches it off."""

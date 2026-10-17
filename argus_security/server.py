@@ -388,10 +388,15 @@ class Handler(BaseHTTPRequestHandler):
                     added = self.server.store.add_emails(data["emails"])
                 self._send(200, {"added": added, "rescan_recommended": bool(added)})
             elif path == "/api/bitwarden":
-                from .bitwarden import make_export
+                from .bitwarden import download_export
                 data = self._json()
-                result = make_export(self.server.store, data.get("ids"), data.get("language", "en"))
+                result = download_export(self.server.store, data.get("ids"), data.get("language", "en"))
                 self._send(200, result, attachment="argus-bitwarden.json")
+            elif path == "/api/bitwarden/assign":
+                data = self._json()
+                if set(data) != {"ids"}:
+                    raise UserFacingError("Select the accounts that are already in your vault")
+                self._send(200, self.server.store.mark_in_vault(data["ids"]))
             elif path == "/api/bitwarden/preview":
                 from .bitwarden import preview_export
                 data = self._json()

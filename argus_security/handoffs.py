@@ -1,6 +1,13 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 ARGUS contributors
-"""Durable Bitwarden creation attempts. An ambiguous write is never retried blindly."""
+"""Durable Bitwarden hand-offs over every path. An ambiguous write is never retried blindly.
+
+States per account and sign-in address: ``running`` and ``uncertain`` (a CLI
+write in progress or with an unknown result), ``exported`` (a password-free
+file was downloaded; whether it was imported is unknown, plan B3),
+``created`` and ``not_created``. Each unclear state blocks another download or
+transfer until the person checks the vault and records what they found.
+"""
 import time
 import uuid
 
@@ -23,9 +30,21 @@ def handoff_snapshot(store):
     return [{"id": row["id"], "account_id": row["account_id"],
              "provider_id": row["provider_id"], "email": row["email"],
              "state": "uncertain" if row["state"] == "running" and row["lease_until"] <= moment else row["state"],
-             "operation_id": row["operation_id"], "vault_item_id": row["vault_item_id"],
-             "can_resolve": row["state"] == "uncertain" or (row["state"] == "running" and row["lease_until"] <= moment)}
+             "operation_id": row["operation_id"], "vault_item_id": row["vault_item_id"], "updated": row["updated"],
+             "can_resolve": row["state"] in {"uncertain", "exported"} or (row["state"] == "running" and row["lease_until"] <= moment)}
             for row in rows]
+
+
+def record_export(store, items):
+    """Plan B3: a downloaded file counts as a hand-off whose import is not yet confirmed."""
+    with store.connect() as db:
+        db.execute("BEGIN IMMEDIATE")
+        for account_id, provider_id, email in items:
+            db.execute("""INSERT INTO instance_bitwarden_handoffs(id,account_id,provider_id,email,state,operation_id,lease_until,updated)
+                          VALUES (?,?,?,?,'exported',?,0,?) ON CONFLICT(account_id,email) DO UPDATE SET
+                          state='exported',operation_id=excluded.operation_id,lease_until=0,vault_item_id=NULL,
+                          updated=excluded.updated WHERE instance_bitwarden_handoffs.state='not_created'""",
+                       (str(uuid.uuid4()), account_id, provider_id, email, str(uuid.uuid4()), now()))
 
 
 def reserve(store, account_id, email):
@@ -39,6 +58,8 @@ def reserve(store, account_id, email):
         row = db.execute("SELECT * FROM instance_bitwarden_handoffs WHERE account_id=? AND email=?", (account_id, email)).fetchone()
         if row and row["state"] == "created":
             return None
+        if row and row["state"] == "exported":
+            raise HandoffError("This account was downloaded for Bitwarden. Record whether you imported it before adding it again.")
         if row and row["state"] != "not_created":
             raise HandoffError("Check the unresolved Bitwarden transfer before trying again.")
         ident, operation = (row["id"] if row else str(uuid.uuid4())), str(uuid.uuid4())
@@ -103,7 +124,7 @@ def resolve(store, data):
     with store.connect() as db:
         db.execute("BEGIN IMMEDIATE")
         row = db.execute("SELECT * FROM instance_bitwarden_handoffs WHERE id=?", (data["id"],)).fetchone()
-        if not row or row["state"] not in {"running", "uncertain"}:
+        if not row or row["state"] not in {"running", "uncertain", "exported"}:
             raise UserFacingError("Transfer does not need review")
         if row["state"] == "running" and row["lease_until"] > time.time():
             raise HandoffError("The Bitwarden transfer is still running. Wait before checking its result.")
