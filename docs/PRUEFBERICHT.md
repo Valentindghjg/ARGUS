@@ -1,4 +1,4 @@
-# Prüfbericht – unveröffentlicht (Qualität und Vertrauen)
+# Prüfbericht – Version 2.6.0 (Qualität und Vertrauen, noch ohne Tag)
 
 Schritt S19: **336 Python-Tests** und **42 Browser-Prüfgruppen**. Neue Tests
 prüfen die Abdeckung (Quellen, Zeitraum, Monate ohne Hinweis, Adressen ohne
@@ -6,6 +6,14 @@ Hinweis, keine Gesamtquote) und die Regeln der Katalogqualität. Der Browser
 maskiert Adressen und hebt das wieder auf, prüft die Markierung der aktuellen
 Seite, die Abdeckung, dass jede sichtbare Schaltfläche und jedes Feld einen
 zugänglichen Namen hat und dass der Sprunglink zuerst kommt.
+
+Schritt S20: **343 Python-Tests** und **43 Browser-Prüfgruppen**. Neue Tests
+prüfen die Release-Prüfung (Versionen, angegebene Verbindungen und Rechte, die
+Vorlage für Release-Hinweise, Prüfsummen, ein Workflow, der nur liest),
+`argus about` (Zahlen ohne Adressen, Pfade oder Anbieter; die Datenbank bleibt
+byte-gleich; ein fehlendes Profil wird nicht angelegt) und das Fehlerformular.
+Der Browser folgt den fünf Schritten des Demo-Rundgangs und prüft, dass das
+Berichtsfeld den Fokus erhält.
 
 # Prüfbericht – Version 2.5.0 (frühere Pro-Funktionen, noch ohne Tag)
 

@@ -1211,6 +1211,13 @@
     "Skip to main content": "Zum Hauptinhalt springen",
     "What your imports cover": "Was deine Importe abdecken",
     "{count} month(s) in that period have no clue, most recently: {months}": "{count} Monat(e) in diesem Zeitraum ohne Hinweis, zuletzt: {months}",
-    "{kind}: {runs} run(s), {messages} message(s), last on {date}": "{kind}: {runs} Lauf/Läufe, {messages} Nachricht(en), zuletzt am {date}"
+    "{kind}: {runs} run(s), {messages} message(s), last on {date}": "{kind}: {runs} Lauf/Läufe, {messages} Nachricht(en), zuletzt am {date}",
+    "Try this path": "Probier diesen Weg",
+    "What's new: see what the import found": "Neu seit…: sieh dir an, was der Import gefunden hat",
+    "Unclear items: decide what ARGUS cannot decide for you": "Unklares: entscheide, was ARGUS nicht für dich entscheiden kann",
+    "Security worklist: continue with PayPal, which is already reviewed": "Sicherheits-Arbeitsliste: mach mit PayPal weiter, das bereits geprüft ist",
+    "Prepare Bitwarden: preview the handover, which never contains passwords": "Bitwarden vorbereiten: sieh dir die Übergabe an, die nie Passwörter enthält",
+    "Progress report: preview what you could share": "Fortschrittsbericht: sieh dir an, was du weitergeben könntest",
+    "Show versions and counts for a bug report; never addresses, paths or messages": "Versionen und Zahlen für einen Fehlerbericht zeigen; nie Adressen, Pfade oder Nachrichten"
   }
 }

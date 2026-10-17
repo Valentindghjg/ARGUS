@@ -1,4 +1,4 @@
-# ARGUS 2.5.0
+# ARGUS 2.6.0
 
 [Deutsch](README_DE.md) · English
 
@@ -53,7 +53,9 @@ accounts at 12 providers, two simulated manual confirmations and one completed
 checklist. A short guide on the overview explains the hard cases: a newsletter,
 a guest order and a reset email that prove no account, two accounts at one
 service, single sign-on and a look-alike sender domain. **These are not your real
-accounts.**
+accounts.** Its "Try this path" list leads in five steps from the import to the
+Bitwarden handover; the [demo guide](docs/DEMO.md) describes them. The
+[FAQ](docs/FAQ.md) answers common questions.
 
 You can also clone the GitHub repository:
 
@@ -803,6 +805,23 @@ of accuracy on real mailboxes.** A unit test fails when an outcome changes, so a
 rule change has to update the case and its explanation. `--json` prints the full
 report.
 
+### Bug reports and releases
+
+`argus about` prints what a bug report needs: the ARGUS, Python, SQLite and
+schema versions, the platform and counts such as clues or jobs per state. It
+never shows addresses, providers, paths or messages, only reads an existing
+profile and creates none. The bug report form asks for this output and for
+synthetic steps; see the [FAQ](docs/FAQ.md).
+
+`python scripts/release_check.py` checks that the package and both change logs
+name the same version, that every module able to reach the network or start a
+program is declared, and that the browser companion keeps only `activeTab`.
+The "Release files" workflow runs it on a version tag, builds the files and
+lists their checksums. It needs only read access and publishes nothing; the
+owner creates releases by hand with the
+[release notes template](docs/RELEASE_NOTES_TEMPLATE.md), which always names new
+connections and permissions. See [publishing](docs/PUBLISHING.md).
+
 | File | Purpose |
 |---|---|
 | `argus_security/analysis.py` | Local MIME parsing and bilingual detection rules |
@@ -832,6 +851,7 @@ report.
 | `argus_security/moves.py` | Ordered, manual plans for moving accounts to another own address |
 | `argus_security/templates.py` | Declarative task templates with preview |
 | `argus_security/coverage.py` | What imports cover: sources, period and gaps |
+| `argus_security/about.py` | Versions, platform and counts for a bug report, never content |
 | `argus_security/backup.py` | Local profile backups and restore |
 | `argus_security/workflow.py` | Local security worklist and guided next step |
 | `argus_security/handoffs.py` | Durable Bitwarden transfer journal |
@@ -840,6 +860,7 @@ report.
 | `account_finder/` | Deprecated alias for `python -m account_finder` and `account-finder` |
 | `tests/` | Automated regression tests |
 | `scripts/benchmark.py`, `benchmarks/` | Synthetic detection benchmark |
+| `scripts/release_check.py` | Release check: versions, declared connections and permissions, checksums |
 | `browser-companion/` | Minimal unpacked Chromium domain/settings-link companion |
 | [Catalog policy](docs/CATALOG.md) | Scope, review standards and how to propose providers |
 | [Publishing checklist](docs/PUBLISHING.md) | Owner-controlled steps before making the repository public |

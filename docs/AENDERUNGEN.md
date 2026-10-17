@@ -1,4 +1,23 @@
-# Änderungen – unveröffentlicht (Qualität und Vertrauen)
+# Änderungen – Version 2.6.0, Qualität und Vertrauen (noch ohne Tag)
+
+## Demo-Rundgang, datensparsame Fehlerberichte und geprüfte Releases (G2, G4, G6)
+
+- Die Demo-Übersicht bietet „Probier diesen Weg“: fünf Schritte von dem, was der
+  Import gefunden hat, über Unklares, die Arbeitsliste und die Übergabe an
+  Bitwarden bis zum Fortschrittsbericht. `docs/DEMO_DE.md` und `docs/DEMO.md`
+  beschreiben sie.
+- `argus about` gibt Versionen, System und Zahlen für einen Fehlerbericht aus,
+  nie Adressen, Anbieter, Pfade oder Nachrichten. Es liest ein vorhandenes
+  Profil nur und legt nie eines an. Das Fehlerformular fragt danach, nach
+  synthetischen Schritten und nach einer bestätigten Datenprüfung. Neue FAQ auf
+  Deutsch und Englisch.
+- `scripts/release_check.py` prüft eine Version in Paket und beiden
+  Änderungsprotokollen, dass jedes Modul, das ins Netz gehen oder ein Programm
+  starten kann, angegeben ist, und dass der Browser-Begleiter nur `activeTab`
+  behält; außerdem prüft es Tag-Namen und schreibt `SHA256SUMS`. Der Workflow
+  „Release files“ mit reinen Leserechten führt es bei Versions-Tags aus und
+  listet die Prüfsummen; er veröffentlicht nichts. Eine Vorlage für
+  Release-Hinweise nennt neue Verbindungen und Rechte immer.
 
 ## Abdeckung, Barrierefreiheit, maskierte Ansicht und Katalogqualität (D4, D6)
 

@@ -1,4 +1,4 @@
-# ARGUS 2.5.0 – lokales Account-Inventar
+# ARGUS 2.6.0 – lokales Account-Inventar
 
 Deutsch · [English](README.md)
 
@@ -58,7 +58,10 @@ bei 12 Anbietern, zwei simulierte manuelle Bestätigungen und eine erledigte
 Checkliste. Eine kurze Erklärung in der Übersicht zeigt die schwierigen Fälle:
 Newsletter, Gastbestellung und Rücksetz-Mail belegen keinen Account, zwei
 Accounts beim selben Dienst, Single Sign-on und eine ähnlich aussehende
-Absenderdomain. **Das sind keine echten Accounts.**
+Absenderdomain. **Das sind keine echten Accounts.** Die Liste „Probier diesen
+Weg“ führt in fünf Schritten vom Import bis zur Übergabe an Bitwarden; die
+[Demo-Anleitung](docs/DEMO_DE.md) beschreibt sie. Antworten auf häufige Fragen
+stehen in den [FAQ](docs/FAQ_DE.md).
 Mit `--port 8766` lässt sich ein bereits belegter Port umgehen.
 
 Alternativ das GitHub-Repository klonen:
@@ -870,6 +873,24 @@ Zahlen beweisen keine Genauigkeit bei echten Postfächern.** Ein Unit-Test schl�
 fehl, wenn sich ein Ergebnis ändert, sodass eine Regeländerung Fall und
 Begründung mitziehen muss. `--json` gibt den vollständigen Bericht aus.
 
+### Fehlerberichte und Releases
+
+`argus about` gibt aus, was ein Fehlerbericht braucht: die Versionen von ARGUS,
+Python, SQLite und Schema, das System und Zahlen wie Hinweise oder Vorgänge je
+Zustand. Adressen, Anbieter, Pfade oder Nachrichten zeigt es nie; ein
+vorhandenes Profil wird nur gelesen, ein fehlendes nicht angelegt. Das
+Fehlerformular fragt nach dieser Ausgabe und nach synthetischen Schritten; siehe
+die [FAQ](docs/FAQ_DE.md).
+
+`python scripts/release_check.py` prüft, dass Paket und beide Änderungsprotokolle
+dieselbe Version nennen, dass jedes Modul, das ins Netz gehen oder ein Programm
+starten kann, angegeben ist und dass der Browser-Begleiter nur `activeTab`
+behält. Der Workflow „Release files“ führt die Prüfung bei einem Versions-Tag aus,
+baut die Dateien und listet ihre Prüfsummen. Er braucht nur Leserechte und
+veröffentlicht nichts; Releases legt der Eigentümer von Hand mit der
+[Vorlage für Release-Hinweise](docs/RELEASE_NOTES_TEMPLATE.md) an, die neue
+Verbindungen und Rechte immer nennt. Siehe [Veröffentlichung](docs/PUBLISHING.md).
+
 | Datei | Zweck |
 |---|---|
 | `argus_security/analysis.py` | Lokale MIME-Auswertung und Erkennungsregeln |
@@ -899,6 +920,7 @@ Begründung mitziehen muss. `--json` gibt den vollständigen Bericht aus.
 | `argus_security/moves.py` | Geordnete, manuelle Pläne für den Umzug von Accounts auf eine andere eigene Adresse |
 | `argus_security/templates.py` | Deklarative Ablaufvorlagen mit Vorschau |
 | `argus_security/coverage.py` | Was Importe abdecken: Quellen, Zeitraum und Lücken |
+| `argus_security/about.py` | Versionen, System und Zahlen für Fehlerberichte, nie Inhalte |
 | `argus_security/backup.py` | Lokale Profilsicherungen und Wiederherstellung |
 | `argus_security/workflow.py` | Lokale Sicherheits-Arbeitsliste und geführter nächster Schritt |
 | `argus_security/handoffs.py` | Dauerhaftes Journal für Bitwarden-Übertragungen |
@@ -907,6 +929,7 @@ Begründung mitziehen muss. `--json` gibt den vollständigen Bericht aus.
 | `account_finder/` | Veralteter Alias für `python -m account_finder` und `account-finder` |
 | `tests/` | Automatisierte Regressionstests |
 | `scripts/benchmark.py`, `benchmarks/` | Synthetischer Erkennungs-Benchmark |
+| `scripts/release_check.py` | Release-Prüfung: Versionen, angegebene Verbindungen und Rechte, Prüfsummen |
 | `browser-companion/` | Minimaler entpackter Chromium-Begleiter für Domain- und Einstellungslinks |
 | [Katalogrichtlinie](docs/KATALOG.md) | Umfang, Qualitätsmaßstäbe und neue Dienste vorschlagen |
 | [Veröffentlichungs-Checkliste](docs/PUBLISHING.md) | Schritte, die der Inhaber vor der Veröffentlichung selbst prüft |

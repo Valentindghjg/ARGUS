@@ -22,7 +22,8 @@ publish itself.
 
 1. Set the repository’s description, topics and default branch in **Settings**.
 2. In **Actions → General**, keep workflow permissions read-only unless a specific
-   workflow needs more. This project’s CI needs only `contents: read`.
+   workflow needs more. Both workflows, “Checks” and “Release files”, need only
+   `contents: read`.
 3. In **Branches**, require the “Checks” workflow before merging into `main` if
    you use pull requests. Consider requiring review before merge.
 4. In **Security**, enable private vulnerability reporting (required: SECURITY.md
@@ -30,8 +31,31 @@ publish itself.
    if they are available for the selected visibility and plan.
 5. In **General → Danger Zone**, change visibility to Public only after the
    preceding review. GitHub may show an irreversible-effects confirmation.
-6. Create a release from a signed-off tag after publication, for example `v2.5.0`.
-   Do not attach personal databases, exports or email files.
+6. Create releases only as described below. Do not attach personal databases,
+   exports or email files.
+
+## Creating a release by hand
+
+ARGUS never publishes itself, and no workflow can create a release: the
+"Release files" workflow only reads the repository.
+
+1. Run `python scripts/release_check.py`. It fails when the version differs
+   between the package and the two change logs, when a module can reach the
+   network or start a program without a declaration, or when the browser
+   companion asks for more than `activeTab`.
+2. Write the release notes from `docs/RELEASE_NOTES_TEMPLATE.md`. Its section
+   "New connections and permissions" is mandatory, also when it says "none".
+3. Tag the reviewed commit, for example `git tag v2.6.0`, and push the tag. The
+   "Release files" run checks that the tag names the version, builds the files
+   and lists their checksums in its summary.
+4. Build locally from the same tag:
+   `SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)" python -m build`, then
+   `python scripts/release_check.py checksums dist`. The wheel checksum must
+   match the run summary. The source archive is not byte-identical between two
+   builds, so compare the wheel.
+5. Create the GitHub release by hand and attach the files from `dist/` together
+   with `SHA256SUMS`. Signatures can follow later; until then the checksums and
+   the matching wheel are the integrity check.
 
 ## What a public user gets
 

@@ -1273,7 +1273,7 @@ async function addAlias(event){
   }catch(e){failure(e);}finally{addingAlias=false;$("add-alias-button").disabled=state.demo||Boolean(activeBatch||state.active_import);}
 }
 document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>navigate(b.dataset.view));
-document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>navigate(b.dataset.go));
+document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{navigate(b.dataset.go);const target=b.dataset.focus&&$(b.dataset.focus);if(target){target.scrollIntoView({block:"center"});target.focus();}});
 document.querySelector(".brand").onclick=e=>{e.preventDefault();navigate("dashboard");};
 for(const id of ["search","category","classification","status-filter"])$(id).addEventListener(id==="search"?"input":"change",renderRows);
 $("close-dialog").onclick=()=>$("account-dialog").close();

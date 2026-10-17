@@ -40,7 +40,7 @@ Hauptnutzen kommt ohne sie aus.
 
 ## Umsetzungsstand der 15 Prioritäten
 
-Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S19.
+Stand: wird mit jedem Arbeitsschritt aktualisiert, zuletzt S20.
 
 | Nr. | Priorität | Stand | Im Code |
 | --- | --- | --- | --- |
@@ -92,5 +92,5 @@ Schritt wird als eigener PR erst nach grüner CI gemergt. Grundlage sind die
 | S17 | Getrennte Profile, Verlaufsanalyse, datensparsame Berichte | P1, P2, P5 | ✅ |
 | S18 | E-Mail-Umzugsplan und Ablaufvorlagen → **2.5.0** | A21, A22, P4 | ✅ (2.5.0) |
 | S19 | Importabdeckung, Barrierefreiheit, Maskierung, Katalogqualität | D4, D6 | ✅ |
-| S20 | Demoablauf, FAQ, vertrauenswürdige Releases → **2.6.0** | G2, G4, G6 | offen |
+| S20 | Demoablauf, FAQ, vertrauenswürdige Releases → **2.6.0** | G2, G4, G6 | ✅ (2.6.0) |
 | S21 | Abschluss: Abdeckung aller Plan-Punkte | – | offen |

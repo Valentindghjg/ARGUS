@@ -1,13 +1,26 @@
 name: Bug report / Fehler melden
-description: Report unexpected behavior using synthetic examples only.
+description: Report unexpected behavior with synthetic examples only.
 body:
   - type: markdown
     attributes:
       value: |
-        English and German reports are welcome. Bitte keine echten E-Mails,
-        persönlichen Account-Listen, Passwörter, Tokens oder Datenbanken anhängen.
-        Use only synthetic messages and redact addresses, paths and screenshots.
-        For security vulnerabilities, follow SECURITY.md instead.
+        English and German reports are welcome. Wir brauchen nie deine Daten:
+        keine Profile oder Datenbanken, keine Bitwarden-Exporte, keine echten
+        E-Mails, Account-Listen, Passwörter oder Tokens. We never need your
+        profile, database, vault export, real emails, account list or credentials.
+        Reproduce the problem with invented messages or with the demo
+        (`argus --data-dir .local/demo demo`) and redact addresses, paths and
+        screenshots. For security vulnerabilities, follow SECURITY.md instead.
+  - type: textarea
+    id: about
+    attributes:
+      label: Output of `argus about` / Ausgabe von `argus about`
+      description: |
+        Versions, platform and counts only; it never shows addresses, paths or
+        messages. Nur Versionen, System und Zahlen; nie Adressen, Pfade oder Nachrichten.
+      render: json
+    validations:
+      required: true
   - type: textarea
     id: behavior
     attributes:
@@ -17,14 +30,21 @@ body:
   - type: textarea
     id: reproduce
     attributes:
-      label: Steps to reproduce / Schritte zum Nachstellen
-      description: Include a minimal synthetic example if relevant.
+      label: Synthetic steps to reproduce / Synthetische Schritte zum Nachstellen
+      description: |
+        Commands and invented example messages that show the problem, for example
+        a sender like noreply@example.invalid. Befehle und erfundene Beispielnachrichten.
     validations:
       required: true
   - type: input
-    id: environment
+    id: interface
     attributes:
-      label: App version, Python, OS and browser / Version und Umgebung
-      placeholder: '2.0.0, Python 3.12, Linux, Chromium, language de'
-    validations:
-      required: true
+      label: Interface and browser / Oberfläche und Browser
+      placeholder: 'Dashboard in Firefox, language de; or: command line'
+  - type: checkboxes
+    id: data
+    attributes:
+      label: Data check / Datenprüfung
+      options:
+        - label: My report contains no real email, address, account list, profile, database, vault export, password or token. / Mein Bericht enthält keine echten E-Mails, Adressen, Account-Listen, Profile, Datenbanken, Vault-Exporte, Passwörter oder Tokens.
+          required: true

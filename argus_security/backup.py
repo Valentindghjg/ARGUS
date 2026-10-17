@@ -59,7 +59,7 @@ def _sha256(path: Path):
     return digest.hexdigest()
 
 
-def _read_only(database: Path, timeout=5):
+def read_only(database: Path, timeout=5):
     """Open a database file without any chance of writing to it."""
     return closing(sqlite3.connect(f"{Path(database).resolve().as_uri()}?mode=ro", uri=True, timeout=timeout))
 
@@ -67,7 +67,7 @@ def _read_only(database: Path, timeout=5):
 def schema_version(database: Path):
     """Read the stored schema version without changing the file (None if unknown)."""
     try:
-        with _read_only(database) as db:
+        with read_only(database) as db:
             row = db.execute("SELECT value FROM meta WHERE key='schema_version'").fetchone()
     except sqlite3.Error:
         return None
@@ -80,7 +80,7 @@ def schema_version(database: Path):
 
 def _copy_database(source: Path, target: Path):
     """Consistent copy even while another ARGUS process writes (online backup)."""
-    with _read_only(source, timeout=15) as src, closing(sqlite3.connect(target)) as dst:
+    with read_only(source, timeout=15) as src, closing(sqlite3.connect(target)) as dst:
         src.backup(dst)
 
 
@@ -206,7 +206,7 @@ def _extract_verified(path: Path, manifest: dict, folder: Path):
         raise
     database = extracted[DATABASE]
     try:
-        with _read_only(database) as db:
+        with read_only(database) as db:
             ok = db.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
             has_meta = db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='meta'").fetchone()
     except sqlite3.Error:
