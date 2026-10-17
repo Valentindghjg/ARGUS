@@ -1237,6 +1237,13 @@
     "This profile name is reserved; choose another one": "Dieser Profilname ist reserviert; wähle einen anderen",
     "This profile does not exist yet; create it with init and --profile": "Dieses Profil gibt es noch nicht; lege es mit init und --profile an",
     "Check the name with argus profiles, or start a new profile with argus --profile NAME init --email followed by your address.": "Prüfe den Namen mit argus profiles, oder lege ein neues Profil mit argus --profile NAME init --email und deiner Adresse an.",
-    "This template now covers other accounts; preview it again": "Diese Vorlage betrifft inzwischen andere Accounts; sieh sie dir erneut an"
+    "This template now covers other accounts; preview it again": "Diese Vorlage betrifft inzwischen andere Accounts; sieh sie dir erneut an",
+    "Save IMAP settings with setup-imap first": "Speichere zuerst die IMAP-Einstellungen mit setup-imap",
+    "IMAP settings already exist; edit or delete imap.json in the profile folder first": "IMAP-Einstellungen gibt es schon; bearbeite oder lösche zuerst imap.json im Profilordner",
+    "Pass --host and --username when no terminal can answer the questions": "Gib --host und --username an, wenn kein Terminal die Fragen beantworten kann",
+    "A file you named was not found; check the path": "Eine angegebene Datei wurde nicht gefunden; prüfe den Pfad",
+    "Choose a port between 1 and 65535": "Wähle einen Port zwischen 1 und 65535",
+    "If this folder holds the demo, choose another --data-dir or --profile for your own addresses.": "Wenn dieser Ordner die Demo enthält, wähle für deine eigenen Adressen ein anderes --data-dir oder --profile.",
+    "Which accounts the rule covers; keeps the saved choice when left out": "Für welche Accounts die Regel gilt; ohne Angabe bleibt die gespeicherte Wahl"
   }
 }

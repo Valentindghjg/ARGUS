@@ -173,3 +173,41 @@ Wird während der Umsetzung fortgeschrieben.
   Release“ beim Owner liegen. P6 entfällt nach „alles als Free“. Die Grenzen aus
   dem Plan (keine Logins, keine Passwortänderungen, keine unbestätigten
   Verbindungen) gelten unverändert weiter.
+
+## Review von S0–S21 (17.10.2026)
+
+Sechs getrennte Prüfungen (Zustandsmodell, Erkennung, Importe und Automatik,
+Bitwarden und frühere Pro-Funktionen, Server und Dashboard, CLI und Doku) haben
+den gesamten Masterplan-Code gelesen und jeden Fund mit synthetischen Daten
+reproduziert. Behoben wurde in sechs PRs (2.6.1); jeder Fund hat einen
+Regressionstest, der vor dem Fix fehlschlug. Dabei getroffene Entscheidungen:
+
+- **Ablehnen statt still nie fertig werden:** `--recheck` mit Limit und
+  `scan-imap --full-scan --limit` beginnen jedes Mal bei der ersten Nachricht
+  und kämen nie weiter; beide werden mit einer klaren Meldung abgelehnt.
+- **Ein fälliges Prüfdatum entfernen heißt „heute geprüft“:** Der Schritt
+  bekommt das heutige Datum, damit eine Prüfregel das nächste Datum ab heute
+  vorschlägt und nicht in einer Schleife „morgen“ anbietet.
+- **Eigene Katalogeinträge sperren nie das Profil:** Kollidiert ein eigener
+  Eintrag später mit dem Katalog, wird er übersprungen und zum Entfernen
+  angeboten; Ergänzungen dürfen keine Subdomain eines Katalog-Anbieters belegen.
+- **Hinweisnummern werden nie wiederverwendet:** Marken für Entscheidungen und
+  Ausblendungen nutzen einen Höchstwert, neue Hinweise liegen darüber; ein
+  Schemawechsel war dafür nicht nötig.
+- **Sicherungsformat 2:** enthält die eigenen Katalogergänzungen; Format 1 wird
+  weiter eingespielt, ältere ARGUS-Versionen melden „neuere Version“.
+- **Bitwarden-CLI unter Windows:** nur `bw.exe` aus einem PATH-Ordner, nie ein
+  Skript-Wrapper (Argumente an `.cmd` lassen sich nicht sicher übergeben) und
+  nie eine Datei im aktuellen Ordner.
+- **Profile:** `default` und Windows-Gerätenamen sind reserviert; ein nicht
+  vorhandenes benanntes Profil wird außer bei `init`, `demo`, `restore` und
+  `about` abgelehnt, damit ein Tippfehler kein leeres Profil anlegt. Die Demo
+  braucht immer `--data-dir` oder `--profile`.
+- **Vorlagen wirken nur auf die gezeigte Vorschau:** Hat sich die Auswahl seit
+  der Vorschau geändert, wird nichts angewendet.
+- **Planer startet mit dem Dashboard:** Er prüft einmal pro Minute, ob etwas
+  freigegeben und fällig ist; so wirkt ein im Terminal eingeschalteter Zeitplan
+  ohne Neustart, und es entsteht keine verborgene Arbeit.
+- **Lokaler Kalendertag:** Alle Tagesgrenzen für Personen (Prüfdaten,
+  Zurückstellen, Verlauf, Berichte) folgen dem lokalen Datum, gespeicherte
+  Zeitstempel bleiben UTC.

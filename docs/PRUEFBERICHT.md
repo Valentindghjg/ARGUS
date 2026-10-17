@@ -39,6 +39,14 @@ GET-Anfrage und tief verschachteltes JSON. Der Browser behält eine
 ungespeicherte Prüfregel-Auswahl über eine Aktualisierung und prüft, dass der
 maskierte Account-Dialog keine Adresse zeigt und einen zugänglichen Namen hat.
 
+Review-Korrekturen, Teil 6: **402 Python-Tests**. Neue Tests prüfen jede
+Importform und jeden `os`-Prozessaufruf in der Release-Prüfung, eine neue
+Fähigkeit des Browser-Begleiters, JSON auf stdout mit Fortschritt auf stderr,
+eine vertippte Quelle und ein falsches Format, einen Retry, der an seinem Limit
+endet, die Demo außerhalb des Standardprofils, ungültige Ports, fehlende Dateien
+ohne Pfade, `setup-imap` ohne Terminal oder mit vorhandenen Einstellungen, die
+Prüfregel, die ihren anderen Teil behält, und deutsche JSON-Texte.
+
 # Prüfbericht – Version 2.6.0 (Qualität und Vertrauen, noch ohne Tag)
 
 Schritt S19: **336 Python-Tests** und **42 Browser-Prüfgruppen**. Neue Tests

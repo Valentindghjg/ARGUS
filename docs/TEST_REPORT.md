@@ -33,6 +33,13 @@ reviewed twice, a busy database on a GET request and deeply nested JSON. The
 browser keeps an unsaved review-rule choice across a refresh and checks that the
 masked account dialog shows no address and has an accessible name.
 
+Review fixes, part 6: **402 Python tests**. New tests cover every import form
+and `os` process call in the release check, a new companion capability, JSON on
+stdout with progress on stderr, a mistyped source and format, a retry stopped
+by its limit, the demo outside the default profile, invalid ports, missing
+files without paths, `setup-imap` without a terminal or with existing settings,
+the review rule keeping its other part and German JSON texts.
+
 # Test report — Version 2.6.0 (quality and trust, not yet tagged)
 
 Step S19: **336 Python tests** and **42 browser check groups**. New tests cover

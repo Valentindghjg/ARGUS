@@ -29,6 +29,8 @@ HINTS = {
     "IMAP requires an initialized personal local profile": PROFILE_FIRST,
     "Background IMAP requires an initialized personal local profile": PROFILE_FIRST,
     "Aliases require an initialized personal profile": PROFILE_FIRST,
+    "A different initial address scope requires a new data directory; use add-email to add aliases":
+        "If this folder holds the demo, choose another --data-dir or --profile for your own addresses.",
     "The demo requires a separate data directory":
         "Start the demo with its own folder, for example --data-dir .local/demo. Your personal profile stays unchanged.",
     # Backups

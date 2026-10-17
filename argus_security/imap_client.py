@@ -12,6 +12,7 @@ import time
 from hashlib import sha256
 
 from .analysis import ANALYSIS_VERSION, HEADERS_ONLY_MARKER, MAX_MESSAGE_BYTES
+from .errors import UserFacingError
 from .registry import normalize_domain
 from .store import Store, write_private
 
@@ -70,6 +71,8 @@ def saved_checkpoints(store, config: IMAPConfig) -> int:
 
 
 def load_config(path: Path):
+    if not path.is_file():
+        raise UserFacingError("Save IMAP settings with setup-imap first")
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict) or set(data) - {"host", "username", "port", "auth", "folders"}:
         raise ValueError("IMAP settings contain unknown fields; do not store credentials")

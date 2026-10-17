@@ -27,6 +27,27 @@ class ReleaseCheckTests(unittest.TestCase):
         self.assertEqual(release_check.problems(), [])
         self.assertEqual(set(release_check.reaching_modules()), set(release_check.DECLARED))
 
+    def test_every_import_form_and_process_call_counts_as_reaching_out(self):
+        reaching = ["from urllib import request", "from http import client", "import os\nos.system('x')",
+                    "import os as o\no.execv('a', [])", "from os import popen", "import asyncio",
+                    "import xmlrpc.client", "__import__('socket')", "import importlib"]
+        for source in reaching:
+            with self.subTest(source=source):
+                self.assertTrue(release_check.module_hits(source))
+        for source in ("import urllib.parse", "from http import HTTPStatus", "import os\nos.path.join('a')"):
+            with self.subTest(source=source):
+                self.assertEqual(release_check.module_hits(source), [])
+        # The legacy alias package is shipped too, so it is checked as well.
+        self.assertIn("account_finder", release_check.PACKAGES)
+
+    def test_a_new_companion_capability_fails_the_check(self):
+        manifest = json.loads((ROOT / "browser-companion" / "src" / "manifest.json").read_text(encoding="utf-8"))
+        self.assertTrue(release_check.companion_declared(manifest))
+        for key, value in (("content_scripts", [{"matches": ["<all_urls>"], "js": ["x.js"]}]),
+                           ("optional_permissions", ["tabs"]), ("optional_host_permissions", ["<all_urls>"])):
+            with self.subTest(key=key):
+                self.assertFalse(release_check.companion_declared({**manifest, key: value}))
+
     def test_release_notes_template_names_the_declared_connections(self):
         template = (ROOT / "docs" / "RELEASE_NOTES_TEMPLATE.md").read_text(encoding="utf-8")
         self.assertIn("## New connections and permissions", template)

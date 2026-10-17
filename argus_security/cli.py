@@ -19,7 +19,7 @@ from .backup import create_backup, list_backups, read_manifest, restore_backup
 from .bitwarden import export_file, preview_export
 from .analysis import ANALYSIS_VERSION, MAX_MESSAGE_BYTES
 from .imports import budget, failed_items, last_source, precheck, save_run
-from .scan import ScanSession, file_items, load_demo, scan_messages
+from .scan import ScanSession, check_source, file_items, load_demo, scan_messages
 from .server import serve
 from .store import Store, now as result_time, write_private
 from .profiles import list_profiles, profile_dir
@@ -145,7 +145,7 @@ def parser(language="en"):
     sub.add_parser('unclear', help=t('List everything ARGUS cannot decide for you, in one place'))
     rule = sub.add_parser('review-rule', help=t('Propose review dates for completed accounts; age alone is no security finding'))
     rule.add_argument('--months', type=int, choices=[6, 12, 24])
-    rule.add_argument('--scope', choices=['important', 'all'], default='important')
+    rule.add_argument('--scope', choices=['important', 'all'], help=t('Which accounts the rule covers; keeps the saved choice when left out'))
     rule.add_argument('--off', action='store_true', help=t('Switch the rule off'))
     rule.add_argument('--apply', action='store_true', help=t('Set every proposed review date; undo restores them'))
     watch = sub.add_parser('watch-folder', help=t('Import new EML files from one local folder while the dashboard runs'))
@@ -203,6 +203,11 @@ def main(argv=None):
                     else args.data_dir if args.data_dir is not None
                     # Reading facts for a bug report never moves a profile (plan G4).
                     else default_data_dir(language, migrate=args.command != 'about'))
+        if args.command == 'demo' and args.data_dir is None and args.profile is None:
+            # The default profile is for your own data; the demo always gets its own folder.
+            raise UserFacingError('The demo requires a separate data directory')
+        if args.command in {'demo', 'serve'} and not 1 <= args.port <= 65535:
+            raise UserFacingError('Choose a port between 1 and 65535')
         if (args.profile is not None and args.command not in {'init', 'demo', 'restore', 'about'}
                 and not (data_dir / 'accounts.sqlite3').is_file()):
             # A mistyped name must not create a new, empty profile.
@@ -243,16 +248,22 @@ def main(argv=None):
                         p0=summary['messages'], p1=round(summary['bytes'] / 1048576, 1), p2=summary['new'],
                         p3=summary['unchanged'], p4=summary['too_large']), file=sys.stderr)
                 return 0
+            if not store.meta('emails', []):
+                raise ValueError('Configure your own email addresses with init first')
+            # A source that cannot be opened is reported and never replaces the remembered one (plan A11).
+            check_source(path, kind)
             session = ScanSession(store, kind, budget=budget(args.max_messages, args.max_megabytes), recheck=args.recheck,
-                                  progress=lambda s: print(t('Processed locally: {p0}; new clues: {p1}', p0=s['processed'], p1=s['evidence']), flush=True))
+                                  progress=lambda s: print(t('Processed locally: {p0}; new clues: {p1}', p0=s['processed'], p1=s['evidence']), flush=True, file=sys.stderr))
             try:
                 result = scan_messages(store, file_items(path, kind, only), kind, session=session, keyed=True)
             finally:
-                save_run(store, path.resolve(), kind, session.failed_items, result_time())
+                # A retry that stops early keeps the items it did not reach for the next retry.
+                pending = [] if only is None else [key for key in only if key not in session.handled]
+                save_run(store, path.resolve(), kind, session.failed_items + pending, result_time())
             report_scan(result, t)
-            if session.failed_items:
+            if session.failed_items or pending:
                 print(t('{p0} item(s) were skipped or failed. Fix them, then run import --retry-failed to read only those.',
-                        p0=len(session.failed_items)), file=sys.stderr)
+                        p0=len(session.failed_items) + len(pending)), file=sys.stderr)
         elif args.command == 'report' and (args.text or args.export):
             text = store.report_text(args.level, args.include_addresses, language)
             if args.export:
@@ -261,13 +272,13 @@ def main(argv=None):
             else:
                 print(text, end='')
         elif args.command == 'report':
-            snapshot = store.snapshot()
+            snapshot = store.snapshot(language)
             print(json.dumps({**snapshot['summary'], 'result': snapshot['result'], 'next_task': snapshot['next_task']},
                              ensure_ascii=False, indent=2))
         elif args.command == 'list-accounts':
             fields = ('id', 'provider_id', 'name', 'identity_email', 'label',
                       'classification', 'status', 'identity_review_required')
-            rows = [{key: account[key] for key in fields} for account in store.snapshot()['accounts']
+            rows = [{key: account[key] for key in fields} for account in store.snapshot(language)['accounts']
                     if args.all or account['classification'] != 'unknown']
             print(json.dumps(rows, ensure_ascii=False, indent=2))
         elif args.command == 'discover':
@@ -282,9 +293,15 @@ def main(argv=None):
             emails = store.meta('emails', [])
             if not emails or store.meta('demo', False):
                 raise ValueError('Initialize a personal local profile with init first')
+            if (store.data_dir / 'imap.json').exists():
+                # Checked before any question, and named precisely (not as an export file).
+                raise UserFacingError('IMAP settings already exist; edit or delete imap.json in the profile folder first')
             print(t('No connection will be opened. Verify the host in official provider documentation first.'))
-            host = args.host or input(t('Verified IMAP host (TLS): ')).strip()
-            username = args.username or input(t('IMAP username [{p0}]: ', p0=emails[0])).strip() or emails[0]
+            try:
+                host = args.host or input(t('Verified IMAP host (TLS): ')).strip()
+                username = args.username or input(t('IMAP username [{p0}]: ', p0=emails[0])).strip() or emails[0]
+            except EOFError:
+                raise UserFacingError('Pass --host and --username when no terminal can answer the questions') from None
             config = IMAPConfig(host, username, args.port, args.auth, tuple(args.folder or ['*']))
             save_config(store.data_dir / 'imap.json', config)
             print(t('Saved private imap.json without passwords or tokens. Run scan-imap --allow-imap to scan.'))
@@ -316,7 +333,7 @@ def main(argv=None):
                     for folder in messages:
                         print(folder)
                 else:
-                    result = scan_messages(store, messages, 'imap', lambda s: print(t('Processed locally: {p0}; new clues: {p1}', p0=s['processed'], p1=s['evidence']), flush=True))
+                    result = scan_messages(store, messages, 'imap', lambda s: print(t('Processed locally: {p0}; new clues: {p1}', p0=s['processed'], p1=s['evidence']), flush=True, file=sys.stderr))
                     report_scan(result, t)
             finally:
                 secret = ''
@@ -369,9 +386,14 @@ def main(argv=None):
         elif args.command == 'review-rule':
             if args.months and args.off:
                 raise UserFacingError('Choose 6, 12 or 24 months and which accounts the rule covers')
-            if args.months or args.off:
-                store.set_review_rule(None if args.off else args.months, args.scope)
-            snapshot = store.snapshot()
+            if args.months or args.off or args.scope:
+                # A change to one part keeps the other: --scope alone keeps the months, --months the scope.
+                current = store.snapshot()['review_rule'] or {}
+                months = None if args.off else args.months or current.get('months')
+                if months is None and not args.off:
+                    raise UserFacingError('Choose 6, 12 or 24 months and which accounts the rule covers')
+                store.set_review_rule(months, args.scope or current.get('scope') or 'important')
+            snapshot = store.snapshot(language)
             proposed = [a['id'] for a in snapshot['accounts'] if a['review_proposal']]
             if args.apply and proposed:
                 store.apply_review_proposals(proposed)
@@ -382,7 +404,7 @@ def main(argv=None):
             if args.action != 'list' and not args.id:
                 raise UserFacingError('This template does not exist')
             if args.action == 'list':
-                print(json.dumps(store.snapshot()['templates'], ensure_ascii=False, indent=2))
+                print(json.dumps(store.snapshot(language)['templates'], ensure_ascii=False, indent=2))
             elif args.action == 'preview':
                 print(json.dumps(store.template_plan(args.id)[1], ensure_ascii=False, indent=2))
             elif args.action == 'apply':
@@ -401,7 +423,7 @@ def main(argv=None):
                 store.mark_move(args.values[0], args.values[1], args.state)
             elif args.action == 'close':
                 store.close_move_plan(args.values[0])
-            print(json.dumps(store.snapshot()['move_plans'], ensure_ascii=False, indent=2))
+            print(json.dumps(store.snapshot(language)['move_plans'], ensure_ascii=False, indent=2))
         elif args.command == 'watch-folder':
             from .watch import disable as stop_watch, enable as start_watch, status as watch_status
             if store.meta('demo', False) or not store.meta('emails'):
@@ -432,14 +454,14 @@ def main(argv=None):
                 return 0
             print(store.session_report_text(language), end='')
         elif args.command == 'whats-new':
-            snapshot = store.snapshot()
+            snapshot = store.snapshot(language)
             print(json.dumps({'changes': snapshot['changes'], 'return_summary': snapshot['return_summary']},
                              ensure_ascii=False, indent=2))
             if args.mark_reviewed:
                 store.acknowledge_changes(snapshot['changes']['revision'])
                 print(t('Marked as reviewed. Your decisions and steps are unchanged.'), file=sys.stderr)
         elif args.command == 'unclear':
-            snapshot = store.snapshot()
+            snapshot = store.snapshot(language)
             print(json.dumps({'unclear': snapshot['unclear'], 'exclusions': snapshot['exclusions'],
                               'relations': snapshot['relations']}, ensure_ascii=False, indent=2))
         elif args.command == 'exclude':
@@ -494,7 +516,10 @@ def main(argv=None):
         return fail(str(exc), t)
     except FileExistsError:
         return fail('The destination file already exists and will not be overwritten.', t)
-    except (ValueError, FileNotFoundError) as exc:
+    except FileNotFoundError:
+        # The OS text would name a path in English; a constant message is shown instead.
+        return fail('A file you named was not found; check the path', t, prefix=t('Error: '))
+    except ValueError as exc:
         return fail(str(exc), t, prefix=t('Error: '))
     except (OSError, KeyboardInterrupt):
         return fail('Operation interrupted or local file access / port unavailable.', t)

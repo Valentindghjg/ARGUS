@@ -89,6 +89,9 @@ def localize_snapshot(snapshot, language="en"):
             evidence["caveat"] = translate(evidence["caveat"], language)
     for group in snapshot.get("changes", {}).get("groups", []):
         group["reasons"] = [translate(reason, language) for reason in group["reasons"]]
+    for template in snapshot.get("templates", []):
+        if template.get("builtin"):
+            template["name"] = translate(template["name"], language)
     for candidate in snapshot["candidates"]:
         candidate["reason"] = translate(candidate["reason"], language)
         for evidence in candidate["evidence"]:

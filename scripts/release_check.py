@@ -20,9 +20,14 @@ import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-# Standard-library modules that open connections or start programs.
-REACHING = {"imaplib", "ssl", "socket", "http.client", "http.server", "urllib.request", "smtplib", "ftplib",
-            "subprocess", "webbrowser"}
+# Standard-library modules that open connections or start programs, and dynamic imports
+# that could load any of them unseen.
+REACHING = {"imaplib", "poplib", "smtplib", "ftplib", "nntplib", "telnetlib", "ssl", "socket", "socketserver",
+            "http.client", "http.server", "urllib.request", "xmlrpc.client", "xmlrpc.server", "asyncio",
+            "subprocess", "multiprocessing", "concurrent.futures", "webbrowser", "importlib"}
+# os functions that start programs without any of the modules above.
+PROCESS_CALLS = {"system", "popen", "startfile", "posix_spawn", "posix_spawnp", "fork", "forkpty"}
+PACKAGES = ("argus_security", "account_finder")
 DECLARED = {
     "imap_client.py": "Reads the mailbox over TLS IMAP, only with scan-imap --allow-imap or an approved scheduled scan.",
     "discovery.py": "Asks the DNS resolver for MX records, only with --allow-dns.",
@@ -30,20 +35,49 @@ DECLARED = {
     "server.py": "Serves the dashboard on 127.0.0.1 only and opens it in your browser when you pass --open.",
 }
 COMPANION_PERMISSIONS = ["activeTab"]
+# Any other manifest key (content scripts, optional or host permissions, background) is a new capability.
+COMPANION_KEYS = {"manifest_version", "name", "description", "default_locale", "version", "action", "permissions",
+                  "content_security_policy"}
+
+
+def _reaches(name):
+    return any(name == entry or name.startswith(entry + ".") for entry in REACHING)
+
+
+def module_hits(source):
+    """What one module's code can use to reach out, by import form and os call."""
+    hits, os_names = set(), set()
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if _reaches(alias.name):
+                    hits.add(alias.name)
+                if alias.name == "os":
+                    os_names.add(alias.asname or "os")
+        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+            for alias in node.names:
+                # "from urllib import request" uses urllib.request just like "import urllib.request".
+                full = f"{node.module}.{alias.name}"
+                if _reaches(node.module) or _reaches(full):
+                    hits.add(full if _reaches(full) else node.module)
+                elif node.module == "os" and (alias.name in PROCESS_CALLS or alias.name.startswith(("exec", "spawn"))):
+                    hits.add(full)
+        elif isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id in os_names:
+            if node.attr in PROCESS_CALLS or node.attr.startswith(("exec", "spawn")):
+                hits.add("os." + node.attr)
+        elif isinstance(node, ast.Name) and node.id == "__import__":
+            hits.add("__import__")
+    return sorted(hits)
 
 
 def reaching_modules():
     found = {}
-    for path in sorted((ROOT / "argus_security").glob("*.py")):
-        names = set()
-        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
-            if isinstance(node, ast.Import):
-                names |= {alias.name for alias in node.names}
-            elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
-                names.add(node.module)
-        hits = sorted(name for name in names if name in REACHING)
-        if hits:
-            found[path.name] = hits
+    for package in PACKAGES:
+        for path in sorted((ROOT / package).rglob("*.py")):
+            hits = module_hits(path.read_text(encoding="utf-8"))
+            if hits:
+                key = path.name if package == "argus_security" else path.relative_to(ROOT).as_posix()
+                found[key] = hits
     return found
 
 
@@ -65,9 +99,13 @@ def problems():
         if module not in reaching_modules():
             issues.append(f"{module} is declared but no longer reaches out; remove the declaration")
     manifest = json.loads((ROOT / "browser-companion" / "src" / "manifest.json").read_text(encoding="utf-8"))
-    if manifest.get("permissions", []) != COMPANION_PERMISSIONS or manifest.get("host_permissions"):
+    if not companion_declared(manifest):
         issues.append("The browser companion asks for permissions that are not declared")
     return issues
+
+
+def companion_declared(manifest):
+    return manifest.get("permissions", []) == COMPANION_PERMISSIONS and not set(manifest) - COMPANION_KEYS
 
 
 def write_checksums(folder: Path):
