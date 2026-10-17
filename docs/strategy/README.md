@@ -200,4 +200,4 @@ die Grenzen aus dem Plan gelten weiter.
 | G3 | Anbieter-Vorlage mit Prüfkriterien | umgesetzt | S10 | `.github/ISSUE_TEMPLATE/provider.yml` |
 | G4 | Datensparsame Fehlerberichte und FAQ | umgesetzt | S20 | `argus about`, Fehlerformular, `docs/FAQ_DE.md` |
 | G5 | Synthetischer Qualitätsbenchmark | umgesetzt | S10 | `scripts/benchmark.py`, `benchmarks/` |
-| G6 | Vertrauenswürdige Releases | umgesetzt | S20, 2.7.0 | Release-Prüfung, Prüfsummen, Release-Hinweise; signierte Herkunftsbestätigung je Tag (`release.yml`, Job `attest`) |
+| G6 | Vertrauenswürdige Releases | umgesetzt | S20, 2.7.0 | Release-Prüfung, Prüfsummen, Release-Hinweise; signierte Herkunftsbestätigung und Veröffentlichung je Tag (`release.yml`, Jobs `attest` und `publish`, Hinweise in `docs/releases/`) |

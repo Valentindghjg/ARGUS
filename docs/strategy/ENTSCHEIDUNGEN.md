@@ -171,7 +171,8 @@ Wird während der Umsetzung fortgeschrieben.
   mit Ort im Code belegt. Bewusst offen bleiben: Signaturen für Releases (G6,
   in 2.7.0 nachgeholt), ein vollständiges WCAG-Audit (in 2.7.0 automatisch nachgeholt) über die geprüften Grundlagen hinaus (D6) sowie
   Tags und Releases selbst, die nach der Entscheidung „Version erhöhen, kein
-  Release“ beim Owner liegen. P6 entfällt nach „alles als Free“. Die Grenzen aus
+  Release“ beim Owner liegen (seit 2.7.0 veröffentlicht der Workflow beim Tag,
+  siehe unten). P6 entfällt nach „alles als Free“. Die Grenzen aus
   dem Plan (keine Logins, keine Passwortänderungen, keine unbestätigten
   Verbindungen) gelten unverändert weiter.
 
@@ -243,3 +244,12 @@ Regressionstest, der vor dem Fix fehlschlug. Dabei getroffene Entscheidungen:
   (`--muted`, `--faint`, `--nav-muted`, `--amber`) statt einzelner Grautöne
   gesichert. axe-core wird per DevTools-Protokoll geladen, die strenge CSP des
   Dashboards bleibt im Test unverändert.
+- **Releases vom Tag aus veröffentlichen (17.10.2026):** Der Owner hat sich für
+  „Direkt veröffentlichen“ entschieden und hebt damit „Version erhöhen, kein
+  Release“ (S20) auf. Ein Entwurf vor der Veröffentlichung entfällt. Der Tag
+  selbst bleibt die bewusste Freigabe, und vor ihm prüft `release_check.py tag`
+  die Hinweise. Ein dritter Job `publish` läuft erst nach `attest`, hat nur
+  `contents: write`, führt keinen Projektcode aus und veröffentlicht genau die
+  bestätigten Dateien. Die Hinweise liegen versioniert in `docs/releases/`, damit
+  sie wie Code geprüft und gemergt werden. 2.0 bis 2.6.1 wurden nie einzeln
+  getaggt; 2.7.0 ist das erste Release seit 1.16.0 und enthält sie alle.

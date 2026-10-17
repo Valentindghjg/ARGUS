@@ -1,4 +1,4 @@
-# Test report — Version 2.7.0 (not yet tagged)
+# Test report — Version 2.7.0 (released 17 October 2026)
 
 Lasting coverage: **403 Python tests**. A new test lets every import job leave a
 shortened job list and checks that runs and messages still count, that a
@@ -23,7 +23,14 @@ headers of an empty table) are listed as "needs review" and were checked by
 hand: none has a measured contrast below 4.5:1. New tests check the pinned,
 test-only axe-core, its lock entry and the CI step.
 
-# Test report — Version 2.6.1 (review fixes, not yet tagged)
+Release: **406 Python tests**. The release workflow test checks the three jobs:
+build with read access only, attestation and publication only for a tag, the
+publication only after the attestation, with `contents: write` alone, without
+project code and with exactly the attested files. A second test refuses a tag
+whose notes are missing, lack a template section, leave out a declared module
+or carry the wrong title. `actionlint` accepts the workflow.
+
+# Test report — Version 2.6.1 (review fixes, not tagged on its own)
 
 Review fixes, part 1: **359 Python tests**. New regression tests reproduce each
 fixed finding first: a batch larger than the log limit, method and decision
@@ -65,7 +72,7 @@ by its limit, the demo outside the default profile, invalid ports, missing
 files without paths, `setup-imap` without a terminal or with existing settings,
 the review rule keeping its other part and German JSON texts.
 
-# Test report — Version 2.6.0 (quality and trust, not yet tagged)
+# Test report — Version 2.6.0 (quality and trust, not tagged on its own)
 
 Step S19: **336 Python tests** and **42 browser check groups**. New tests cover
 the coverage summary (sources, period, gap months, addresses without clues, no
@@ -85,7 +92,7 @@ checks that every relative Markdown link in the README files, `docs/` and
 `.github/` points to an existing file. The preview images were regenerated from
 the synthetic demo and inspected on desktop and mobile in both languages.
 
-# Test report — Version 2.5.0 (former Pro features, not yet tagged)
+# Test report — Version 2.5.0 (former Pro features, not tagged on its own)
 
 Step S17: **326 Python tests** and **39 browser check groups**. New tests cover
 separate profile folders that never read each other, profile names, the
@@ -106,7 +113,7 @@ matches, validation of every template field, own templates with skipped
 not-applicable steps, deleting, and CLI and API shapes. The browser previews,
 applies and undoes a template.
 
-# Test report — Version 2.4.0 (package E, not yet tagged)
+# Test report — Version 2.4.0 (package E, not tagged on its own)
 
 Step S16: **323 Python tests** and **38 browser check groups**. New tests cover
 readiness (ready, check first, every blocking reason), journaled downloads in
@@ -116,7 +123,7 @@ undoable manual assignment through store, CLI and API. The browser resolves an
 unclear transfer, sees a download journaled and released, and assigns and
 undoes an account without reading the vault.
 
-# Test report — Version 2.3.0 (package D, not yet tagged)
+# Test report — Version 2.3.0 (package D, not tagged on its own)
 
 Step S13a: **301 Python tests** and **35 browser check groups**. New tests cover
 job states for imports, failures, cancellations and interrupted jobs, counts
@@ -156,7 +163,7 @@ limit, a missing folder, disabling with activity entries, and the CLI and
 control API. The browser shows the watch as a permission and a waiting job and
 stops it.
 
-# Test report — Version 2.2.0 (package C, not yet tagged)
+# Test report — Version 2.2.0 (package C, not tagged on its own)
 
 Step S11: **283 Python tests** and **32 browser check groups**. New tests cover
 new versus changed clues, quiet identical re-imports, grouping with unclear
@@ -181,7 +188,7 @@ addresses in the text, end), confirmed-only export details, and CLI and API
 shapes. The browser checks the single sign-on checklist, a session with report
 preview and download, and applying and undoing proposed review dates.
 
-# Test report — Version 2.1.0 (package B, not yet tagged)
+# Test report — Version 2.1.0 (package B, not tagged on its own)
 
 Step S8: **257 Python tests** and **28 browser check groups**. Rule features are
 checked for subject and body matches, direct, indirect and multiple recipients,
@@ -210,7 +217,7 @@ categories. Current result on the synthetic set: of 15 real accounts, 10 count
 as probable, 3 are kept for review and 2 are missed (documented limits); of 7
 non-accounts, 1 is a false alarm (forged sender, documented limit).
 
-# Test report — Version 2.0.0 (package A, not yet tagged)
+# Test report — Version 2.0.0 (package A, not tagged on its own)
 
 The security-review changes passed **208 Python tests** (previously 166) and
 **24 Chromium browser check groups**, with zero page errors and zero external

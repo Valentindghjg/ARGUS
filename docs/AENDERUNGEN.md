@@ -1,4 +1,4 @@
-# Änderungen – Version 2.7.0, dauerhafte Abdeckung, Herkunftsnachweise und Barrierefreiheitsprüfung (noch ohne Tag)
+# Änderungen – Version 2.7.0, dauerhafte Abdeckung, Herkunftsnachweise und Barrierefreiheitsprüfung, 17. Oktober 2026
 
 ## Abdeckung über die Jobliste hinaus (D4)
 
@@ -18,8 +18,15 @@
   eine Datei von diesem Workflow aus dem Tag gebaut wurde. Die Signatur darf nur
   ein eigener Job anfordern, der keinen Projektcode ausführt; der Build-Job
   behält Leserechte. Die Dateien bleiben als Artefakt `release-files` des Laufs
-  für das von Hand erstellte Release. Weiterhin erstellt kein Workflow ein
-  Release.
+  erhalten.
+- Releases werden vom Tag aus veröffentlicht (Entscheidung des Owners,
+  17. Oktober 2026): Nach der Herkunftsbestätigung legt ein dritter Job das
+  GitHub-Release mit genau den bestätigten Dateien, `SHA256SUMS` und den
+  Hinweisen aus `docs/releases/<Tag>.md` an. Er ist der einzige Job mit
+  Schreibrecht am Repository und führt keinen Projektcode aus.
+  `release_check.py tag` lehnt einen Tag ab, dessen Hinweise fehlen, einen
+  Abschnitt der Vorlage auslassen oder ein angegebenes Modul nicht nennen. Ein
+  Lauf von Hand baut und prüft weiterhin nur.
 
 ## WCAG-2.2-AA-Prüfung (D6)
 
@@ -40,7 +47,7 @@
 - Eine automatische Prüfung deckt nur einen Teil von WCAG ab; eine Prüfung mit
   Screenreadern steht noch aus.
 
-# Änderungen – Version 2.6.1, Korrekturen aus dem Review von 2.0–2.6 (noch ohne Tag)
+# Änderungen – Version 2.6.1, Korrekturen aus dem Review von 2.0–2.6 (nicht einzeln getaggt; veröffentlicht mit 2.7.0)
 
 ## Änderungsprotokoll, Rückgängig, Sicherungen und Migrationen
 
@@ -182,6 +189,8 @@
   Planabdeckung nennt G6 als teilweise umgesetzt.
 
 
+# Änderungen – Version 2.6.0, Qualität und Vertrauen (nicht einzeln getaggt; veröffentlicht mit 2.7.0)
+
 ## Plan abgeschlossen (S21)
 
 - `docs/strategy/README.md` führt jeden Punkt des Gesamtplans mit Stand,
@@ -224,7 +233,7 @@
   Kategorien, saubere IDs, keine gemeinsam genutzten Versanddienste,
   HTTPS-Links auf eigenen Domains und datierte Quellen für Passwortseiten.
 
-# Änderungen – Version 2.5.0, frühere Pro-Funktionen, kostenlos (noch ohne Tag)
+# Änderungen – Version 2.5.0, frühere Pro-Funktionen, kostenlos (nicht einzeln getaggt; veröffentlicht mit 2.7.0)
 
 ## Getrennte Profile, Fortschritt im Zeitverlauf und datensparsame Berichte (P1, P2, P5)
 
@@ -262,7 +271,7 @@
   CLI-Befehl `template`; API `POST /api/templates`, `/api/templates/preview`,
   `/api/templates/apply` und `/api/templates/delete`.
 
-# Änderungen – Version 2.4.0, Paket E: Bitwarden ohne Überraschungen (noch ohne Tag)
+# Änderungen – Version 2.4.0, Paket E: Bitwarden ohne Überraschungen (nicht einzeln getaggt; veröffentlicht mit 2.7.0)
 
 ## Drei gleichwertige Wege, Bereitschaft und ein Journal (B1, B3, A19)
 
@@ -280,7 +289,7 @@
   gemeldet, bevor etwas ins Journal kommt.
 - Neue API `POST /api/bitwarden/assign`; Snapshot-Feld `bitwarden_readiness`.
 
-# Änderungen – Version 2.3.0, Paket D: verlässliche Automatik (noch ohne Tag)
+# Änderungen – Version 2.3.0, Paket D: verlässliche Automatik (nicht einzeln getaggt; veröffentlicht mit 2.7.0)
 
 ## Vorgänge, Aktivitätsprotokoll und eine Pause für alles (A24, A25, A27, D5, Priorität 07)
 
@@ -352,7 +361,7 @@
   Ordner. Das Dashboard nennt sie beim Start und kann sie beenden
   (`POST /api/watch/disable`).
 
-# Änderungen – Version 2.2.0, Paket C: lokale Vorarbeit (noch ohne Tag)
+# Änderungen – Version 2.2.0, Paket C: lokale Vorarbeit (nicht einzeln getaggt; veröffentlicht mit 2.7.0)
 
 ## Neu seit deiner letzten Durchsicht (A1–A4, A7, A28, Prioritäten 05 und 06)
 
@@ -412,7 +421,7 @@
   `GET /api/session/report`, `POST /api/review-rule` und
   `POST /api/review-rule/apply`.
 
-# Änderungen – Version 2.1.0, Paket B: erklärbare, korrigierbare Erkennung (noch ohne Tag)
+# Änderungen – Version 2.1.0, Paket B: erklärbare, korrigierbare Erkennung (nicht einzeln getaggt; veröffentlicht mit 2.7.0)
 
 ## Warum ein Hinweis zählt, welche Art er hat und wie alt er ist (E1, E2, Priorität 03)
 
@@ -473,7 +482,7 @@
   Sprachen, ungewöhnliche Formulierungen). Das beweist keine Genauigkeit bei
   echten Postfächern; ein Test hält jedes Ergebnis dokumentiert.
 
-# Änderungen – Version 2.0.0, Paket A: klare Zustände und kontrollierbarer Kern (noch ohne Tag)
+# Änderungen – Version 2.0.0, Paket A: klare Zustände und kontrollierbarer Kern (nicht einzeln getaggt; veröffentlicht mit 2.7.0)
 
 Details: [Sicherheitsreview](SICHERHEITSREVIEW_2026-10.md) und
 [Umsetzungsstand des Masterplans](strategy/README.md).
