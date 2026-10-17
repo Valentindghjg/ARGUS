@@ -1,3 +1,12 @@
+# Prüfbericht – unveröffentlicht (Qualität und Vertrauen)
+
+Schritt S19: **336 Python-Tests** und **42 Browser-Prüfgruppen**. Neue Tests
+prüfen die Abdeckung (Quellen, Zeitraum, Monate ohne Hinweis, Adressen ohne
+Hinweis, keine Gesamtquote) und die Regeln der Katalogqualität. Der Browser
+maskiert Adressen und hebt das wieder auf, prüft die Markierung der aktuellen
+Seite, die Abdeckung, dass jede sichtbare Schaltfläche und jedes Feld einen
+zugänglichen Namen hat und dass der Sprunglink zuerst kommt.
+
 # Prüfbericht – Version 2.5.0 (frühere Pro-Funktionen, noch ohne Tag)
 
 Schritt S17: **326 Python-Tests** und **39 Browser-Prüfgruppen**. Neue Tests

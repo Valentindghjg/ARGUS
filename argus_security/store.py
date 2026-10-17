@@ -529,8 +529,11 @@ class Store:
                                    "comparisons": history.comparisons(db, today)}
         snapshot["profile_name"] = profile_name(self.data_dir)
         from .moves import plans
+        from .coverage import coverage
         with self.connect() as db:
             snapshot["move_plans"] = plans(db)
+            # Plan D4: sources, period and gaps; never a total percentage.
+            snapshot["coverage"] = coverage(db, evidences, own)
         from .templates import all_templates, select
         snapshot["templates"] = [{"id": ident, **template, "matches": len(select(accounts, template))}
                                  for ident, template in all_templates(self).items()]

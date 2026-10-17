@@ -80,6 +80,20 @@ registration, an SSO account, deleted messages or another mailbox can all leave
 no local evidence. Read [the safety model](docs/SECURITY.md) before importing
 personal email.
 
+## Coverage, keyboard use and a masked view
+
+The overview names what your imports cover: each source with its runs, messages
+and last date, the period your clues span, months without any clue and own
+addresses without a clue. ARGUS cannot know how much of your mail or online
+life that is, so it shows no total percentage.
+
+Every control can be reached with the keyboard; a **Skip to main content** link
+comes first, the current page is announced, and dialogs keep focus inside.
+**Hide personal details** in the top bar masks email addresses on screen (for
+example `d•••@e•••.invalid`), which helps when you share your screen. Masking
+only changes the display: it is neither encryption nor a cleaned export, and
+the choice is remembered only in this browser.
+
 ## Choose your language
 
 Use **Language → English / Deutsch** in the dashboard header. The same selector
@@ -817,6 +831,7 @@ report.
 | `argus_security/profiles.py`, `history.py`, `reports.py` | Named profiles, daily counts and data-minimal reports |
 | `argus_security/moves.py` | Ordered, manual plans for moving accounts to another own address |
 | `argus_security/templates.py` | Declarative task templates with preview |
+| `argus_security/coverage.py` | What imports cover: sources, period and gaps |
 | `argus_security/backup.py` | Local profile backups and restore |
 | `argus_security/workflow.py` | Local security worklist and guided next step |
 | `argus_security/handoffs.py` | Durable Bitwarden transfer journal |

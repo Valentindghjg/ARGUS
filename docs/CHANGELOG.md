@@ -1,5 +1,19 @@
 # Change log
 
+## Unreleased — Quality and trust
+
+### Coverage, accessibility, a masked view and catalog quality (D4, D6)
+
+- The overview shows what imports cover: sources with runs, messages and last
+  date, the period of the clues, months without any clue and own addresses
+  without a clue; never a total percentage.
+- A skip link, the current page marked for assistive technology, named controls
+  everywhere (checked in the browser test) and **Hide personal details**, which
+  masks email addresses on screen only.
+- New catalog quality tests: unique names and domain roots, known categories,
+  clean IDs, no shared senders, HTTPS links on own domains and dated
+  password-page sources.
+
 ## 2.5.0 — Former Pro features, free (not yet tagged)
 
 ### Separate profiles, progress over time and data-minimal reports (P1, P2, P5)
