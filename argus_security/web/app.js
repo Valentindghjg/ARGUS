@@ -836,6 +836,27 @@ function renderControl(){
     return node("p",`${localDateTime(entry.at)} · ${text}${jobCounts(entry.counts)?" · "+jobCounts(entry.counts):""}`,"activity-line");
   }));
   if(!control.activity.length)$("activity-items").append(node("p",t("Nothing recorded yet.")));
+  renderApproval();
+}
+const approvalStates={active:"Active",disabled:"Disabled",needs_approval:"Needs approval"};
+function renderApproval(){
+  const approval=state.control.approval;
+  if(!approval){$("approval-items").replaceChildren(node("p",t("No standing approval. Scheduled scans are off.")));return;}
+  const card=node("article",undefined,"worklist-item");
+  card.append(node("strong",`${t("Scheduled IMAP scan")} · ${t(approvalStates[approval.state])}`));
+  if(approval.host)card.append(node("p",t("{host}, folders: {folders}",{host:`${approval.host}:${approval.port}`,folders:approval.folders.includes("*")?t("all selectable folders"):approval.folders.join(", ")})));
+  card.append(node("p",t("At most {limit} message(s) every {minutes} minute(s); {checkpoints} folder(s) continue from a saved checkpoint.",{limit:approval.limit,minutes:Math.round(approval.interval_seconds/60),checkpoints:approval.checkpoints}),"small-muted"));
+  if(approval.approved_at)card.append(node("p",t("Approved on {date}.",{date:localDateTime(approval.approved_at*1000)}),"small-muted"));
+  if(approval.state==="needs_approval")card.append(node("p",t("The IMAP settings changed after the approval, so scheduled scans do not connect. Approve again with background-imap enable."),"small-muted"));
+  const actions=node("div",undefined,"bitwarden-actions");
+  actions.append(actionButton("Revoke approval",revokeApproval,!approval.authorized&&approval.state!=="needs_approval"));
+  card.append(actions);
+  $("approval-items").replaceChildren(card);
+}
+async function revokeApproval(){
+  if(!confirm(t("Revoke this approval? Scheduled scans stop and the stored authorization is removed from your system keyring. A new approval needs background-imap enable in a terminal.")))return;
+  try{await api("/api/approvals/revoke",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind:"scheduled_scan"})});await refresh();toast(t("Approval revoked. Scheduled scans are off."));}
+  catch(e){failure(e);}
 }
 async function toggleAutomation(){
   const pause=!state.control.paused;

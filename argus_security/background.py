@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any, Callable, Protocol
 from uuid import UUID, uuid4
 
-from .imap_client import IMAPConfig, imap_messages, load_config, with_keep_alive
+from .imap_client import IMAPConfig, imap_messages, load_config, saved_checkpoints, with_keep_alive
 from .jobs import PAUSE, JobPaused
 from .mailbox_lease import MailboxBusy, MailboxLease
 from .store import UNCHANGED, atomic_meta_update
@@ -148,6 +148,8 @@ class BackgroundSchedule:
     # Fingerprint of the IMAP settings the user approved (see
     # IMAPConfig.target_fingerprint). None for schedules from before 2.0.
     target: str | None = None
+    # When the person approved this target and scope (plan A23); None before 2.3.
+    approved_at: float | None = None
 
     @classmethod
     def from_data(cls, data: Any) -> "BackgroundSchedule":
@@ -157,14 +159,15 @@ class BackgroundSchedule:
             raise ValueError("Invalid background IMAP schedule")
         allowed = {"version", "enabled", "interval_seconds", "limit", "credential_id", "next_run_at",
                    "last_started_at", "last_finished_at", "last_result", "last_error",
-                   "run_id", "lease_until", "target"}
+                   "run_id", "lease_until", "target", "approved_at"}
         if set(data) - allowed or data.get("version", SCHEDULE_VERSION) != SCHEDULE_VERSION:
             raise ValueError("Invalid background IMAP schedule")
         enabled = data.get("enabled", False)
         interval = data.get("interval_seconds", DEFAULT_INTERVAL_SECONDS)
         limit = data.get("limit", DEFAULT_LIMIT)
         credential_id = data.get("credential_id")
-        timestamps = {name: data.get(name) for name in ("next_run_at", "last_started_at", "last_finished_at", "lease_until")}
+        timestamps = {name: data.get(name) for name in ("next_run_at", "last_started_at", "last_finished_at", "lease_until",
+                                                        "approved_at")}
         if type(enabled) is not bool or type(interval) is not int or not MIN_INTERVAL_SECONDS <= interval <= MAX_INTERVAL_SECONDS:
             raise ValueError("Invalid background IMAP schedule")
         if type(limit) is not int or not 1 <= limit <= MAX_LIMIT:
@@ -191,14 +194,14 @@ class BackgroundSchedule:
                    next_run_at=data.get("next_run_at"), last_started_at=data.get("last_started_at"),
                    last_finished_at=data.get("last_finished_at"), last_result=data.get("last_result"),
                    last_error=data.get("last_error"), run_id=run_id, lease_until=data.get("lease_until"),
-                   target=target)
+                   target=target, approved_at=data.get("approved_at"))
 
     def public_data(self) -> dict[str, Any]:
         """Stable metadata safe to persist locally; it contains no secret."""
         return {"version": SCHEDULE_VERSION, "enabled": self.enabled, "interval_seconds": self.interval_seconds,
                 "limit": self.limit, "credential_id": self.credential_id, "next_run_at": self.next_run_at,
                 "last_started_at": self.last_started_at, "last_finished_at": self.last_finished_at,
-                "last_result": self.last_result, "last_error": self.last_error,
+                "last_result": self.last_result, "last_error": self.last_error, "approved_at": self.approved_at,
                 "run_id": self.run_id, "lease_until": self.lease_until, "target": self.target}
 
 
@@ -270,10 +273,43 @@ class BackgroundScanService:
         now = self.clock()
         schedule = BackgroundSchedule(enabled=enabled, interval_seconds=interval_seconds, limit=limit,
                                       credential_id=credential_id, next_run_at=now if enabled else None,
-                                      target=target)
+                                      target=target, approved_at=now if enabled else None)
         # Reuse strict validation rather than silently accepting unsafe values.
         schedule = BackgroundSchedule.from_data(schedule.public_data())
-        return self._save(schedule)
+        saved = self._save(schedule)
+        if enabled:
+            self._note("approval_granted")
+        return saved
+
+    def _note(self, event, outcome=None):
+        """Plan A25: record approvals in the activity log when the store keeps one."""
+        record = getattr(self.store, "record_activity", None)
+        if record:
+            record(event, "scheduled_scan", outcome)
+
+    def preview(self, config: IMAPConfig, *, interval_seconds: int, limit: int) -> dict[str, Any]:
+        """Plan A26: what an approval would cover, from local data only; nothing connects."""
+        config = config.validate()
+        return {"kind": "scheduled_scan", "host": config.host, "port": config.port, "auth": config.auth,
+                "folders": list(config.folders), "interval_seconds": interval_seconds, "limit": limit,
+                "checkpoints": saved_checkpoints(self.store, config)}
+
+    def approval(self) -> dict[str, Any] | None:
+        """The standing approval for scheduled scans with its state, for the control view (A23, D5)."""
+        schedule = self.schedule()
+        if schedule.credential_id is None and schedule.target is None:
+            return None
+        try:
+            config = self.config_loader()
+            described = self.preview(config, interval_seconds=schedule.interval_seconds, limit=schedule.limit)
+        except Exception:
+            described = {"kind": "scheduled_scan", "host": None, "port": None, "auth": None, "folders": [],
+                         "interval_seconds": schedule.interval_seconds, "limit": schedule.limit, "checkpoints": 0}
+        confirmed = self._target_confirmed(schedule)
+        state = ("needs_approval" if schedule.target is not None and not confirmed
+                 else "active" if schedule.enabled else "disabled")
+        return {**described, "state": state, "approved_at": schedule.approved_at,
+                "authorized": schedule.credential_id is not None}
 
     def disable(self) -> BackgroundSchedule:
         def disable(schedule):
@@ -293,8 +329,10 @@ class BackgroundScanService:
         if current.credential_id:
             self.credentials.delete(current.credential_id)
         revoked = replace(current, enabled=False, credential_id=None, next_run_at=None,
-                          run_id=None, lease_until=None, target=None)
-        return self._save(revoked)
+                          run_id=None, lease_until=None, target=None, approved_at=None)
+        saved = self._save(revoked)
+        self._note("approval_revoked")
+        return saved
 
     def snapshot(self) -> dict[str, Any]:
         """Return schedule state suitable for the local dashboard/API.
@@ -444,9 +482,8 @@ class BackgroundScanService:
             return self._fail(run_id)
         if not approved:
             committed = self._require_reauthorization(run_id)
-            record = getattr(self.store, "record_activity", None)
-            if committed and record:
-                record("approval_refused", "scheduled_scan", "needs_approval")
+            if committed:
+                self._note("approval_refused", "needs_approval")
             return {"status": "reauthorization_required" if committed else "cancelled",
                     "error": TARGET_CHANGED_ERROR}
         # A manual scan-imap of the same profile may hold the mailbox. Give the

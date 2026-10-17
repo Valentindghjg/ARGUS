@@ -56,6 +56,19 @@ class IMAPConfig:
         return sha256(json.dumps(asdict(self.validate()), sort_keys=True).encode("utf-8")).hexdigest()
 
 
+def cursor_identity(config: IMAPConfig, emails) -> str:
+    """Checkpoint key prefix: the settings, own addresses and rules, but never a secret."""
+    return sha256(json.dumps({"config": asdict(config), "emails": emails,
+                              "analysis_version": ANALYSIS_VERSION}, sort_keys=True).encode()).hexdigest()
+
+
+def saved_checkpoints(store, config: IMAPConfig) -> int:
+    """How many folders already have a checkpoint for these exact settings (plan A26, offline)."""
+    prefix = cursor_identity(config, store.meta("emails", [])) + ":"
+    cursors = store.meta("imap_cursors", {})
+    return sum(1 for key in cursors if isinstance(key, str) and key.startswith(prefix)) if isinstance(cursors, dict) else 0
+
+
 def load_config(path: Path):
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict) or set(data) - {"host", "username", "port", "auth", "folders"}:
@@ -199,9 +212,7 @@ def _imap_messages(store: Store, config: IMAPConfig, secret: str, *, allow_netwo
         raise ValueError("The scan limit must be positive")
     factory = factory or BoundedIMAP4SSL
     client = None
-    # Config identity includes credentials selectors, but never the secret.
-    identity = sha256(json.dumps({"config": asdict(config), "emails": emails,
-                                 "analysis_version": ANALYSIS_VERSION}, sort_keys=True).encode()).hexdigest()
+    identity = cursor_identity(config, emails)
     cursors = store.meta("imap_cursors", {})
     sent = 0
     try:

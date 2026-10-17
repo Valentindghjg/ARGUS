@@ -17,6 +17,20 @@
   `POST /api/control`. Schemaversion 7 ergänzt zwei Tabellen nach der
   automatischen Sicherung.
 
+## Sichtbare Freigabe, Widerruf und Vorschau ohne Verbindung (A23, A26, D5, Priorität 10)
+
+- Die Kontrolle listet die dauerhafte Freigabe für geplante Scans mit Host,
+  Ordnern, Höchstmenge, Abstand, Freigabedatum und gespeicherten Checkpoints, nie
+  mit Benutzernamen. Ein geändertes Ziel erscheint als „Braucht Freigabe“; der
+  abgelehnte Lauf wird protokolliert.
+- **Freigabe widerrufen** (Dashboard) beendet die Freigabe und entfernt die
+  Berechtigung aus dem Schlüsselbund; das ist etwas anderes als die Pause.
+  Einzelfreigaben (manueller IMAP-Scan, Bitwarden-Übertragung, MX-Abfrage)
+  erscheinen als jedes Mal einzeln freigegeben.
+- `background-imap preview` und `enable` zeigen aus lokalen Daten, was eine
+  Freigabe umfasst. Erteilen, Widerrufen und Ablehnen von Freigaben stehen im
+  Aktivitätsprotokoll. Neue API `POST /api/approvals/revoke`.
+
 # Änderungen – Version 2.2.0, Paket C: lokale Vorarbeit (noch ohne Tag)
 
 ## Neu seit deiner letzten Durchsicht (A1–A4, A7, A28, Prioritäten 05 und 06)

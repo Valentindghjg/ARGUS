@@ -96,7 +96,7 @@ def parser(language="en"):
     imap.add_argument('--limit', type=int, help=t('Maximum messages; no limit scans all selected folders'))
     imap.add_argument('--list-folders', action='store_true', help=t('Show folder names only'))
     background = sub.add_parser('background-imap', help=t('Configure explicitly authorized scheduled read-only IMAP scans'))
-    background.add_argument('action', choices=['enable', 'disable', 'revoke', 'status'])
+    background.add_argument('action', choices=['enable', 'disable', 'revoke', 'status', 'preview'])
     background.add_argument('--interval-minutes', type=int, default=DEFAULT_INTERVAL_SECONDS // 60,
                             help=t('Minutes between scheduled scans (15 to 10080)'))
     background.add_argument('--limit', type=int, default=DEFAULT_LIMIT,
@@ -238,7 +238,7 @@ def main(argv=None):
                 raise ValueError('Background IMAP requires an initialized personal local profile')
             service = BackgroundScanService(store, KeyringCredentialStore())
             if args.action == 'status':
-                print(json.dumps(service.snapshot(), ensure_ascii=False, indent=2))
+                print(json.dumps({**service.snapshot(), 'approval': service.approval()}, ensure_ascii=False, indent=2))
             elif args.action == 'disable':
                 service.disable()
                 print(t('Scheduled IMAP scans are disabled. The app password remains only in your OS keyring until you revoke it.'))
@@ -253,6 +253,13 @@ def main(argv=None):
                 # Load and validate the existing credential-free configuration before
                 # asking for the secret. This command never opens an IMAP socket.
                 config = load_config(store.data_dir / 'imap.json')
+                # Plan A26: show what the approval covers, from local data only.
+                preview = service.preview(config, interval_seconds=args.interval_minutes * 60, limit=args.limit)
+                print(t('Each run reads at most {p0} message(s), every {p1} minute(s), only while the dashboard runs. Saved checkpoints: {p2} folder(s); others start from their first message.',
+                        p0=preview['limit'], p1=args.interval_minutes, p2=preview['checkpoints']))
+                if args.action == 'preview':
+                    print(json.dumps(preview, ensure_ascii=False, indent=2))
+                    return 0
                 if not sys.stdin.isatty():
                     raise MailboxError('Enter credentials only in an interactive terminal; no pipes or command-line passwords')
                 # The approval covers exactly these settings; any later change

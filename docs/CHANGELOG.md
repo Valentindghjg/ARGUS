@@ -17,6 +17,18 @@
   `POST /api/control`. Schema version 7 adds two tables after the automatic
   backup.
 
+### Visible approval, revocation and an offline preview (A23, A26, D5, priority 10)
+
+- Control lists the standing approval for scheduled scans with host, folders,
+  limit, interval, approval date and saved checkpoints, never the username. A
+  changed target shows as “Needs approval”; the refused run is logged.
+- **Revoke approval** (dashboard) ends the approval and removes the keyring
+  authorization; it is distinct from the pause. Per-run approvals (manual IMAP,
+  Bitwarden transfer, MX lookup) are listed as approved each time.
+- `background-imap preview` and `enable` show what an approval covers from local
+  data only. Granting, revoking and refusing approvals appear in the activity
+  log. New API `POST /api/approvals/revoke`.
+
 ## 2.2.0 — Package C: local preparation (not yet tagged)
 
 ### What's new since your last review (A1–A4, A7, A28, priorities 05 and 06)
