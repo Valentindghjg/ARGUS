@@ -15,6 +15,7 @@ from .instances import (SCHEMA as INSTANCE_SCHEMA, defer_in_queue, direct_identi
 from .registry import Registry
 from .review import SCHEMA as REVIEW_SCHEMA
 from .identity import SCHEMA as IDENTITY_SCHEMA, explain_priorities, load as load_identity
+from .jobs import SCHEMA as JOBS_SCHEMA
 from .changes import ChangeBatch, planning
 from .digest import acknowledge, change_digest, next_revision, return_summary, review_mark, undo_acknowledge
 from .states import (DECISIONS, LEGACY_CHECKLIST, LEGACY_STEPS, REJECT_REASONS, STEPS, default_steps,
@@ -30,7 +31,7 @@ CHECKLIST = LEGACY_CHECKLIST
 #   2: ADR-0001 axes: decision, dated steps, planning only in the worklist, change log
 #   3: rule features per clue (plan E1); older clues gain them on their next import
 #   4: reversible sender-domain exclusions and relations between own addresses (E4, A9)
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 
 
 def now():
@@ -192,6 +193,7 @@ class Store:
             db.executescript(INSTANCE_SCHEMA)
             db.executescript(REVIEW_SCHEMA)
             db.executescript(IDENTITY_SCHEMA)
+            db.executescript(JOBS_SCHEMA)
             queue_columns = {row["name"] for row in db.execute("PRAGMA table_info(instance_work_queue)")}
             if "resume_after" not in queue_columns:
                 db.execute("ALTER TABLE instance_work_queue ADD COLUMN resume_after TEXT")
@@ -494,9 +496,13 @@ class Store:
         snapshot["next_task"] = next_task(snapshot)
         snapshot["changes"] = change_digest(snapshot, evidences, mark, json.loads(revision[0]) if revision else 0)
         snapshot["return_summary"] = return_summary(snapshot)
-        from . import reviews, sessions
+        from . import jobs, reviews, sessions
         with self.connect() as db:
             rule, session = reviews.load_rule(db), sessions.load(db)
+            snapshot["automation_paused"] = jobs.paused(db)
+        if snapshot["automation_paused"]:
+            # Plan A28: a pause stays clearly visible in the one summary.
+            snapshot["return_summary"]["items"].insert(0, {"kind": "paused", "count": None})
         proposals = reviews.proposals(accounts, rule)
         for account in accounts:
             account["review_proposal"] = proposals.get(account["id"])
@@ -719,6 +725,33 @@ class Store:
             db.execute("BEGIN IMMEDIATE")
             set_mailbox(db, address, account_id, owned_emails(db), now())
         return {"ok": True}
+
+    def set_automation_paused(self, pause):
+        """Plan A27: block new jobs and stop running ones between two messages, or resume."""
+        from .jobs import set_paused
+        if type(pause) is not bool:
+            raise UserFacingError("Choose pause or resume")
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            set_paused(db, pause)
+        return {"ok": True}
+
+    def ensure_not_paused(self):
+        """Refuse to prepare a new job while automation is paused (checked again when it starts)."""
+        from .jobs import require_running
+        with self.connect() as db:
+            require_running(db)
+
+    def record_activity(self, event, kind=None, outcome=None, counts=None):
+        from .jobs import record
+        with self.connect() as db:
+            record(db, event, kind, outcome, counts)
+
+    def control_overview(self, schedule=None):
+        """Jobs, waiting work, the pause and recent activity in one place (plan D5)."""
+        from .jobs import overview
+        with self.connect() as db:
+            return overview(db, schedule)
 
     def set_review_rule(self, months, scope=None):
         """Save the person's rule for proposing review dates (plan A10); None switches it off."""

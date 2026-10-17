@@ -1,3 +1,22 @@
+# Änderungen – unveröffentlicht (Paket D: verlässliche Automatik)
+
+## Vorgänge, Aktivitätsprotokoll und eine Pause für alles (A24, A25, A27, D5, Priorität 07)
+
+- Jeder Import, IMAP-Scan (manuell oder geplant) und jede Bitwarden-Prüfung oder
+  -Übertragung ist ein Vorgang mit einem gemeinsamen Zustand; ein wartender
+  geplanter Scan erscheint mit seiner nächsten Zeit. Vorgänge ohne Lebenszeichen
+  gelten als unterbrochen.
+- **Gesamte Automatik pausieren** (Dashboard „Kontrolle“ oder
+  `automation pause`) sperrt neue Vorgänge und beendet laufende zwischen zwei
+  Nachrichten; `scan-imap` lehnt ab, bevor ein Passwort abgefragt wird. Geplante
+  Scans warten und behalten ihren Checkpoint. Die Zusammenfassung in der
+  Übersicht zeigt die Pause, bis du fortsetzt.
+- Ein minimales Aktivitätsprotokoll hält nur Zeit, Vorgangsart, Ergebnis und
+  Anzahlen fest, höchstens 500 Einträge für 180 Tage.
+- Neuer CLI-Befehl `automation status|pause|resume`; API `GET /api/control` und
+  `POST /api/control`. Schemaversion 7 ergänzt zwei Tabellen nach der
+  automatischen Sicherung.
+
 # Änderungen – Version 2.2.0, Paket C: lokale Vorarbeit (noch ohne Tag)
 
 ## Neu seit deiner letzten Durchsicht (A1–A4, A7, A28, Prioritäten 05 und 06)

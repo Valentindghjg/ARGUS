@@ -83,7 +83,8 @@ const titles = {
   workflow:["Secure your accounts, one at a time.","A local worklist that remembers your progress.","Security worklist"],
   setup:["Start with your mailbox.","Import existing messages or set up read-only IMAP access.","Mailbox & Import"],
   unclear:["Unclear items in one place.","Check what ARGUS cannot decide for you, then decide once.","Unclear items"],
-  changes:["What changed since your last review.","New and changed clues, grouped by account, unclear ones first.","What's new"]
+  changes:["What changed since your last review.","New and changed clues, grouped by account, unclear ones first.","What's new"],
+  control:["Jobs, activity and the pause in one place.","See what runs, what waits and what happened; pause everything at once.","Control"]
 };
 function node(tag, text, className) { const e=document.createElement(tag); if(text!==undefined)e.textContent=text; if(className)e.className=className; return e; }
 function accountEmail(account){return account.identity_email||account.manual_email||account.registered_emails[0]||"";}
@@ -139,8 +140,8 @@ async function api(path, options={}) {
 }
 let history=[];
 async function refresh() {
-  const [snapshot,changes]=await Promise.all([api("/api/accounts"),api("/api/changes")]);
-  state=snapshot;history=changes.changes;
+  const [snapshot,changes,control]=await Promise.all([api("/api/accounts"),api("/api/changes"),api("/api/control")]);
+  state=snapshot;history=changes.changes;state.control=control;
   renderState();
 }
 function renderState() {
@@ -173,7 +174,7 @@ function renderState() {
   $("alias-email").disabled=state.demo;$("alias-owned").disabled=state.demo;
   if(state.demo)setMessage("alias-message","Add real own addresses in a personal profile on your computer. The demo profile stays separate.");
   renderRows();renderCandidates();renderExport();renderBitwardenAudit();renderWorklist();renderGuided();renderHandoffs();renderHistory();
-  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();renderChanges();renderMailboxes();renderSession();renderReviewRule();
+  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();renderChanges();renderMailboxes();renderSession();renderReviewRule();renderControl();
 }
 // Plan A1-A4, A7, A28: what is new since the last review, in one place and one summary.
 const changeReasons={
@@ -183,6 +184,7 @@ const changeReasons={
   domain:"A sender outside the catalog. A sender domain may be spoofed; it is never opened as an official website."
 };
 const returnTexts={
+  paused:"All automation is paused. New jobs wait until you resume.",
   scan_gaps:"The last import has gaps. Check them before relying on the result.",
   handoff:"{count} Bitwarden transfer(s) need clarification.",
   decide_first:"{count} new item(s) need your decision first.",
@@ -221,7 +223,7 @@ function renderChanges(){
   const summary=state.return_summary;
   $("return-summary").classList.toggle("hidden",!summary.items.length);
   $("return-title").textContent=sinceText(summary.since);
-  $("return-lines").replaceChildren(...summary.items.map(item=>node("li",t(returnTexts[item.kind],{count:item.count}),["scan_gaps","handoff"].includes(item.kind)?"problem":"")));
+  $("return-lines").replaceChildren(...summary.items.map(item=>node("li",t(returnTexts[item.kind],{count:item.count}),["paused","scan_gaps","handoff"].includes(item.kind)?"problem":"")));
 }
 async function markReviewed(){
   try{
@@ -448,6 +450,7 @@ function navigate(next,clearError=true){
   $("workflow-view").classList.toggle("hidden",next!=="workflow");
   $("unclear-view").classList.toggle("hidden",next!=="unclear");
   $("changes-view").classList.toggle("hidden",next!=="changes");
+  $("control-view").classList.toggle("hidden",next!=="control");
   $("list-title").textContent=next==="security"?t("High-priority accounts"):t("Your account inventory");
   if(state)renderRows();
 }
@@ -700,6 +703,10 @@ function localDate(value){
   const date=new Date(value);
   return Number.isNaN(date.getTime())?value:date.toLocaleDateString(language==="de"?"de-DE":"en-GB",{day:"numeric",month:"short",year:"numeric"});
 }
+function localDateTime(value){
+  const date=new Date(value);
+  return Number.isNaN(date.getTime())?value:date.toLocaleString(language==="de"?"de-DE":"en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+}
 function localDateInput(days){
   const date=new Date();date.setDate(date.getDate()+days);
   return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
@@ -790,6 +797,51 @@ async function changeWorklist(data){
   try{const result=await api("/api/workflow",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});await refresh();if($("account-dialog").open)renderDetail();return result;}
   catch(e){failure(e);return false;}
   finally{workflowBusy=false;renderWorklist();renderGuided();if($("account-dialog").open)renderDetail();}
+}
+// Plan A24, A25, A27, D5: every job visible, a minimal activity log and one pause for everything.
+const jobKinds={import:"Email import",imap_scan:"IMAP scan",scheduled_scan:"Scheduled IMAP scan",bitwarden_check:"Bitwarden check",bitwarden_write:"Bitwarden transfer"};
+const jobStates={running:"Running",paused:"Paused",completed:"Completed",completed_with_gaps:"Completed with gaps",failed:"Failed",
+  cancelled:"Cancelled",needs_approval:"Needs approval",uncertain:"Result unclear",interrupted:"Interrupted"};
+const activityEvents={automation_paused:"All automation paused",automation_resumed:"Automation resumed",
+  approval_granted:"Approval granted",approval_revoked:"Approval revoked",approval_refused:"Not started: the approval does not match"};
+function jobCounts(counts){
+  const parts=[];
+  if(counts.processed!==undefined)parts.push(t("{count} message(s)",{count:counts.processed}));
+  if(counts.evidence)parts.push(t("{count} new clue(s)",{count:counts.evidence}));
+  if(counts.errors||counts.skipped)parts.push(t("{count} skipped or unreadable",{count:(counts.errors||0)+(counts.skipped||0)}));
+  if(counts.items!==undefined)parts.push(t("{count} item(s)",{count:counts.items}));
+  return parts.join(" · ");
+}
+function renderControl(){
+  const control=state.control,paused=control.paused;
+  $("nav-control-state").classList.toggle("hidden",!paused);
+  $("automation-badge").textContent=paused?t("Paused since {date}",{date:localDate(paused.at)}):t("Active");
+  $("automation-toggle").textContent=t(paused?"Resume automation":"Pause all automation");
+  $("automation-toggle").className=paused?"button primary":"button secondary";
+  const waiting=control.waiting.map(entry=>{
+    const card=node("article",undefined,"worklist-item");
+    card.append(node("strong",t(jobKinds[entry.kind])),node("p",paused?t("Waiting: automation is paused."):t("Waiting until {date}.",{date:localDateTime(entry.next_run_at)})));
+    return card;
+  });
+  const jobs=control.jobs.map(job=>{
+    const card=node("article",undefined,"worklist-item");
+    card.append(node("strong",`${t(jobKinds[job.kind])} · ${t(jobStates[job.state])}`));
+    card.append(node("p",[localDateTime(job.started_at),jobCounts(job.counts)].filter(Boolean).join(" · ")));
+    return card;
+  });
+  $("job-items").replaceChildren(...waiting,...jobs);
+  if(!waiting.length&&!jobs.length)$("job-items").append(node("p",t("No jobs yet.")));
+  $("activity-items").replaceChildren(...control.activity.map(entry=>{
+    const text=entry.event==="job_finished"?`${t(jobKinds[entry.kind])}: ${t(jobStates[entry.outcome])}`:t(activityEvents[entry.event]);
+    return node("p",`${localDateTime(entry.at)} · ${text}${jobCounts(entry.counts)?" · "+jobCounts(entry.counts):""}`,"activity-line");
+  }));
+  if(!control.activity.length)$("activity-items").append(node("p",t("Nothing recorded yet.")));
+}
+async function toggleAutomation(){
+  const pause=!state.control.paused;
+  try{await api("/api/control",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:pause?"pause":"resume"})});await refresh();
+    toast(t(pause?"All automation is paused. Running jobs stop between two messages.":"Automation resumed."));}
+  catch(e){failure(e);}
 }
 // Plan A8, A20: one or three tasks at a time, no deadline; the report is shown in full before saving.
 function renderSession(){
@@ -1042,6 +1094,7 @@ $("registered-email").onchange=()=>{
 };
 $("add-account-form").onsubmit=addLocalAccount;
 $("detail-priority").onchange=()=>update({priority:$("detail-priority").value||null});
+$("automation-toggle").onclick=toggleAutomation;
 $("session-one").onclick=()=>sessionAction({action:"start",size:1},"Session started. Work on this task at your own pace.");
 $("session-three").onclick=()=>sessionAction({action:"start",size:3},"Session started. Work on these tasks at your own pace.");
 $("session-end").onclick=()=>sessionAction({action:"end"},"Session ended. Your steps stay saved.");

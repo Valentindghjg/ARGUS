@@ -1,3 +1,14 @@
+# Prüfbericht – unveröffentlicht (Paket D)
+
+Schritt S13a: **301 Python-Tests** und **35 Browser-Prüfgruppen**. Neue Tests
+prüfen Vorgangszustände für Importe, Fehler, Abbrüche und unterbrochene
+Vorgänge, Anzahlen und rein numerische Protokolleinträge, die Pause (neue
+Vorgänge abgelehnt, laufende Scans zwischen Nachrichten beendet mit erhaltenen
+Hinweisen, geplante Scans nicht beansprucht, ein pausierter geplanter Lauf behält
+seinen Zeitplan, Bitwarden-Übertragungen gesperrt), Aufbewahrungsgrenzen sowie
+CLI- und API-Formen. Der Browser pausiert und setzt in beiden Sprachen fort und
+sieht die Pause in der Übersicht.
+
 # Prüfbericht – Version 2.2.0 (Paket C, noch ohne Tag)
 
 Schritt S11: **283 Python-Tests** und **32 Browser-Prüfgruppen**. Neue Tests

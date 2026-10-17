@@ -381,6 +381,24 @@ python -m argus_security sign-in-with notion google
 python -m argus_security sign-in-with notion --remove
 ```
 
+## Control: jobs, activity and one pause for everything
+
+“Control” lists every import, IMAP scan and Bitwarden check or transfer with
+its state (running, paused, completed, completed with gaps, failed, cancelled,
+needs approval, result unclear, interrupted) and shows a scheduled scan as
+waiting until its next time, so no background work stays hidden. **Pause all
+automation** blocks new jobs and stops running ones between two messages; saved
+clues and IMAP checkpoints stay, and nothing already done outside ARGUS is
+undone. The overview keeps the pause visible until you resume. The activity log
+keeps time, job type, result and counts only (no email text, addresses, secrets
+or command output), at most 500 entries for 180 days.
+
+```bash
+python -m argus_security automation status
+python -m argus_security automation pause
+python -m argus_security automation resume
+```
+
 ## Short sessions, review dates and the checklist by sign-in method
 
 Under “Security worklist”, **One task** or **Three tasks** starts a short
@@ -669,6 +687,7 @@ report.
 | `argus_security/digest.py` | What's new since the last review and the return summary |
 | `argus_security/identity.py` | Confirmed sign-in and mailbox relations and explained priorities |
 | `argus_security/sessions.py`, `reviews.py` | Short work sessions with their report, and the review rule |
+| `argus_security/jobs.py` | Shared job states, the global pause and the minimal activity log |
 | `argus_security/backup.py` | Local profile backups and restore |
 | `argus_security/workflow.py` | Local security worklist and guided next step |
 | `argus_security/handoffs.py` | Durable Bitwarden transfer journal |

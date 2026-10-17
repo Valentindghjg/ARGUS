@@ -1,3 +1,13 @@
+# Test report — unreleased (package D)
+
+Step S13a: **301 Python tests** and **35 browser check groups**. New tests cover
+job states for imports, failures, cancellations and interrupted jobs, counts
+and integer-only activity entries, the pause (new jobs refused, running scans
+stopped between messages with saved clues kept, scheduled scans not claimed, a
+paused scheduled run keeping its schedule, Bitwarden transfers blocked),
+retention limits, and CLI and API shapes. The browser pauses and resumes in
+both languages and sees the pause in the overview.
+
 # Test report — Version 2.2.0 (package C, not yet tagged)
 
 Step S11: **283 Python tests** and **32 browser check groups**. New tests cover

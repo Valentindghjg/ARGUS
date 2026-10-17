@@ -211,6 +211,8 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, (WEB / path[1:]).read_bytes(), kind)
         elif path == "/api/changes":
             self._send(200, {"changes": self.server.store.recent_changes()})
+        elif path == "/api/control":
+            self._send(200, self.server.store.control_overview(self.server.background_snapshot()))
         elif path == "/api/session/report":
             from urllib.parse import parse_qs
             language = parse_qs(urlsplit(self.path).query).get("language", ["en"])[0]
@@ -406,6 +408,11 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/bitwarden/resolve":
                 from .handoffs import resolve
                 self._send(200, resolve(self.server.store, self._json()))
+            elif path == "/api/control":
+                data = self._json()
+                if data not in ({"action": "pause"}, {"action": "resume"}):
+                    raise UserFacingError("Choose pause or resume")
+                self._send(200, self.server.store.set_automation_paused(data["action"] == "pause"))
             elif path == "/api/review-rule":
                 data = self._json()
                 if set(data) != {"months", "scope"}:
