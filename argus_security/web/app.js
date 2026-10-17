@@ -161,7 +161,7 @@ function renderState() {
   $("alias-email").disabled=state.demo;$("alias-owned").disabled=state.demo;
   if(state.demo)setMessage("alias-message","Add real own addresses in a personal profile on your computer. The demo profile stays separate.");
   renderRows();renderCandidates();renderExport();renderBitwardenAudit();renderWorklist();renderGuided();renderHandoffs();renderHistory();
-  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();renderChanges();
+  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();renderChanges();renderMailboxes();
 }
 // Plan A1-A4, A7, A28: what is new since the last review, in one place and one summary.
 const changeReasons={
@@ -282,6 +282,37 @@ function renderPersonalProviders(){
   if(!state.catalog.personal.length)$("personal-providers").append(node("p",t("No providers added yet.")));
 }
 const relationTexts={same_mailbox:"{a} is the same mailbox as {b}.",replaced_by:"{a} was replaced by {b}."};
+// Plan D3, A17, B6: priorities with their reasons; identity relations come from the person only.
+const priorityReasonTexts={
+  catalog:"The catalog rates this kind of service as “{level}”.",
+  mailbox:"Hosts the mailbox of {addresses}: password resets for {count} account(s) arrive here.",
+  sso_provider:"{count} account(s) sign in with this account.",
+  signs_in_with:"Signs in with {account}; secure that account first.",
+  override:"You set this priority."
+};
+const suggestionTexts={override:"You set the priority",mailbox:"Hosts one of your mailboxes",sso_provider:"Other accounts sign in with it",
+  catalog:"High priority in the catalog",confirmed:"Confirmed by you; steps open",probable:"Probable from your emails",identify:"Sign-in address to choose"};
+function priorityReason(reason){
+  const other=state.accounts.find(a=>a.id===reason.account_id);
+  return t(priorityReasonTexts[reason.code],{level:t(labels[reason.level]||""),addresses:(reason.addresses||[]).join(", "),count:reason.count,account:other?accountTitle(other):""});
+}
+function confirmedOptions(exclude){
+  return state.accounts.filter(a=>a.decision==="confirmed"&&a.id!==exclude).map(a=>new Option(accountTitle(a),a.id));
+}
+function renderMailboxes(){
+  const notes=new Map(state.identity_links.mailboxes.map(entry=>[entry.address,entry]));
+  $("mailbox-items").replaceChildren(...state.emails.map(address=>{
+    const card=node("article",undefined,"worklist-item"),select=node("select"),entry=notes.get(address);
+    select.setAttribute("aria-label",t("Mailbox account for {address}",{address}));
+    select.append(new Option(t("Not noted"),""),...confirmedOptions(null));
+    if(entry&&![...select.options].some(option=>option.value===entry.account_id))select.append(new Option(t("No longer confirmed"),entry.account_id));
+    select.value=entry?entry.account_id:"";
+    select.onchange=()=>reviewAction("/api/profile/mailboxes",{address,account_id:select.value||null},"Saved locally.");
+    card.append(node("strong",address),select);
+    if(entry&&!entry.active)card.append(node("p",t("This note is inactive until you confirm the account again."),"small-muted"));
+    return card;
+  }));
+}
 function renderRelations(){
   for(const id of ["relation-address","relation-other"]){
     const select=$(id),previous=select.value;
@@ -563,7 +594,14 @@ function renderDetail(){
   else links.push(node("span",t("No verified direct password-settings link."),"small-muted"));
   if(a.historical)links.push(node("span",t("Historical service: check its current status."),"small-muted"));
   $("detail-links").replaceChildren(...links);
-  $("login-method").value=a.login_method;$("detail-priority").value=a.priority;
+  $("login-method").value=a.login_method;
+  $("priority-automatic").textContent=t("Automatic: {level}",{level:t(labels[a.automatic_priority])});
+  $("detail-priority").value=a.priority_override||"";
+  $("priority-reasons").replaceChildren(...a.priority_reasons.map(reason=>node("li",priorityReason(reason))));
+  $("sign-in-with-row").classList.toggle("hidden",a.login_method!=="sso");
+  $("sign-in-with").replaceChildren(new Option(t("Not noted"),""),...confirmedOptions(a.id));
+  if(a.signs_in_with&&![...$("sign-in-with").options].some(option=>option.value===a.signs_in_with))$("sign-in-with").append(new Option(t("No longer confirmed"),a.signs_in_with));
+  $("sign-in-with").value=a.signs_in_with||"";
   $("registered-email").replaceChildren(new Option(t("Email evidence only / unknown"),""),...state.emails.map(e=>new Option(e,e)));
   $("registered-email").value=a.identity_email||a.manual_email||"";
   const addForm=$("add-account-form");
@@ -579,7 +617,7 @@ function renderDetail(){
   const sharedClues=a.unassigned_evidence||[];
   $("shared-evidence-panel").classList.toggle("hidden",!sharedClues.length);
   $("shared-evidence").replaceChildren(...sharedClues.map(evidenceCard));
-  $("login-method").disabled=busy;$("registered-email").disabled=busy||Boolean(a.identity_email);$("detail-priority").disabled=busy;
+  $("login-method").disabled=busy;$("registered-email").disabled=busy||Boolean(a.identity_email);$("detail-priority").disabled=busy;$("sign-in-with").disabled=busy;
   $("defer-account").disabled=busy||workflowBusy||(a.evidence_level==="none"&&a.decision==="undecided")||a.deferred||a.decision==="rejected";
 }
 // Attribute changes (address, sign-in method, priority) use the account update.
@@ -661,7 +699,10 @@ function renderWorklist(){
     const status=item.snoozed_until?t("Snoozed until {date}. It will become ready locally on that date.",{date:localDate(item.snoozed_until)}):item.deferred&&item.step!=="done"?t("Deferred. Restore this account when you are ready."):t(workflowSteps[item.step]);
     card.append(node("strong",accountTitle(account)),node("p",status));
     const actions=node("div",undefined,"bitwarden-actions");
+    const index=workflow.items.indexOf(item);
     actions.append(actionButton("Review →",()=>continueWorklist(item.id),workflowBusy||workflow.paused),
+      actionButton("Move up",()=>moveWorklist(item.id,"up"),workflowBusy||index===0),
+      actionButton("Move down",()=>moveWorklist(item.id,"down"),workflowBusy||index===workflow.items.length-1),
       actionButton(item.deferred?"Restore":"Defer",()=>changeWorklist({action:item.deferred?"restore":"defer",id:item.id}),workflowBusy||item.step==="done"),
       actionButton("Remove from worklist",()=>changeWorklist({action:"remove",id:item.id}),workflowBusy));
     if(!item.deferred&&item.step!=="done")actions.append(
@@ -706,6 +747,8 @@ function renderGuided(){
   $("guided-priority-items").replaceChildren(...priorityPreview.map((candidate,index)=>{
     const item=node("article",undefined,"worklist-item"),step=accountStep(candidate);
     item.append(node("strong",`${index+1}. ${accountTitle(candidate)}`),node("p",`${t(labels[candidate.priority])} · ${t(labels[candidate.classification])} · ${t(workflowSteps[step])}`));
+    const why=(workflow.suggestion_reasons[candidate.id]||[]).map(code=>t(suggestionTexts[code]));
+    if(why.length)item.append(node("p",t("Why: {reasons}",{reasons:why.join(" · ")}),"small-muted"));
     return item;
   }));
   if(!account){
@@ -729,6 +772,10 @@ async function changeWorklist(data){
   try{const result=await api("/api/workflow",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});await refresh();if($("account-dialog").open)renderDetail();return result;}
   catch(e){failure(e);return false;}
   finally{workflowBusy=false;renderWorklist();renderGuided();if($("account-dialog").open)renderDetail();}
+}
+async function moveWorklist(id,direction){
+  const result=await changeWorklist({action:"move",id,direction});
+  if(result&&result.batch)toast(t("Order changed locally."),result.batch);
 }
 async function continueWorklist(id=state.workflow.current){
   if(!id||state.workflow.paused)return;
@@ -925,7 +972,8 @@ $("registered-email").onchange=()=>{
   update({registered_email:email});
 };
 $("add-account-form").onsubmit=addLocalAccount;
-$("detail-priority").onchange=()=>update({priority:$("detail-priority").value});
+$("detail-priority").onchange=()=>update({priority:$("detail-priority").value||null});
+$("sign-in-with").onchange=()=>accountAction("sign-in-with",{account_id:$("sign-in-with").value||null},"Saved locally.");
 $("defer-account").onclick=()=>changeWorklist({action:"defer",id:selected});
 $("decide-confirm").onclick=()=>decide("confirmed");
 $("decide-reject").onclick=()=>decide("rejected",$("reject-reason").value);

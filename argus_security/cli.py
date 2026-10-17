@@ -8,6 +8,7 @@ import sys
 from .i18n import translate, cli_language, LocalizedArgumentParser, localize_discovery
 from .registry import Registry
 from .discovery import discover, DNSError
+from .errors import UserFacingError
 from .guidance import hint_for
 from .imap_client import IMAPConfig, MailboxError, load_config, save_config, imap_messages, with_keep_alive
 from .mailbox_lease import MailboxLease
@@ -117,6 +118,14 @@ def parser(language="en"):
     relate.add_argument('other')
     relate.add_argument('--kind', choices=['same_mailbox', 'replaced_by'], default='same_mailbox')
     relate.add_argument('--remove', action='store_true', help=t('Forget this relation'))
+    mailbox = sub.add_parser('mailbox', help=t('Note which confirmed account hosts the mailbox of an own address'))
+    mailbox.add_argument('address')
+    mailbox.add_argument('account', nargs='?', help=t('Account ID from list-accounts'))
+    mailbox.add_argument('--remove', action='store_true', help=t('Remove the note'))
+    sign_in = sub.add_parser('sign-in-with', help=t('Note which confirmed account a single sign-on account uses'))
+    sign_in.add_argument('account', help=t('Account ID from list-accounts'))
+    sign_in.add_argument('provider', nargs='?', help=t('Account ID from list-accounts'))
+    sign_in.add_argument('--remove', action='store_true', help=t('Remove the note'))
     sub.add_parser('changes', help=t('Show your recent local changes to decisions, steps and the worklist'))
     undo = sub.add_parser('undo', help=t('Undo your latest local change; external actions are never undone'))
     undo.add_argument('--batch', help=t('Undo this change instead of the latest one'))
@@ -274,6 +283,15 @@ def main(argv=None):
             else:
                 store.relate_addresses(args.address, args.other, args.kind)
             print(t('Saved locally. Accounts stay separate; a relation is only a note.'))
+        elif args.command in {'mailbox', 'sign-in-with'}:
+            target = args.account if args.command == 'mailbox' else args.provider
+            if bool(target) == args.remove:
+                raise UserFacingError('Name an account, or use --remove')
+            if args.command == 'mailbox':
+                store.set_mailbox(args.address, None if args.remove else target)
+            else:
+                store.link_sign_in(args.account, None if args.remove else target)
+            print(t('Saved locally. Accounts that others depend on are shown as critical, with the reason.'))
         elif args.command == 'changes':
             print(json.dumps(store.recent_changes(), ensure_ascii=False, indent=2))
         elif args.command == 'undo':

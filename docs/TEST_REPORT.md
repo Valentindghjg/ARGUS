@@ -8,6 +8,14 @@ import gaps, the return summary order, older profiles, the CLI and strict API
 shapes. The browser opens the summary, marks changes reviewed, undoes it in
 both languages and checks that the overview summary disappears.
 
+Step S12a: **289 Python tests** and **33 browser check groups**. New tests cover
+catalog reasons and the person's override, mailbox and sign-in relations (own
+addresses, confirmed accounts, single sign-on only, no cycles, inactive after
+rejection, removal), identity accounts leading the suggestions with reasons,
+swapping two worklist tasks with undo, and CLI and API shapes. The browser
+notes a sign-in and a mailbox account, reads the reasons and moves a task with
+undo.
+
 # Test report — Version 2.1.0 (package B, not yet tagged)
 
 Step S8: **257 Python tests** and **28 browser check groups**. Rule features are

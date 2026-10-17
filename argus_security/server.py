@@ -20,7 +20,7 @@ from .scan import ScanSession, scan_messages
 from .store import Store
 
 WEB = Path(__file__).with_name("web")
-ACCOUNT_ACTION = re.compile(r"/api/accounts/([^/]+)/(decision|steps)")
+ACCOUNT_ACTION = re.compile(r"/api/accounts/([^/]+)/(decision|steps|sign-in-with)")
 
 
 class ImportBusy(Exception):
@@ -255,6 +255,11 @@ class Handler(BaseHTTPRequestHandler):
                 if set(data) - {"decision", "reason"} or "decision" not in data:
                     raise UserFacingError("Choose confirmed, rejected or undecided")
                 self._send(200, self.server.store.decide(unquote(action.group(1)), data["decision"], data.get("reason")))
+            elif action and action.group(2) == "sign-in-with":
+                data = self._json()
+                if set(data) != {"account_id"}:
+                    raise UserFacingError("Choose an account you confirmed yourself")
+                self._send(200, self.server.store.link_sign_in(unquote(action.group(1)), data["account_id"]))
             elif action:
                 from .store import UNCHANGED
                 data = self._json()
@@ -289,6 +294,11 @@ class Handler(BaseHTTPRequestHandler):
                     if set(data) != {"domain", "reason"}:
                         raise UserFacingError("Choose why this sender domain should be hidden")
                     self._send(200, self.server.store.exclude_domain(data["domain"], data["reason"]))
+            elif path == "/api/profile/mailboxes":
+                data = self._json()
+                if set(data) != {"address", "account_id"}:
+                    raise UserFacingError("Choose an account you confirmed yourself")
+                self._send(200, self.server.store.set_mailbox(data["address"], data["account_id"]))
             elif path in {"/api/profile/relations", "/api/profile/relations/remove"}:
                 data = self._json()
                 if path.endswith("remove"):
