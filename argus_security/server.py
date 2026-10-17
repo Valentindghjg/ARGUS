@@ -15,7 +15,7 @@ from urllib.parse import urlsplit, unquote
 from .errors import UserFacingError
 from .guidance import hint_for
 from .analysis import MAX_MESSAGE_BYTES
-from .background import BackgroundScanService, KeyringCredentialStore
+from .background import BackgroundScanService, CredentialError, KeyringCredentialStore
 from .scan import ScanSession, scan_messages
 from .store import Store
 
@@ -68,6 +68,13 @@ class DashboardServer(ThreadingHTTPServer):
             # A damaged local schedule must not stop the dashboard or reveal
             # untrusted stored values. It will require a fresh terminal setup.
             return {"enabled": False, "authorized": False, "last_error": "Background IMAP schedule needs local setup"}
+
+    def approval_snapshot(self):
+        """The standing scheduled-scan approval for the control view; never a secret (plan A23, D5)."""
+        try:
+            return self.background_service.approval()
+        except ValueError:
+            return None
 
     def start_background_scans(self):
         """Start the opt-in in-process scheduler only for an enabled profile."""
@@ -212,7 +219,9 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/api/changes":
             self._send(200, {"changes": self.server.store.recent_changes()})
         elif path == "/api/control":
-            self._send(200, self.server.store.control_overview(self.server.background_snapshot()))
+            control = self.server.store.control_overview(self.server.background_snapshot())
+            control["approval"] = self.server.approval_snapshot()
+            self._send(200, control)
         elif path == "/api/session/report":
             from urllib.parse import parse_qs
             language = parse_qs(urlsplit(self.path).query).get("language", ["en"])[0]
@@ -413,6 +422,13 @@ class Handler(BaseHTTPRequestHandler):
                 if data not in ({"action": "pause"}, {"action": "resume"}):
                     raise UserFacingError("Choose pause or resume")
                 self._send(200, self.server.store.set_automation_paused(data["action"] == "pause"))
+            elif path == "/api/approvals/revoke":
+                # Revoking stops scheduled scans and removes the stored authorization for good;
+                # pausing only holds them. A new approval needs background-imap enable.
+                if self._json() != {"kind": "scheduled_scan"}:
+                    raise UserFacingError("Choose an approval to revoke")
+                self.server.background_service.revoke()
+                self._send(200, {"ok": True})
             elif path == "/api/review-rule":
                 data = self._json()
                 if set(data) != {"months", "scope"}:
@@ -438,6 +454,9 @@ class Handler(BaseHTTPRequestHandler):
                 self._error(404, "Not found")
         except ImportBusy:
             self._error(409, "An EML import is already running. Finish or cancel it first.")
+        except CredentialError as exc:
+            # Fixed keyring texts; scheduling is already off before keyring cleanup.
+            self._error(400, str(exc))
         except UserFacingError as exc:
             # Fixed, translatable texts only (Bitwarden, worklist, mailbox and
             # account rules). Every other error stays generic.

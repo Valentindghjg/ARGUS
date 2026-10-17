@@ -8,6 +8,13 @@ paused scheduled run keeping its schedule, Bitwarden transfers blocked),
 retention limits, and CLI and API shapes. The browser pauses and resumes in
 both languages and sees the pause in the overview.
 
+Step S13b: **305 Python tests** and **35 browser check groups**. New tests cover
+the recorded approval (host, folders, limit, date, no username), a changed
+folder selection refused before any keyring use and logged, revocation removing
+the keyring entry, the offline checkpoint preview in the CLI, and the control
+API showing and revoking the approval. The browser checks the permissions
+panel.
+
 # Test report — Version 2.2.0 (package C, not yet tagged)
 
 Step S11: **283 Python tests** and **32 browser check groups**. New tests cover

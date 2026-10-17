@@ -415,10 +415,23 @@ fortsetzt. Das Aktivitätsprotokoll enthält nur Zeit, Vorgangsart, Ergebnis und
 Anzahlen (keinen E-Mail-Text, keine Adressen, Geheimnisse oder
 Befehlsausgaben), höchstens 500 Einträge für 180 Tage.
 
+Unter „Berechtigungen“ zeigt die Kontrolle die einzige dauerhafte Freigabe, die
+ARGUS halten kann: geplante IMAP-Scans, mit Host, Ordnern, Höchstmenge, Abstand,
+Freigabedatum und wie viele Ordner an einem gespeicherten Checkpoint fortsetzen
+(nie Benutzername oder Geheimnis). Ein geänderter Host, Account, eine geänderte
+Anmeldeart oder Ordnerauswahl erscheint als „Braucht Freigabe“ und wird nicht
+genutzt. **Freigabe widerrufen** beendet sie endgültig und entfernt die
+gespeicherte Berechtigung aus dem Schlüsselbund des Systems; eine Pause hält
+Vorgänge nur an. Manuelle IMAP-Scans, Bitwarden-Übertragungen und MX-Abfragen
+werden jedes Mal einzeln freigegeben. `background-imap preview` zeigt ohne
+Verbindung, was eine Freigabe umfassen würde, und `enable` zeigt dasselbe, bevor
+es nach dem Passwort fragt.
+
 ```bash
 python -m argus_security automation status
 python -m argus_security automation pause
 python -m argus_security automation resume
+python -m argus_security background-imap preview --interval-minutes 60 --limit 200
 ```
 
 ## Kurze Sitzungen, Prüfdaten und Checkliste nach Anmeldeart

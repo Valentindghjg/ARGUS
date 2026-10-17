@@ -1031,6 +1031,23 @@
     "All automation is paused. New jobs wait; running ones stop between two messages. Nothing already done outside ARGUS is undone.": "Die gesamte Automatik ist pausiert. Neue Vorgänge warten; laufende halten zwischen zwei Nachrichten an. Nichts, was außerhalb von ARGUS schon geschah, wird rückgängig gemacht.",
     "Automation resumed. Scheduled scans continue at their next time.": "Automatik fortgesetzt. Geplante Scans laufen zu ihrer nächsten Zeit weiter.",
     "Choose pause or resume": "Wähle Pausieren oder Fortsetzen",
-    "Show jobs and activity, or pause and resume all automation": "Vorgänge und Aktivität zeigen oder die gesamte Automatik pausieren und fortsetzen"
+    "Show jobs and activity, or pause and resume all automation": "Vorgänge und Aktivität zeigen oder die gesamte Automatik pausieren und fortsetzen",
+    "A standing approval lets scheduled scans run on their own. Revoking it ends the approval for good and removes the stored authorization; pausing only holds jobs until you resume.": "Eine dauerhafte Freigabe lässt geplante Scans selbstständig laufen. Ein Widerruf beendet die Freigabe endgültig und entfernt die gespeicherte Berechtigung; eine Pause hält Vorgänge nur an, bis du fortsetzt.",
+    "Approval revoked. Scheduled scans are off.": "Freigabe widerrufen. Geplante Scans sind aus.",
+    "Approved each time": "Jedes Mal einzeln freigegeben",
+    "Approved on {date}.": "Freigegeben am {date}.",
+    "At most {limit} message(s) every {minutes} minute(s); {checkpoints} folder(s) continue from a saved checkpoint.": "Höchstens {limit} Nachricht(en) alle {minutes} Minute(n); {checkpoints} Ordner setzen an einem gespeicherten Checkpoint fort.",
+    "Bitwarden transfer: only after you confirm the exact preview, for that one transfer.": "Bitwarden-Übertragung: nur nach deiner Bestätigung der genauen Vorschau, für genau diese Übertragung.",
+    "Disabled": "Ausgeschaltet",
+    "MX lookup for your email domain: only with --allow-dns, for that one lookup.": "MX-Abfrage für deine E-Mail-Domain: nur mit --allow-dns, für genau diese Abfrage.",
+    "Manual IMAP scan: only with scan-imap --allow-imap in your terminal, for that one run.": "Manueller IMAP-Scan: nur mit scan-imap --allow-imap in deinem Terminal, für genau diesen Lauf.",
+    "No standing approval. Scheduled scans are off.": "Keine dauerhafte Freigabe. Geplante Scans sind aus.",
+    "Permissions": "Berechtigungen",
+    "Revoke approval": "Freigabe widerrufen",
+    "Revoke this approval? Scheduled scans stop and the stored authorization is removed from your system keyring. A new approval needs background-imap enable in a terminal.": "Diese Freigabe widerrufen? Geplante Scans enden, und die gespeicherte Berechtigung wird aus dem Schlüsselbund deines Systems entfernt. Eine neue Freigabe braucht background-imap enable in einem Terminal.",
+    "The IMAP settings changed after the approval, so scheduled scans do not connect. Approve again with background-imap enable.": "Die IMAP-Einstellungen haben sich nach der Freigabe geändert, deshalb verbinden geplante Scans nicht. Gib sie mit background-imap enable erneut frei.",
+    "{host}, folders: {folders}": "{host}, Ordner: {folders}",
+    "Choose an approval to revoke": "Wähle eine Freigabe zum Widerrufen",
+    "Each run reads at most {p0} message(s), every {p1} minute(s), only while the dashboard runs. Saved checkpoints: {p2} folder(s); others start from their first message.": "Jeder Lauf liest höchstens {p0} Nachricht(en), alle {p1} Minute(n), nur solange das Dashboard läuft. Gespeicherte Checkpoints: {p2} Ordner; andere beginnen mit ihrer ersten Nachricht."
   }
 }

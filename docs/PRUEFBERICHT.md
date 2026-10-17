@@ -9,6 +9,14 @@ seinen Zeitplan, Bitwarden-Übertragungen gesperrt), Aufbewahrungsgrenzen sowie
 CLI- und API-Formen. Der Browser pausiert und setzt in beiden Sprachen fort und
 sieht die Pause in der Übersicht.
 
+Schritt S13b: **305 Python-Tests** und **35 Browser-Prüfgruppen**. Neue Tests
+prüfen die erfasste Freigabe (Host, Ordner, Höchstmenge, Datum, kein
+Benutzername), eine geänderte Ordnerauswahl, die vor jeder Schlüsselbund-Nutzung
+abgelehnt und protokolliert wird, den Widerruf samt Entfernen aus dem
+Schlüsselbund, die Checkpoint-Vorschau ohne Verbindung in der CLI und die
+Kontroll-API, die die Freigabe zeigt und widerruft. Der Browser prüft den Bereich
+„Berechtigungen“.
+
 # Prüfbericht – Version 2.2.0 (Paket C, noch ohne Tag)
 
 Schritt S11: **283 Python-Tests** und **32 Browser-Prüfgruppen**. Neue Tests

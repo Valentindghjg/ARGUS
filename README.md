@@ -393,10 +393,21 @@ undone. The overview keeps the pause visible until you resume. The activity log
 keeps time, job type, result and counts only (no email text, addresses, secrets
 or command output), at most 500 entries for 180 days.
 
+Under “Permissions”, Control shows the one standing approval ARGUS can hold:
+scheduled IMAP scans, with host, folders, limit, interval, approval date and
+how many folders continue from a saved checkpoint (never the username or a
+secret). A changed host, account, sign-in method or folder selection shows as
+“Needs approval” and is not used. **Revoke approval** ends it for good and
+removes the stored authorization from the system keyring; a pause only holds
+jobs. Manual IMAP scans, Bitwarden transfers and MX lookups are approved each
+time instead. `background-imap preview` shows what an approval would cover
+without connecting, and `enable` shows the same before asking for the password.
+
 ```bash
 python -m argus_security automation status
 python -m argus_security automation pause
 python -m argus_security automation resume
+python -m argus_security background-imap preview --interval-minutes 60 --limit 200
 ```
 
 ## Short sessions, review dates and the checklist by sign-in method

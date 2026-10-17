@@ -452,6 +452,8 @@ def main():
                 checks.append("Checklist by sign-in method, short session with report preview, review rule with undo")
                 page.locator('[data-view="control"]').click()
                 expect(page.locator("#job-items")).to_contain_text("Email import")
+                expect(page.locator("#approval-items")).to_contain_text("No standing approval")
+                expect(page.locator("#control-view")).to_contain_text("only with scan-imap --allow-imap")
                 expect(page.locator("#automation-badge")).to_have_text("Active")
                 page.locator("#automation-toggle").click()
                 expect(page.locator("#automation-badge")).to_contain_text("Paused since")
@@ -466,7 +468,7 @@ def main():
                 expect(page.locator("#automation-badge")).to_have_text("Aktiv")
                 page.locator("#language").select_option("en")
                 page.locator('[data-view="setup"]').click()
-                checks.append("Control view: jobs, activity log, global pause and resume in both languages")
+                checks.append("Control view: permissions, jobs, activity log, global pause and resume in both languages")
 
                 page.set_viewport_size({"width":390,"height":844})
                 expect(page.locator("#page-title")).to_be_visible()

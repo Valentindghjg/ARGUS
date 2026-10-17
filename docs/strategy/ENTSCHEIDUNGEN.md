@@ -97,3 +97,11 @@ Wird während der Umsetzung fortgeschrieben.
   Minuten nichts gemeldet haben. Geplante Scans stehen als wartend in der
   Liste statt als Warteschlangen-Datensatz, weil ihr Zeitplan die einzige Quelle
   bleibt.
+- **S13, Freigabe-Datensatz:** Die einzige dauerhafte Freigabe in ARGUS ist die
+  für geplante Scans. Ihr Datensatz bleibt der bestehende Zeitplan (Ziel-
+  Fingerabdruck, Höchstmenge, Abstand, jetzt mit Freigabedatum) statt einer
+  zweiten Tabelle, damit es keine zwei Wahrheiten gibt; Profil und Zweck ergeben
+  sich aus dem Speicherort und der Art. Alle anderen externen Zugriffe werden je
+  Aufruf freigegeben und in der Kontrolle so benannt. Der Widerruf ist im
+  Dashboard möglich, weil er nur lokal löscht; eine neue Freigabe braucht
+  weiterhin das Terminal, weil dort das Passwort eingegeben wird.
