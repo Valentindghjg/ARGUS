@@ -1236,6 +1236,7 @@
     "Recorded. ARGUS changed nothing in Bitwarden.": "Festgehalten. ARGUS hat in Bitwarden nichts geändert.",
     "This profile name is reserved; choose another one": "Dieser Profilname ist reserviert; wähle einen anderen",
     "This profile does not exist yet; create it with init and --profile": "Dieses Profil gibt es noch nicht; lege es mit init und --profile an",
-    "Check the name with argus profiles, or start a new profile with argus --profile NAME init --email followed by your address.": "Prüfe den Namen mit argus profiles, oder lege ein neues Profil mit argus --profile NAME init --email und deiner Adresse an."
+    "Check the name with argus profiles, or start a new profile with argus --profile NAME init --email followed by your address.": "Prüfe den Namen mit argus profiles, oder lege ein neues Profil mit argus --profile NAME init --email und deiner Adresse an.",
+    "This template now covers other accounts; preview it again": "Diese Vorlage betrifft inzwischen andere Accounts; sieh sie dir erneut an"
   }
 }

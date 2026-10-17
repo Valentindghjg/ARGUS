@@ -216,7 +216,11 @@ class Handler(BaseHTTPRequestHandler):
     def _json(self):
         if self.headers.get_content_type() != "application/json":
             raise ValueError("JSON is required")
-        data = json.loads(self._read(64 * 1024))
+        try:
+            data = json.loads(self._read(64 * 1024))
+        except RecursionError as exc:
+            # Deeply nested input is refused like any other malformed body.
+            raise ValueError("Invalid JSON") from exc
         if not isinstance(data, dict):
             raise ValueError("A JSON object is required")
         return data
@@ -225,6 +229,13 @@ class Handler(BaseHTTPRequestHandler):
         path = urlsplit(self.path).path
         if not self._gate(path.startswith("/api/")):
             return
+        try:
+            self._get(path)
+        except sqlite3.Error:
+            # A busy or locked database gets the same answer as for every other request.
+            self._error(503, "The local database is temporarily unavailable")
+
+    def _get(self, path):
         if path == "/":
             page = (WEB / "index.html").read_text(encoding="utf-8")
             from . import __version__
@@ -424,14 +435,15 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, self.server.store.save_template(self._json()))
             elif path in {"/api/templates/delete", "/api/templates/preview", "/api/templates/apply"}:
                 data = self._json()
-                if set(data) != {"id"}:
+                # Apply names the accounts its preview showed, so it never acts on a different set.
+                if set(data) != {"id"} and not (path.endswith("apply") and set(data) == {"id", "accounts"}):
                     raise UserFacingError("This template does not exist")
                 if path.endswith("delete"):
                     self._send(200, self.server.store.delete_template(data["id"]))
                 elif path.endswith("preview"):
                     self._send(200, self.server.store.template_plan(data["id"])[1])
                 else:
-                    self._send(200, self.server.store.apply_template(data["id"]))
+                    self._send(200, self.server.store.apply_template(data["id"], data.get("accounts")))
             elif path == "/api/moves":
                 data = self._json()
                 if set(data) != {"old", "new"}:

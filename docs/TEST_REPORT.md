@@ -27,6 +27,12 @@ the Windows `bw.exe` lookup, a move plan next to an existing address note,
 reserved and mistyped profile names, and `about`/`profiles` next to a
 pre-rename folder.
 
+Review fixes, part 5: **391 Python tests** and **44 browser check groups**. New
+tests cover a template applied after its accounts changed, marking changes as
+reviewed twice, a busy database on a GET request and deeply nested JSON. The
+browser keeps an unsaved review-rule choice across a refresh and checks that the
+masked account dialog shows no address and has an accessible name.
+
 # Test report — Version 2.6.0 (quality and trust, not yet tagged)
 
 Step S19: **336 Python tests** and **42 browser check groups**. New tests cover

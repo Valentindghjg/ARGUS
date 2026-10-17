@@ -858,11 +858,18 @@ class Store:
         snapshot = self.snapshot()
         return template, preview(snapshot["accounts"], template, {item["id"] for item in snapshot["workflow"]["items"]})
 
-    def apply_template(self, ident):
-        """Apply a template as one undoable change: worklist additions and review dates."""
+    def apply_template(self, ident, expected=None):
+        """Apply a template as one undoable change: worklist additions and review dates.
+
+        ``expected`` are the accounts the person saw in the preview; if the
+        template covers other accounts by now, nothing is applied.
+        """
         template, plan = self.template_plan(ident)
         if not plan["accounts"]:
             raise UserFacingError("No account matches this template")
+        if expected is not None and (not isinstance(expected, list) or any(not isinstance(i, str) for i in expected)
+                                     or sorted(set(expected)) != sorted(plan["accounts"])):
+            raise UserFacingError("This template now covers other accounts; preview it again")
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
             batch = ChangeBatch(db)

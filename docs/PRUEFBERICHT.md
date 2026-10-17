@@ -32,6 +32,13 @@ Umzugsplan neben einer vorhandenen Adressnotiz, reservierte und vertippte
 Profilnamen sowie `about`/`profiles` neben einem Ordner aus der Zeit vor der
 Umbenennung.
 
+Review-Korrekturen, Teil 5: **391 Python-Tests** und **44 Browser-Prüfgruppen**.
+Neue Tests prüfen eine Vorlage, deren Accounts sich nach der Vorschau geändert
+haben, zweimal „Als gesehen markieren“, eine belegte Datenbank bei einer
+GET-Anfrage und tief verschachteltes JSON. Der Browser behält eine
+ungespeicherte Prüfregel-Auswahl über eine Aktualisierung und prüft, dass der
+maskierte Account-Dialog keine Adresse zeigt und einen zugänglichen Namen hat.
+
 # Prüfbericht – Version 2.6.0 (Qualität und Vertrauen, noch ohne Tag)
 
 Schritt S19: **336 Python-Tests** und **42 Browser-Prüfgruppen**. Neue Tests

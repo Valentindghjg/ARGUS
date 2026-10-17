@@ -73,8 +73,11 @@ def acknowledge(db, revision, moment):
     current = review_mark(db)
     if type(revision) is not int or not current["revision"] <= revision <= _meta(db, "revision", 0):
         raise UserFacingError("These changes are no longer current; reload the page")
-    _store_mark(db, {"revision": revision, "at": moment,
-                     "previous": {"revision": current["revision"], "at": current["at"]}})
+    # Marking the same revision again (a double click, or a second button) keeps
+    # the earlier undo point, so one undo always shows the changes again.
+    previous = (current["previous"] if revision == current["revision"] and current.get("previous")
+                else {"revision": current["revision"], "at": current["at"]})
+    _store_mark(db, {"revision": revision, "at": moment, "previous": previous})
 
 
 def undo_acknowledge(db):
