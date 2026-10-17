@@ -31,6 +31,20 @@
   Freigabe umfasst. Erteilen, Widerrufen und Ablehnen von Freigaben stehen im
   Aktivitätsprotokoll. Neue API `POST /api/approvals/revoke`.
 
+## Nur Geändertes, Budget und sicheres Fortsetzen (A13, A14, A15)
+
+- Eine Nachricht, die unter gleichen eigenen Adressen, gleichem Katalog und
+  gleichen Regeln schon ausgewertet wurde, wird an ihrem Inhalts-Fingerabdruck
+  erkannt und als unverändert gezählt statt erneut ausgewertet; jede Änderung
+  dieser Bedingungen wertet alles erneut aus. Der Index speichert nur
+  Fingerabdrücke.
+- `import --max-messages` und `--max-megabytes` begrenzen die neue Arbeit je
+  Lauf; ein solcher Lauf endet als „begrenzt“ mit nächstem Schritt, nie als
+  vollständig. Derselbe Import setzt später fort, auch nach Unterbrechung oder
+  Pause; `--recheck` erzwingt eine vollständige Auswertung.
+- Schemaversion 8 ergänzt den Index nach der automatischen Sicherung.
+  Wiederholte Importe melden jetzt `unchanged`, wo vorher `duplicates` stand.
+
 # Änderungen – Version 2.2.0, Paket C: lokale Vorarbeit (noch ohne Tag)
 
 ## Neu seit deiner letzten Durchsicht (A1–A4, A7, A28, Prioritäten 05 und 06)

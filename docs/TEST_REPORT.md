@@ -15,6 +15,14 @@ the keyring entry, the offline checkpoint preview in the CLI, and the control
 API showing and revoking the approval. The browser checks the permissions
 panel.
 
+Step S14a: **310 Python tests** and **35 browser check groups**. New tests cover
+recognition by content with no second analysis, full re-analysis after new
+addresses or catalog entries, a message and a size budget with continuation
+across runs, continuation after an interruption, the fingerprint-only index and
+the CLI options. Earlier re-import tests now expect `unchanged`; tests that
+simulate older stored clues also remove the index, as profiles from before 2.3
+have none.
+
 # Test report — Version 2.2.0 (package C, not yet tagged)
 
 Step S11: **283 Python tests** and **32 browser check groups**. New tests cover

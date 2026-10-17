@@ -183,6 +183,22 @@ minutes are marked interrupted when next accessed. Skipped files, errors and
 header-only analysis are visible as “Completed with gaps”. CLI changes appear in
 the open dashboard within 15 seconds.
 
+### Only what changed, within a budget, and continue later
+
+ARGUS recognizes a message it already analyzed under the same conditions by its
+content fingerprint, never by file name or date, and does not analyze it again;
+the result counts it as unchanged. New own addresses, catalog additions or new
+rules analyze everything again. A run can be limited to new work with
+`--max-messages` or `--max-megabytes`; it then ends as “Limit reached; not
+everything was processed”, never as complete. Run the same import again to
+continue, also after an interruption or a pause. `--recheck` analyzes every
+message again. The index holds fingerprints only, never message content.
+
+```bash
+python -m argus_security import /path/to/mailbox.mbox --format mbox --max-messages 5000
+python -m argus_security import /path/to/mailbox.mbox --format mbox   # continues
+```
+
 ## Identify your email provider
 
 For a custom domain, the provider cannot be inferred from the address alone.
@@ -699,6 +715,7 @@ report.
 | `argus_security/identity.py` | Confirmed sign-in and mailbox relations and explained priorities |
 | `argus_security/sessions.py`, `reviews.py` | Short work sessions with their report, and the review rule |
 | `argus_security/jobs.py` | Shared job states, the global pause and the minimal activity log |
+| `argus_security/imports.py` | Processed-message index, import budget and continuation |
 | `argus_security/backup.py` | Local profile backups and restore |
 | `argus_security/workflow.py` | Local security worklist and guided next step |
 | `argus_security/handoffs.py` | Durable Bitwarden transfer journal |

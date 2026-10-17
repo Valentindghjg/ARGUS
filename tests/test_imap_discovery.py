@@ -111,7 +111,7 @@ class IMAPTests(unittest.TestCase):
         self.assertEqual(result["processed"], 0)
         self.assertIn(("SEARCH", None, "UID", "2:*"), second.calls)
         result = self.run_scan(FakeIMAP(), full_scan=True)
-        self.assertEqual(result["duplicates"], 1)
+        self.assertEqual(result["unchanged"], 1)
 
     def test_changed_uidvalidity_rescans(self):
         self.run_scan(FakeIMAP())

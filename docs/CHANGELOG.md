@@ -29,6 +29,19 @@
   data only. Granting, revoking and refusing approvals appear in the activity
   log. New API `POST /api/approvals/revoke`.
 
+### Only what changed, a budget and safe continuation (A13, A14, A15)
+
+- A message already analyzed under the same own addresses, catalog and rules is
+  recognized by its content fingerprint and counted as unchanged instead of
+  being analyzed again; any change to those conditions analyzes everything
+  again. The index stores fingerprints only.
+- `import --max-messages` and `--max-megabytes` limit new work per run; such a
+  run ends as “limited” with a next step, never as complete. The same import
+  continues later, also after an interruption or pause; `--recheck` forces a
+  full analysis.
+- Schema version 8 adds the index after the automatic backup. Re-imports now
+  report `unchanged` where they reported `duplicates` before.
+
 ## 2.2.0 — Package C: local preparation (not yet tagged)
 
 ### What's new since your last review (A1–A4, A7, A28, priorities 05 and 06)

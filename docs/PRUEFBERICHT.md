@@ -17,6 +17,14 @@ Schlüsselbund, die Checkpoint-Vorschau ohne Verbindung in der CLI und die
 Kontroll-API, die die Freigabe zeigt und widerruft. Der Browser prüft den Bereich
 „Berechtigungen“.
 
+Schritt S14a: **310 Python-Tests** und **35 Browser-Prüfgruppen**. Neue Tests
+prüfen das Erkennen am Inhalt ohne zweite Auswertung, die vollständige
+Neuauswertung nach neuen Adressen oder Katalogeinträgen, ein Nachrichten- und
+ein Größenbudget mit Fortsetzung über mehrere Läufe, das Fortsetzen nach einer
+Unterbrechung, den Index nur aus Fingerabdrücken und die CLI-Optionen. Frühere
+Tests für Neuimporte erwarten jetzt `unchanged`; Tests, die ältere gespeicherte
+Hinweise nachbilden, entfernen auch den Index, weil Profile vor 2.3 keinen haben.
+
 # Prüfbericht – Version 2.2.0 (Paket C, noch ohne Tag)
 
 Schritt S11: **283 Python-Tests** und **32 Browser-Prüfgruppen**. Neue Tests

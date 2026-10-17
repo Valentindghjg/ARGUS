@@ -40,7 +40,8 @@ class StoreTests(unittest.TestCase):
     def test_dedup_and_manual_status_survive_reimport(self):
         self.assertEqual(self.scan()["evidence"], 1)
         self.store.update_account("github", {"checklist": {key: True for key in CHECKLIST}, "status": "done"})
-        self.assertEqual(self.scan()["duplicates"], 1)
+        # Plan A13: the same message under the same conditions is not analyzed again.
+        self.assertEqual(self.scan()["unchanged"], 1)
         self.assertEqual((self.account()["status"], self.account()["classification"]), ("done", "confirmed"))
         recreated = Store(self.store.data_dir, self.registry)
         self.assertEqual(recreated.snapshot()["summary"]["done"], 1)

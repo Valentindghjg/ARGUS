@@ -105,3 +105,10 @@ Wird während der Umsetzung fortgeschrieben.
   Aufruf freigegeben und in der Kontrolle so benannt. Der Widerruf ist im
   Dashboard möglich, weil er nur lokal löscht; eine neue Freigabe braucht
   weiterhin das Terminal, weil dort das Passwort eingegeben wird.
+- **S14, Index verarbeiteter Nachrichten:** „Unverändert“ heißt: gleicher
+  Inhalts-Fingerabdruck unter gleichen eigenen Adressen, gleichem Katalog und
+  gleicher Regelversion. Dateinamen, Größen oder Zeitstempel entscheiden nie.
+  Der Index ersetzt die frühere Mehrfachauswertung; „Duplikate“ zählen nur noch
+  Nachrichten, die erneut ausgewertet wurden und dasselbe Ergebnis brachten
+  (etwa mit `--recheck`). Das Budget zählt nur neue Arbeit, damit ein
+  wiederholter Lauf tatsächlich weiterkommt.

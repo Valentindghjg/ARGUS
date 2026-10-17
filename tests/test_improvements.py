@@ -180,7 +180,7 @@ class ScanImprovements(StoreFixture):
         session.process(self.raw)
         session.skip()
         result = session.finish()
-        self.assertEqual((result["processed"],result["evidence"],result["duplicates"],result["skipped"]),(3,1,1,1))
+        self.assertEqual((result["processed"],result["evidence"],result["unchanged"],result["skipped"]),(3,1,1,1))
         self.assertEqual(result["result"],"completed_with_gaps")
         restarted = Store(self.store.data_dir,self.registry)
         self.assertEqual(restarted.meta("last_scan")["id"],result["id"])
@@ -279,7 +279,7 @@ class BatchAPITests(unittest.TestCase):
             self.assertEqual(self.request("/api/import",raw=raw,job_id=job["id"])[0],200)
         self.request("/api/import/skip",{"id":job["id"]})
         status,result = self.request("/api/import/finish",{"id":job["id"]})
-        self.assertEqual((status,result["processed"],result["duplicates"]),(200,3,1))
+        self.assertEqual((status,result["processed"],result["unchanged"]),(200,3,1))
         self.assertEqual(self.store.meta("last_scan")["result"],"completed_with_gaps")
 
     def test_parallel_batch_rejected_and_cancel_preserves_progress(self):

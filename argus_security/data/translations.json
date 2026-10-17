@@ -183,7 +183,7 @@
     "Main navigation": "Hauptnavigation",
     "Maximum messages; no limit scans all selected folders": "Maximale Nachrichtenanzahl; ohne Limit vollständige Inventur",
     "Media & Community": "Medien & Community",
-    "Message limit reached.": "Nachrichtenlimit erreicht.",
+    "Limit reached; not everything was processed.": "Grenze erreicht; nicht alles wurde verarbeitet.",
     "Metadata downloaded. No vault was changed.": "Metadaten heruntergeladen. Kein Tresor wurde geändert.",
     "Multiple own recipients; sign-in address uncertain": "Mehrere eigene Empfänger; Anmeldeadresse unklar",
     "New sign-in to your account": "Neue Anmeldung",
@@ -356,7 +356,7 @@
     "{p0} items": "{p0} Einträge",
     "{p0} of {p1} accounts done": "{p0} von {p1} Accounts erledigt",
     "{p0} older clues need the current detection rules. Re-import the original emails or start an authorized IMAP scan. Your checklists are preserved.": "{p0} ältere Belege benötigen die aktuellen Erkennungsregeln. Importiere die Originalmails erneut oder starte einen freigegebenen IMAP-Scan. Deine Checklisten bleiben erhalten.",
-    "{processed} messages processed · New clues: {evidence} · Updated: {updated} · Duplicates: {duplicates} · Skipped: {skipped} · Errors: {errors}. {outcome}{headers}{folders}": "{processed} Nachrichten verarbeitet · Neue Hinweise: {evidence} · Aktualisiert: {updated} · Duplikate: {duplicates} · Übersprungen: {skipped} · Fehler: {errors}. {outcome}{headers}{folders}",
+    "{processed} messages processed · New clues: {evidence} · Updated: {updated} · Duplicates: {duplicates} · Skipped: {skipped} · Errors: {errors}. {outcome}{headers}{folders}{unchanged}": "{processed} Nachrichten verarbeitet · Neue Hinweise: {evidence} · Aktualisiert: {updated} · Duplikate: {duplicates} · Übersprungen: {skipped} · Fehler: {errors}. {outcome}{headers}{folders}{unchanged}",
     "＋ Import emails": "＋ E-Mails importieren",
     "Use an app password only if supported by your account; otherwise use OAuth2. Follow your administrator’s IMAP policy.": "App-Passwort nur falls vom Konto unterstützt; andernfalls OAuth2. IMAP-Freigabe des Administrators beachten.",
     "Add selected items through unlocked Bitwarden CLI": "Ausgewählte Einträge über die entsperrte Bitwarden-CLI hinzufügen",
@@ -558,7 +558,7 @@
     "Some messages could not be analyzed. Export them again from your email client; ARGUS keeps no message content.": "Einige Nachrichten konnten nicht ausgewertet werden. Exportiere sie erneut aus deinem Mailprogramm; ARGUS speichert keine Mailinhalte.",
     "Large messages were analyzed using headers only, so their clues can be weaker. Review those accounts yourself.": "Große Nachrichten wurden nur anhand der Kopfzeilen ausgewertet; ihre Hinweise können schwächer sein. Prüfe diese Accounts selbst.",
     "The scan stopped early. Run the same import or scan again; messages already analyzed are recognized and not counted twice.": "Der Scan wurde vorzeitig beendet. Starte denselben Import oder Scan erneut; bereits ausgewertete Nachrichten werden erkannt und nicht doppelt gezählt.",
-    "The message limit was reached. Run the IMAP scan again to continue from the saved checkpoint.": "Das Nachrichtenlimit wurde erreicht. Starte den IMAP-Scan erneut, um am gespeicherten Prüfpunkt fortzusetzen.",
+    "The processing limit was reached, so this is not a complete result. Run the same import or scan again to continue; messages already processed are skipped.": "Die Verarbeitungsgrenze wurde erreicht, das Ergebnis ist also nicht vollständig. Starte denselben Import oder Scan erneut, um fortzusetzen; bereits verarbeitete Nachrichten werden übersprungen.",
     "Your own addresses changed during the scan. Start it again so every message is checked against the current addresses.": "Deine eigenen Adressen haben sich während des Scans geändert. Starte ihn erneut, damit jede Nachricht mit den aktuellen Adressen geprüft wird.",
     "Choose a download or a direct transfer": "Wähle einen Download oder eine direkte Übertragung",
     "Show the items that would be written; create no file": "Zeigt die Einträge, die geschrieben würden; erstellt keine Datei",
@@ -1048,6 +1048,13 @@
     "The IMAP settings changed after the approval, so scheduled scans do not connect. Approve again with background-imap enable.": "Die IMAP-Einstellungen haben sich nach der Freigabe geändert, deshalb verbinden geplante Scans nicht. Gib sie mit background-imap enable erneut frei.",
     "{host}, folders: {folders}": "{host}, Ordner: {folders}",
     "Choose an approval to revoke": "Wähle eine Freigabe zum Widerrufen",
-    "Each run reads at most {p0} message(s), every {p1} minute(s), only while the dashboard runs. Saved checkpoints: {p2} folder(s); others start from their first message.": "Jeder Lauf liest höchstens {p0} Nachricht(en), alle {p1} Minute(n), nur solange das Dashboard läuft. Gespeicherte Checkpoints: {p2} Ordner; andere beginnen mit ihrer ersten Nachricht."
+    "Each run reads at most {p0} message(s), every {p1} minute(s), only while the dashboard runs. Saved checkpoints: {p2} folder(s); others start from their first message.": "Jeder Lauf liest höchstens {p0} Nachricht(en), alle {p1} Minute(n), nur solange das Dashboard läuft. Gespeicherte Checkpoints: {p2} Ordner; andere beginnen mit ihrer ersten Nachricht.",
+    " {count} unchanged message(s) were recognized and not analyzed again.": " {count} unveränderte Nachricht(en) wurden erkannt und nicht erneut ausgewertet.",
+    "{p0} unchanged message(s) were recognized and not analyzed again.": "{p0} unveränderte Nachricht(en) wurden erkannt und nicht erneut ausgewertet.",
+    "Analyze at most this many new messages in this run": "Höchstens so viele neue Nachrichten in diesem Lauf auswerten",
+    "Analyze every message again, also those processed before under the same conditions": "Jede Nachricht erneut auswerten, auch die unter gleichen Bedingungen bereits verarbeiteten",
+    "Read at most this many megabytes of new messages in this run": "Höchstens so viele Megabyte neuer Nachrichten in diesem Lauf lesen",
+    "The message budget must be between 1 and 1000000": "Das Nachrichtenbudget muss zwischen 1 und 1000000 liegen",
+    "The size budget must be between 1 and 100000 MB": "Das Größenbudget muss zwischen 1 und 100000 MB liegen"
   }
 }

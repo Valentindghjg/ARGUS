@@ -43,7 +43,7 @@ STATES = ("running", "paused", "completed", "completed_with_gaps", "failed", "ca
 EVENTS = ("job_finished", "automation_paused", "automation_resumed", "approval_granted", "approval_revoked",
           "approval_refused")
 COUNT_KEYS = ("processed", "evidence", "updated_evidence", "removed_evidence", "duplicates", "skipped", "errors",
-              "headers_only", "items")
+              "headers_only", "items", "unchanged")
 KEEP_JOBS = 100
 KEEP_ACTIVITY = 500
 KEEP_DAYS = 180

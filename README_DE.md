@@ -199,6 +199,23 @@ abgebrochen werden; nach zehn Minuten ohne Aktivität wird er als unterbrochen
 markiert. Übersprungene Dateien und Header-Auswertung sind sichtbar; ein solcher
 Scan wird als „Mit Lücken beendet“ gekennzeichnet.
 
+### Nur Geändertes, mit Budget, und später fortsetzen
+
+ARGUS erkennt eine Nachricht, die es unter gleichen Bedingungen schon
+ausgewertet hat, an ihrem Inhalts-Fingerabdruck, nie an Dateiname oder Datum, und
+wertet sie nicht erneut aus; das Ergebnis zählt sie als unverändert. Neue eigene
+Adressen, Katalogergänzungen oder neue Regeln werten alles erneut aus. Ein Lauf
+lässt sich mit `--max-messages` oder `--max-megabytes` auf neue Arbeit begrenzen;
+er endet dann als „Grenze erreicht; nicht alles wurde verarbeitet“, nie als
+vollständig. Derselbe Import setzt beim nächsten Mal fort, auch nach einer
+Unterbrechung oder Pause. `--recheck` wertet jede Nachricht erneut aus. Der Index
+enthält nur Fingerabdrücke, nie Nachrichteninhalte.
+
+```bash
+python -m argus_security import /pfad/zu/postfach.mbox --format mbox --max-messages 5000
+python -m argus_security import /pfad/zu/postfach.mbox --format mbox   # setzt fort
+```
+
 ## Mailanbieter ermitteln
 
 Bei einer eigenen Domain lässt sich der Anbieter nicht aus der Adresse allein
@@ -756,6 +773,7 @@ Begründung mitziehen muss. `--json` gibt den vollständigen Bericht aus.
 | `argus_security/identity.py` | Bestätigte Anmelde- und Postfachbeziehungen und begründete Prioritäten |
 | `argus_security/sessions.py`, `reviews.py` | Kurze Arbeitssitzungen mit Bericht und die Prüfregel |
 | `argus_security/jobs.py` | Gemeinsame Vorgangszustände, globale Pause und minimales Aktivitätsprotokoll |
+| `argus_security/imports.py` | Index verarbeiteter Nachrichten, Importbudget und Fortsetzen |
 | `argus_security/backup.py` | Lokale Profilsicherungen und Wiederherstellung |
 | `argus_security/workflow.py` | Lokale Sicherheits-Arbeitsliste und geführter nächster Schritt |
 | `argus_security/handoffs.py` | Dauerhaftes Journal für Bitwarden-Übertragungen |
