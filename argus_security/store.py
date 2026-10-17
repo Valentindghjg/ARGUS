@@ -15,6 +15,7 @@ from .instances import (SCHEMA as INSTANCE_SCHEMA, defer_in_queue, direct_identi
 from .registry import Registry
 from .review import SCHEMA as REVIEW_SCHEMA
 from .identity import SCHEMA as IDENTITY_SCHEMA, explain_priorities, load as load_identity
+from .coverage import SCHEMA as COVERAGE_SCHEMA
 from .jobs import SCHEMA as JOBS_SCHEMA
 from .imports import SCHEMA as IMPORTS_SCHEMA
 from .history import SCHEMA as HISTORY_SCHEMA
@@ -41,7 +42,8 @@ CHECKLIST = LEGACY_CHECKLIST
 #   8: the processed-message index for continuing imports (A11, A13-A16)
 #   9: one row of counts per day for progress over time (P2)
 #  10: address move plans (A21)
-SCHEMA_VERSION = 10
+#  11: per-source coverage totals that outlive the job list (D4)
+SCHEMA_VERSION = 11
 
 
 def now():
@@ -213,6 +215,7 @@ class Store:
             db.executescript(REVIEW_SCHEMA)
             db.executescript(IDENTITY_SCHEMA)
             db.executescript(JOBS_SCHEMA)
+            db.executescript(COVERAGE_SCHEMA)
             db.executescript(IMPORTS_SCHEMA)
             db.executescript(HISTORY_SCHEMA)
             db.executescript(MOVES_SCHEMA)

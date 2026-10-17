@@ -16,7 +16,7 @@ from argus_security.analysis import Evidence
 from argus_security.backup import BackupError, create_backup, restore_backup
 from argus_security.registry import Registry
 from argus_security.scan import scan_messages, synthetic_mail
-from argus_security.store import Store
+from argus_security.store import SCHEMA_VERSION, Store
 
 OWN = "owner@example.invalid"
 
@@ -165,7 +165,7 @@ class ReviewBackupTests(unittest.TestCase):
             db.execute("UPDATE meta SET value='99' WHERE key='schema_version'")
         newer = create_backup(self.profile)
         with closing(sqlite3.connect(self.profile / "accounts.sqlite3")) as db, db:
-            db.execute("UPDATE meta SET value='10' WHERE key='schema_version'")
+            db.execute("UPDATE meta SET value=? WHERE key='schema_version'", (str(SCHEMA_VERSION),))
         before = (self.profile / "accounts.sqlite3").read_bytes()
         with self.assertRaises(BackupError):
             restore_backup(self.profile, newer)

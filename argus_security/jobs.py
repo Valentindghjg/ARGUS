@@ -14,6 +14,7 @@ from datetime import datetime, timedelta, timezone
 import json
 import uuid
 
+from .coverage import keep_totals
 from .errors import UserFacingError
 
 SCHEMA = """
@@ -106,7 +107,10 @@ def start(db, job_id, kind, source):
     moment = _now()
     db.execute("""INSERT INTO jobs(id,kind,source,state,started_at,updated_at) VALUES (?,?,?,'running',?,?)
                   ON CONFLICT(id) DO NOTHING""", (job_id, kind, source[:20], moment, moment))
-    db.execute("DELETE FROM jobs WHERE id NOT IN (SELECT id FROM jobs ORDER BY started_at DESC LIMIT ?)", (KEEP_JOBS,))
+    # The same rows are folded and deleted, so no run is counted twice or lost.
+    dropped = db.execute("SELECT * FROM jobs ORDER BY started_at DESC LIMIT -1 OFFSET ?", (KEEP_JOBS,)).fetchall()
+    keep_totals(db, dropped)
+    db.executemany("DELETE FROM jobs WHERE id=?", [(row["id"],) for row in dropped])
 
 
 def update(db, job_id, counts):

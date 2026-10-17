@@ -8,7 +8,9 @@ from pathlib import Path
 import re
 import tempfile
 import unittest
+from unittest.mock import patch
 
+from argus_security import jobs
 from argus_security.registry import Registry, SHARED_SENDERS, is_shared_sender, is_subdomain
 from argus_security.scan import scan_messages, synthetic_mail
 from argus_security.store import Store
@@ -39,6 +41,30 @@ class CoverageTests(unittest.TestCase):
         self.assertEqual(coverage["months_without_clues"], ["2026-02", "2026-03"])
         self.assertEqual(coverage["addresses_without_clues"], [SPARE])
         self.assertFalse(any("percent" in key or "share" in key for key in coverage))
+
+    def test_runs_that_leave_the_job_list_still_count(self):
+        with tempfile.TemporaryDirectory() as folder:
+            store = Store(Path(folder) / "profile", Registry())
+            store.configure([OWN])
+            senders = ("noreply@github.com", "noreply@dropbox.com", "hello@spotify.com", "support@discord.com")
+            with patch.object(jobs, "KEEP_JOBS", 2):
+                for sender in senders:
+                    scan_messages(store, [created(sender, 1)])
+                # A message read again unchanged still counts once after its job is gone.
+                scan_messages(store, [created(senders[0], 1)])
+                with store.connect() as db:
+                    jobs.single(db, "bitwarden_check", "completed")
+                    jobs.single(db, "bitwarden_check", "completed")
+                    listed = db.execute("SELECT COUNT(*) FROM jobs").fetchone()[0]
+                    newest = db.execute("SELECT MAX(started_at) FROM jobs WHERE kind='import'").fetchone()[0]
+                    totals = [tuple(row) for row in db.execute("SELECT kind, runs, messages FROM source_totals")]
+            source = store.snapshot()["coverage"]["sources"]
+        self.assertEqual(listed, 2)
+        # Every import job has left the list; only numbers are kept, never other job kinds.
+        self.assertIsNone(newest)
+        self.assertEqual(totals, [("import", 5, 4)])
+        self.assertEqual([(s["kind"], s["runs"], s["messages"]) for s in source], [("import", 5, 4)])
+        self.assertIsNotNone(source[0]["last_run"])
 
 
 class CatalogQualityTests(unittest.TestCase):

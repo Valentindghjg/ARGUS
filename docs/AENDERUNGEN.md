@@ -1,3 +1,14 @@
+# Änderungen – Version 2.7.0, dauerhafte Abdeckung, Herkunftsnachweise und Barrierefreiheitsprüfung (noch ohne Tag)
+
+## Abdeckung über die Jobliste hinaus (D4)
+
+- Die Abdeckung zählt jeden Lauf einer Quelle. Die Jobliste behält weiter nur
+  die neuesten 100 Jobs; Quell-Jobs, die aus ihr fallen, gehen im selben Schritt
+  in eine Summenzeile je Quelle ein (Läufe, Nachrichten, letzter Lauf: nur
+  Zahlen), sodass kein Lauf doppelt zählt oder verloren geht. Datenbankschema 11;
+  ARGUS legt wie üblich vor der Migration eine Sicherung an. Jobs, die eine
+  ältere Version schon entfernt hat, lassen sich nicht zurückholen.
+
 # Änderungen – Version 2.6.1, Korrekturen aus dem Review von 2.0–2.6 (noch ohne Tag)
 
 ## Änderungsprotokoll, Rückgängig, Sicherungen und Migrationen

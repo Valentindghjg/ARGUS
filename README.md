@@ -1,4 +1,4 @@
-# ARGUS 2.6.1
+# ARGUS 2.7.0
 
 [Deutsch](README_DE.md) · English
 
@@ -85,8 +85,9 @@ personal email.
 ## Coverage, keyboard use and a masked view
 
 The overview names what your imports cover: each source with its runs, messages
-and last date, the period your clues span, months without any clue and own
-addresses without a clue. ARGUS cannot know how much of your mail or online
+and last date (every run counts, also those the job list no longer shows), the
+period your clues span, months without any clue and own addresses without a
+clue. ARGUS cannot know how much of your mail or online
 life that is, so it shows no total percentage.
 
 Every control can be reached with the keyboard; a **Skip to main content** link
