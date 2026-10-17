@@ -361,6 +361,26 @@ guide.
 See the [worklist guide](docs/WORKLIST.md) and
 [interrupted-transfer guidance](docs/BITWARDEN_CLI.md).
 
+## Priorities and identity accounts
+
+Each account shows why it has its priority: the catalog's rating for that kind
+of service, and accounts that others depend on. You can note which confirmed
+account hosts the mailbox of each own address (“Where your mailboxes are” under
+“Mailbox & Import”) and, for an account that uses single sign-on, which
+confirmed account it signs in with. Such identity accounts become “Do first”
+with the reason shown, and worklist suggestions list them first, each with a
+short “Why”. ARGUS never infers these relations from emails or website visits.
+Your own priority choice always wins; choose **Automatic** to return to the
+derived one. **Move up** and **Move down** change the worklist order and can
+be undone; adding suggestions never reorders tasks you planned. Priorities only
+order your work; they are not a measured risk of attack.
+
+```bash
+python -m argus_security mailbox you@example.org google
+python -m argus_security sign-in-with notion google
+python -m argus_security sign-in-with notion --remove
+```
+
 ## What's new since your last review
 
 After an import, “What's new” shows only clues that are new or rated
@@ -623,6 +643,7 @@ report.
 | `argus_security/review.py` | Unclear items, hidden sender domains and address notes |
 | `argus_security/summary.py`, `guidance.py` | Result summary, next task and next-step hints |
 | `argus_security/digest.py` | What's new since the last review and the return summary |
+| `argus_security/identity.py` | Confirmed sign-in and mailbox relations and explained priorities |
 | `argus_security/backup.py` | Local profile backups and restore |
 | `argus_security/workflow.py` | Local security worklist and guided next step |
 | `argus_security/handoffs.py` | Durable Bitwarden transfer journal |

@@ -87,11 +87,25 @@ def recommended_accounts(accounts, *, excluded=(), limit=None):
                   and account["progress"] != "complete" and not account["deferred"]]
     ranked = sorted(candidates, key=lambda account: (
         PRIORITY_RANK[account["priority"]],
+        # Accounts that others sign in with or reset through come first (A17).
+        -account.get("dependents", 0),
         CLASSIFICATION_RANK[account["classification"]],
         not account.get("identity_review_required", False),
         -account.get("score", 0), account["name"].casefold(), account["id"],
     ))
     return ranked if limit is None else ranked[:limit]
+
+
+def suggestion_reasons(account):
+    """Short codes why an account is suggested for the worklist, most important first."""
+    reasons = [reason["code"] for reason in account.get("priority_reasons", ())
+               if reason["code"] in {"override", "mailbox", "sso_provider"}]
+    if account["priority"] != "normal" and not reasons:
+        reasons.append("catalog")
+    reasons.append("confirmed" if account["decision"] == "confirmed" else "probable")
+    if account.get("identity_review_required"):
+        reasons.append("identify")
+    return reasons
 
 
 def recommended_account(accounts, *, excluded=()):
@@ -117,10 +131,12 @@ def worklist_snapshot(store, accounts):
     queued = {item["id"] for item in items}
     priority_preview = recommended_accounts(accounts.values(), excluded=queued,
                                             limit=MAX_PRIORITY_WORKLIST)
+    # Plan A6: each suggestion says why; adding never reorders started or planned tasks.
+    reasons = {account["id"]: suggestion_reasons(account) for account in priority_preview}
     suggested = priority_preview[0] if priority_preview else None
     return {"items": items, "paused": bool(json.loads(paused[0])) if paused else False,
             "current": current, "suggested": suggested["id"] if suggested else None,
-            "priority_preview": [account["id"] for account in priority_preview],
+            "priority_preview": [account["id"] for account in priority_preview], "suggestion_reasons": reasons,
             "total": len(items), "done": sum(item["step"] == "done" for item in items),
             "deferred": sum(item["deferred"] and item["step"] != "done" for item in items)}
 
@@ -132,7 +148,8 @@ def change_worklist(store, data):
               "focus": {"action", "id"}, "pause": {"action"}, "resume": {"action"},
               "start": {"action"}, "prioritize": {"action"},
               "snooze": {"action", "id", "days"},
-              "snooze_until": {"action", "id", "date"}}
+              "snooze_until": {"action", "id", "date"},
+              "move": {"action", "id", "direction"}}
     if not isinstance(action, str) or action not in shapes or set(data) != shapes[action]:
         raise UserFacingError("Invalid worklist action")
     if action == "add":
@@ -155,6 +172,34 @@ def change_worklist(store, data):
             batch.close()
     elif action in {"pause", "resume"}:
         store.set_meta("worklist_paused", action == "pause")
+    elif action == "move":
+        # Plan D3: the person corrects the order; both swapped rows are logged as one change.
+        if data["direction"] not in {"up", "down"} or not isinstance(data["id"], str):
+            raise UserFacingError("Invalid worklist action")
+        with store.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            rows = db.execute("SELECT account_id,position FROM instance_work_queue ORDER BY position,account_id").fetchall()
+            order = [row["account_id"] for row in rows]
+            if data["id"] not in order:
+                raise UserFacingError("Account is not in the worklist")
+            index = order.index(data["id"])
+            other = index - 1 if data["direction"] == "up" else index + 1
+            if not 0 <= other < len(order):
+                return {"ok": True, "batch": None}
+            if rows[index]["position"] == rows[other]["position"]:
+                # Equal positions cannot be swapped; number them in their shown order first.
+                for position, account_id in enumerate(order, start=1):
+                    db.execute("UPDATE instance_work_queue SET position=? WHERE account_id=?", (position, account_id))
+                rows = db.execute("SELECT account_id,position FROM instance_work_queue ORDER BY position,account_id").fetchall()
+            pair = (rows[index], rows[other])
+            batch = ChangeBatch(db)
+            before = {row["account_id"]: planning(db, row["account_id"]) for row in pair}
+            # Only the two rows trade places, so undoing this change restores the order exactly.
+            db.execute("UPDATE instance_work_queue SET position=? WHERE account_id=?", (pair[1]["position"], pair[0]["account_id"]))
+            db.execute("UPDATE instance_work_queue SET position=? WHERE account_id=?", (pair[0]["position"], pair[1]["account_id"]))
+            for account_id, old in before.items():
+                batch.record(account_id, "planning", old, planning(db, account_id))
+            return {"ok": True, "batch": batch.close()}
     elif action == "prioritize":
         # The user explicitly starts this action in the dashboard. It adds only
         # local queue rows; no checklist, vault or provider state is touched.

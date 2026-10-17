@@ -21,6 +21,24 @@
 - Hinweise in der Accountliste und unter „Unklares“ brechen auf schmalen
   Bildschirmen jetzt um.
 
+## Begründete Prioritäten und Identitätskonten (D3, A6, A17, B6)
+
+- Jeder Account nennt die Gründe für seine Priorität. Eine von dir gewählte
+  Priorität hat Vorrang; „Automatisch“ stellt die abgeleitete wieder her.
+- Du kannst notieren, welcher bestätigte Account das Postfach einer eigenen
+  Adresse hostet und mit welchem bestätigten Account sich ein
+  Single-Sign-on-Account anmeldet. Solche Identitätskonten werden zu „Zuerst“
+  mit sichtbarem Grund und stehen bei den Vorschlägen für die Arbeitsliste vorn;
+  Beziehungen zu nicht mehr bestätigten Accounts bleiben als inaktiv sichtbar.
+  ARGUS leitet diese Beziehungen nie selbst ab.
+- Vorschläge für die Arbeitsliste nennen ihren Grund („Warum: …“). **Nach oben**
+  und **Nach unten** tauschen zwei Aufgaben und lassen sich zurücknehmen;
+  Vorschläge hinzuzufügen sortiert geplante Aufgaben nie um.
+- Neue CLI-Befehle `mailbox` und `sign-in-with`; API
+  `POST /api/profile/mailboxes`, `POST /api/accounts/{id}/sign-in-with` und die
+  Arbeitslisten-Aktion `move`. Schemaversion 6 ergänzt zwei Tabellen nach der
+  automatischen Sicherung.
+
 # Änderungen – Version 2.1.0, Paket B: erklärbare, korrigierbare Erkennung (noch ohne Tag)
 
 ## Warum ein Hinweis zählt, welche Art er hat und wie alt er ist (E1, E2, Priorität 03)

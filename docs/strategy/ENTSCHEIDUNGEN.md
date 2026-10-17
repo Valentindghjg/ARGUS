@@ -70,3 +70,12 @@ Wird während der Umsetzung fortgeschrieben.
   gezählt, nicht einzeln vorgelegt. Bei vorhandenen Profilen gelten alle vor
   Schemaversion 5 gespeicherten Hinweise als gesehen, damit nach dem Update
   keine Flut alter Funde erscheint.
+- **S12, Identitätsbeziehungen als Notizen der Person:** Postfach- und
+  Anmeldebeziehungen werden nur ausdrücklich gesetzt und nur zu Accounts, die du
+  bestätigt hast. Wie die Adressnotizen aus S9 stehen sie nicht im
+  Änderungsprotokoll, sondern lassen sich direkt entfernen. Wird ein beteiligter
+  Account verworfen oder ändert sich die Anmeldeart, bleibt die Notiz als
+  inaktiv sichtbar statt still zu verschwinden. Ein Postfach- oder
+  Anmelde-Account wird automatisch „Zuerst“; eine eigene Priorität geht immer
+  vor. „Nach oben/unten“ tauscht genau zwei Positionen, damit Rückgängig die
+  Reihenfolge exakt wiederherstellt.

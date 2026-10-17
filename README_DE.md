@@ -380,6 +380,27 @@ Bei Prüfung, Passwortwechsel, Anmeldetest sowie MFA/Wiederherstellung speichert
 **Ich habe diesen Schritt erledigt** deine ausdrückliche lokale Bestätigung und
 führt danach direkt mit dem nächsten Schritt weiter.
 
+## Prioritäten und Identitätskonten
+
+Jeder Account zeigt, warum er seine Priorität hat: die Einstufung dieser Art
+Dienst im Katalog und Accounts, von denen andere abhängen. Du kannst notieren,
+welcher bestätigte Account das Postfach jeder eigenen Adresse hostet („Wo deine
+Postfächer liegen“ unter „Postfach & Import“) und, bei einem Account mit Single
+Sign-on, mit welchem bestätigten Account er sich anmeldet. Solche
+Identitätskonten werden zu „Zuerst“ mit sichtbarem Grund, und Vorschläge für die
+Arbeitsliste nennen sie zuerst, jeweils mit kurzem „Warum“. ARGUS leitet diese
+Beziehungen nie aus E-Mails oder Websitebesuchen ab. Deine eigene Priorität hat
+immer Vorrang; **Automatisch** stellt die abgeleitete wieder her. **Nach oben**
+und **Nach unten** ändern die Reihenfolge der Arbeitsliste und lassen sich
+zurücknehmen; Vorschläge hinzuzufügen sortiert geplante Aufgaben nie um.
+Prioritäten ordnen nur deine Arbeit; sie sind kein gemessenes Angriffsrisiko.
+
+```bash
+python -m argus_security mailbox du@example.org google
+python -m argus_security sign-in-with notion google
+python -m argus_security sign-in-with notion --remove
+```
+
 ## Neu seit deiner letzten Durchsicht
 
 Nach einem Import zeigt „Neu seit…“ nur Hinweise, die neu sind oder anders
@@ -672,6 +693,7 @@ Begründung mitziehen muss. `--json` gibt den vollständigen Bericht aus.
 | `argus_security/review.py` | Unklares, ausgeblendete Absenderdomains und Adressnotizen |
 | `argus_security/summary.py`, `guidance.py` | Ergebniszusammenfassung, nächste Aufgabe und Hinweise zum nächsten Schritt |
 | `argus_security/digest.py` | Neues seit der letzten Durchsicht und Zusammenfassung beim Wiederkommen |
+| `argus_security/identity.py` | Bestätigte Anmelde- und Postfachbeziehungen und begründete Prioritäten |
 | `argus_security/backup.py` | Lokale Profilsicherungen und Wiederherstellung |
 | `argus_security/workflow.py` | Lokale Sicherheits-Arbeitsliste und geführter nächster Schritt |
 | `argus_security/handoffs.py` | Dauerhaftes Journal für Bitwarden-Übertragungen |

@@ -14,6 +14,7 @@ from .instances import (SCHEMA as INSTANCE_SCHEMA, defer_in_queue, direct_identi
                         owned_emails, read_steps, rebuild_from_v1, synchronize_instances, write_step)
 from .registry import Registry
 from .review import SCHEMA as REVIEW_SCHEMA
+from .identity import SCHEMA as IDENTITY_SCHEMA, explain_priorities, load as load_identity
 from .changes import ChangeBatch, planning
 from .digest import acknowledge, change_digest, next_revision, return_summary, review_mark, undo_acknowledge
 from .states import (DECISIONS, LEGACY_CHECKLIST, LEGACY_STEPS, REJECT_REASONS, STEPS, default_steps,
@@ -29,7 +30,7 @@ CHECKLIST = LEGACY_CHECKLIST
 #   2: ADR-0001 axes: decision, dated steps, planning only in the worklist, change log
 #   3: rule features per clue (plan E1); older clues gain them on their next import
 #   4: reversible sender-domain exclusions and relations between own addresses (E4, A9)
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 6
 
 
 def now():
@@ -190,6 +191,7 @@ class Store:
                 db.execute("CREATE UNIQUE INDEX evidence_fingerprint ON evidence(fingerprint)")
             db.executescript(INSTANCE_SCHEMA)
             db.executescript(REVIEW_SCHEMA)
+            db.executescript(IDENTITY_SCHEMA)
             queue_columns = {row["name"] for row in db.execute("PRAGMA table_info(instance_work_queue)")}
             if "resume_after" not in queue_columns:
                 db.execute("ALTER TABLE instance_work_queue ADD COLUMN resume_after TEXT")
@@ -345,6 +347,7 @@ class Store:
             from .review import exclusions, relations
             excluded = exclusions(db)
             related = relations(db)
+            identity_relations = load_identity(db)
             evidences = [dict(r) for r in db.execute("SELECT * FROM evidence ORDER BY score DESC,id DESC")]
             own = owned_emails(db)
             mark = review_mark(db)
@@ -434,7 +437,9 @@ class Store:
                     "latest_clue_at": max((e["date"] for e in found if e["date"]), default=None),
                     "historical": bool(found) and all(e["historical"] for e in found),
                     "unassigned_evidence": provider_clues[:30], "unassigned_evidence_count": len(provider_clues),
+                    # Derived with its reasons in explain_priorities (plan D3).
                     "priority": state["priority_override"] or provider.priority,
+                    "catalog_priority": provider.priority, "priority_override": state["priority_override"],
                     "login_method": state["login_method"], "updated": state["updated"],
                     # 1.x compatibility fields, derived from the axes above (ADR-0001, section 4).
                     "classification": legacy_classification(decision, level),
@@ -443,6 +448,7 @@ class Store:
                     "confidence": "manually confirmed" if confirmed else "high" if score >= 85 else "medium" if score >= 60 else "low" if found else "no evidence",
                     "reason": "You confirmed that this account exists" if confirmed else evidence_reason,
                 })
+        identity_links = explain_priorities(accounts, identity_relations)
         rank = {"critical": 0, "high": 1, "normal": 2}
         accounts.sort(key=lambda a: (a["classification"] == "unknown", a["status"] == "done", rank[a["priority"]], a["name"].casefold()))
         found = [a for a in accounts if a["classification"] != "unknown"]
@@ -455,7 +461,7 @@ class Store:
                             "classification": "unknown", "reason": "Unverified sender domain; extend the catalog"}
                            for domain, items in sorted(candidates.items())
                            if domain not in {entry["domain"] for entry in excluded}],
-            "exclusions": excluded, "relations": related,
+            "exclusions": excluded, "relations": related, "identity_links": identity_links,
             "catalog": {"personal": personal_providers(self.registry), "categories": catalog_categories(self.registry),
                         # Plan E6: clues stored before a catalog addition need their original email again.
                         "reanalysis": sum(1 for e in evidences if not e["provider_id"] and self.registry.match(e["sender_domain"]))},
@@ -688,6 +694,23 @@ class Store:
                 batch.record(account_id, "step:" + step, current, new)
                 db.execute("UPDATE account_instances SET updated=? WHERE id=?", (now(), account_id))
             return {"ok": True, "batch": batch.close()}
+
+    def link_sign_in(self, account_id, provider_account):
+        """Record which confirmed account this one signs in with (plan A17, B6); None removes it."""
+        from .identity import link_sign_in
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            link_sign_in(db, account_id, provider_account, now())
+        return {"ok": True}
+
+    def set_mailbox(self, address, account_id):
+        """Record which confirmed account hosts the mailbox of an own address; None removes it."""
+        from .identity import set_mailbox
+        address = normalize_email(address) if isinstance(address, str) else None
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            set_mailbox(db, address, account_id, owned_emails(db), now())
+        return {"ok": True}
 
     def acknowledge_changes(self, revision):
         """Mark the changes the person saw as reviewed (plan A1); decisions stay untouched."""

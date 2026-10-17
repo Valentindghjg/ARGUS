@@ -19,6 +19,22 @@
   backup. Clues stored before count as already reviewed.
 - Notes in the account list and the unclear view now wrap on narrow screens.
 
+### Explained priorities and identity accounts (D3, A6, A17, B6)
+
+- Every account lists the reasons for its priority. A priority you choose wins;
+  “Automatic” returns to the derived one.
+- You can note which confirmed account hosts the mailbox of an own address and
+  which confirmed account a single sign-on account uses. Such identity accounts
+  become “Do first” with the reason shown and lead the worklist suggestions;
+  relations to accounts that are no longer confirmed stay listed as inactive.
+  ARGUS never infers these relations.
+- Worklist suggestions say why (“Why: …”). **Move up** and **Move down** swap
+  two tasks and can be undone; adding suggestions never reorders planned tasks.
+- New CLI commands `mailbox` and `sign-in-with`; API
+  `POST /api/profile/mailboxes`, `POST /api/accounts/{id}/sign-in-with` and the
+  worklist action `move`. Schema version 6 adds two tables after the automatic
+  backup.
+
 ## 2.1.0 — Package B: explainable, correctable detection (not yet tagged)
 
 ### Why a clue counts, what kind it is and how old (E1, E2, priority 03)

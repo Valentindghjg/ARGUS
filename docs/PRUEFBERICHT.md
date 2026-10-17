@@ -10,6 +10,14 @@ API-Formen. Der Browser öffnet die Zusammenfassung, markiert Änderungen als
 gesehen, nimmt das in beiden Sprachen zurück und prüft, dass die Übersicht sie
 danach ausblendet.
 
+Schritt S12a: **289 Python-Tests** und **33 Browser-Prüfgruppen**. Neue Tests
+prüfen Katalog-Begründungen und die eigene Wahl, Postfach- und
+Anmeldebeziehungen (eigene Adressen, bestätigte Accounts, nur Single Sign-on,
+keine Kreise, inaktiv nach Verwerfen, Entfernen), Identitätskonten an der Spitze
+der Vorschläge mit Gründen, das Tauschen zweier Aufgaben mit Rücknahme sowie
+CLI- und API-Formen. Der Browser notiert Anmelde- und Postfach-Account, liest die
+Gründe und verschiebt eine Aufgabe mit Rücknahme.
+
 # Prüfbericht – Version 2.1.0 (Paket B, noch ohne Tag)
 
 Schritt S8: **257 Python-Tests** und **28 Browser-Prüfgruppen**. Geprüft werden
