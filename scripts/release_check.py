@@ -7,7 +7,8 @@
   below with what it does. A new connection or permission fails this check
   until it is declared here and named in the release notes.
 - The browser companion keeps exactly its declared permissions.
-- ``tag NAME`` checks that a release tag names this version.
+- ``tag NAME`` checks that a release tag names this version and that its notes in
+  docs/releases/NAME.md keep every template section and name every declared module.
 - ``checksums DIST`` writes SHA256SUMS for the built files.
 
 Usage: python scripts/release_check.py [tag NAME | checksums DIST]
@@ -104,6 +105,26 @@ def problems():
     return issues
 
 
+def notes_problems(tag):
+    """The release notes for a tag: its title, every template section and every declared module."""
+    name = f"docs/releases/{tag}.md"
+    path = ROOT / name
+    if not path.is_file():
+        return [f"{name} is missing; copy docs/RELEASE_NOTES_TEMPLATE.md"]
+    text = path.read_text(encoding="utf-8")
+    template = (ROOT / "docs" / "RELEASE_NOTES_TEMPLATE.md").read_text(encoding="utf-8")
+    issues = []
+    if not re.match(rf"# ARGUS {re.escape(tag)} — \S", text):
+        issues.append(f"{name} must start with '# ARGUS {tag} — ' and a title")
+    for heading in re.findall(r"^## .+$", template, re.M):
+        if not re.search(rf"^{re.escape(heading)}$", text, re.M):
+            issues.append(f"{name} has no section '{heading}'")
+    for module in [*DECLARED, "Browser companion"]:
+        if f"`{module}`" not in text and f"| {module} |" not in text:
+            issues.append(f"{name} does not name {module} under connections and permissions")
+    return issues
+
+
 def companion_declared(manifest):
     return manifest.get("permissions", []) == COMPANION_PERMISSIONS and not set(manifest) - COMPANION_KEYS
 
@@ -121,7 +142,10 @@ def main(argv=None):
         if argv[1] != f"v{package_version()}":
             print(f"Release check: the tag {argv[1]} does not name version {package_version()}")
             return 1
-        return 0
+        issues = notes_problems(argv[1])
+        for issue in issues:
+            print("Release check: " + issue)
+        return 1 if issues else 0
     if argv[:1] == ["checksums"] and len(argv) == 2:
         for line in write_checksums(Path(argv[1])):
             print(line)

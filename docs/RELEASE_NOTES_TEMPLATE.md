@@ -1,7 +1,10 @@
-# ARGUS X.Y.Z
+# ARGUS vX.Y.Z — Short title
 
-Copy this template for each GitHub release and fill it from `docs/CHANGELOG.md`
-and `docs/AENDERUNGEN.md`. Keep every section, also when it says "none".
+Copy this template to `docs/releases/vX.Y.Z.md` and fill it from
+`docs/CHANGELOG.md` and `docs/AENDERUNGEN.md`. Keep every section, also when it
+says "none". The first line becomes the release title and the rest the release
+text; `python scripts/release_check.py tag vX.Y.Z` checks both before anything
+is built.
 
 ## In short / Kurz gesagt
 

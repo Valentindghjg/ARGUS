@@ -913,10 +913,12 @@ Leserechte; bei einem Tag legt ein eigener Job, der keinen Projektcode ausführt
 eine signierte Herkunftsbestätigung (Build-Provenance-Attestierung) für Rad und
 Quellarchiv an, sodass
 `gh attestation verify <Datei> --repo Valentindghjg/ARGUS` zeigt, dass eine
-Datei von diesem Workflow aus dem Tag gebaut wurde. Kein Workflow erstellt ein
-Release; Releases legt der Eigentümer von Hand mit der
-[Vorlage für Release-Hinweise](docs/RELEASE_NOTES_TEMPLATE.md) an, die neue
-Verbindungen und Rechte immer nennt. Siehe [Veröffentlichung](docs/PUBLISHING.md).
+Datei von diesem Workflow aus dem Tag gebaut wurde. Erst danach veröffentlicht
+ein dritter Job das Release mit genau diesen Dateien und den Hinweisen aus
+`docs/releases/<Tag>.md`, geschrieben nach der
+[Vorlage für Release-Hinweise](docs/RELEASE_NOTES_TEMPLATE.md), die neue
+Verbindungen und Rechte immer nennt. Nur der Tag des Eigentümers startet ein
+Release. Siehe [Veröffentlichung](docs/PUBLISHING.md).
 
 | Datei | Zweck |
 |---|---|

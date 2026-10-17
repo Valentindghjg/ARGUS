@@ -842,10 +842,12 @@ lists their checksums. Its build job needs only read access; for a tag, a
 separate job that runs no project code records a signed build provenance
 attestation for the wheel and the source archive, so
 `gh attestation verify <file> --repo Valentindghjg/ARGUS` shows that a file
-was built by this workflow from the tag. No workflow creates a release; the
-owner creates releases by hand with the
+was built by this workflow from the tag. Only after that does a third job
+publish the release with exactly these files and the notes from
+`docs/releases/<tag>.md`, written from the
 [release notes template](docs/RELEASE_NOTES_TEMPLATE.md), which always names new
-connections and permissions. See [publishing](docs/PUBLISHING.md).
+connections and permissions. Only the owner's tag starts a release. See
+[publishing](docs/PUBLISHING.md).
 
 | File | Purpose |
 |---|---|
