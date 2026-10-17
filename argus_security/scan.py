@@ -43,6 +43,8 @@ class ScanSession:
         self.scope = imports.scope_key(self.emails, store.registry, ANALYSIS_VERSION)
         self.recheck = recheck
         self.budget = budget
+        # Plan A16: keys of local items that were skipped or failed, for a targeted retry.
+        self.failed_items = []
         self.new_work = {"messages": 0, "bytes": 0}
         self.kind = "scheduled_scan" if trigger == "scheduled" else "imap_scan" if source == "imap" else "import"
         with store.connect() as db:
@@ -88,7 +90,7 @@ class ScanSession:
                 if jobs.paused(db):
                     raise jobs.JobPaused("Automation was paused; the job stopped between two messages. Saved clues stay.")
 
-    def process(self, raw):
+    def process(self, raw, key=None):
         self._ensure_capacity()
         self._check_pause()
         self.stats["processed"] += 1
@@ -102,6 +104,7 @@ class ScanSession:
         self.new_work["bytes"] += len(raw) if isinstance(raw, bytes) else 0
         if fingerprint is None:
             self.stats["skipped"] += 1
+            self._failed(key)
         else:
             if raw.startswith(HEADERS_ONLY_MARKER + b": yes"):
                 self.stats["headers_only"] += 1
@@ -124,11 +127,16 @@ class ScanSession:
                         imports.remember(db, fingerprint, self.scope)
             except (ValueError, TypeError, UnicodeError, RecursionError):
                 self.stats["errors"] += 1
+                self._failed(key)
         if self.budget and ((self.budget["messages"] and self.new_work["messages"] >= self.budget["messages"])
                             or (self.budget["bytes"] and self.new_work["bytes"] >= self.budget["bytes"])):
             # A13/A14: the run stops here and ends as "limited", never as complete.
             self.info["limit_reached"] = True
         return self._progress()
+
+    def _failed(self, key):
+        if key is not None and len(self.failed_items) < imports.MAX_FAILED_ITEMS:
+            self.failed_items.append(key)
 
     def _progress(self):
         if self.stats["processed"] == 1 or self.stats["processed"] % 50 == 0:
@@ -160,15 +168,19 @@ class ScanSession:
 
 
 def scan_messages(store: Store, messages, source="eml", progress=None, *, session=None, trigger="manual",
-                  budget=None, recheck=False):
+                  budget=None, recheck=False, keyed=False):
+    """Analyze messages; with ``keyed`` each item is a (key, raw) pair from ``file_items``."""
     session = session or ScanSession(store, source, progress=progress, info=getattr(messages, "scan_info", None),
                                     emails=getattr(messages, "scan_emails", None), trigger=trigger,
                                     budget=budget, recheck=recheck)
     iterator = None
     try:
         iterator = iter(messages)
-        for raw in iterator:
-            session.process(raw)
+        for item in iterator:
+            if keyed:
+                session.process(item[1], key=item[0])
+            else:
+                session.process(item)
             if session.info.get("scope_changed") or (session.budget and session.info.get("limit_reached")):
                 break
     except jobs.JobPaused:
@@ -188,6 +200,17 @@ def scan_messages(store: Store, messages, source="eml", progress=None, *, sessio
 
 
 def file_messages(path: Path, kind: str):
+    for _, raw in file_items(path, kind):
+        yield raw
+
+
+def file_items(path: Path, kind: str, only=None):
+    """Messages of a local source with a stable key each (plan A16).
+
+    The key is the file's path relative to the source, or the message number in
+    an mbox. ``only`` restricts reading to these keys, for retrying failures.
+    """
+    only = set(only) if only is not None else None
     if kind == "mbox":
         if not path.is_file():
             raise ValueError("mbox file not found")
@@ -196,10 +219,13 @@ def file_messages(path: Path, kind: str):
         # changes, so the original stays unchanged. create=False never creates it.
         box = mailbox.mbox(path, create=False)
         try:
-            for key in box.iterkeys():
+            for number, key in enumerate(box.iterkeys()):
+                item = f"#{number}"
+                if only is not None and item not in only:
+                    continue
                 with box.get_file(key, from_=False) as message_file:
                     raw = message_file.read(MAX_MESSAGE_BYTES + 1)
-                yield raw if len(raw) <= MAX_MESSAGE_BYTES else None
+                yield item, raw if len(raw) <= MAX_MESSAGE_BYTES else None
         finally:
             box.close()
     elif kind == "maildir":
@@ -207,18 +233,20 @@ def file_messages(path: Path, kind: str):
             raise ValueError("Maildir requires cur/ and new/")
         for folder in (path / "cur", path / "new"):
             for file in sorted(folder.iterdir()):
-                if file.is_file() and not file.is_symlink():
+                item = file.relative_to(path).as_posix()
+                if file.is_file() and not file.is_symlink() and (only is None or item in only):
                     with file.open("rb") as handle:
-                        yield handle.read(MAX_MESSAGE_BYTES + 1)
+                        yield item, handle.read(MAX_MESSAGE_BYTES + 1)
     elif kind == "eml":
         if not path.exists():
             raise ValueError("EML path not found")
         files = [path] if path.is_file() else sorted(path.rglob("*.eml"))
         for file in files:
-            if file.is_symlink():
+            item = file.name if file == path else file.relative_to(path).as_posix()
+            if file.is_symlink() or (only is not None and item not in only):
                 continue
             with file.open("rb") as handle:
-                yield handle.read(MAX_MESSAGE_BYTES + 1)
+                yield item, handle.read(MAX_MESSAGE_BYTES + 1)
     else:
         raise ValueError("Unknown import format")
 

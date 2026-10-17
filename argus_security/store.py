@@ -509,6 +509,11 @@ class Store:
         for account in accounts:
             account["review_proposal"] = proposals.get(account["id"])
         snapshot["review_rule"] = rule
+        # Plan A11/A16: the remembered local source, shown with its commands; failed keys stay local.
+        preset, failures = self.meta("import_preset"), self.meta("import_failures")
+        snapshot["last_local_import"] = ({**preset, "failed": len(failures.get("items", []))
+                                          if isinstance(failures, dict) and failures.get("path") == preset.get("path") else 0}
+                                         if isinstance(preset, dict) else None)
         snapshot["session"] = sessions.report(session, accounts)
         from .i18n import localize_snapshot
         return localize_snapshot(snapshot, language)

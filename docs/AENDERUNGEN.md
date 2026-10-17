@@ -45,6 +45,17 @@
 - Schemaversion 8 ergänzt den Index nach der automatischen Sicherung.
   Wiederholte Importe melden jetzt `unchanged`, wo vorher `duplicates` stand.
 
+## Lokale Importe wiederholen, gezielt nachholen und vorab prüfen (A11, A16, P3, Priorität 13)
+
+- `import --again` wiederholt den letzten Terminal-Import mit gleicher Quelle und
+  gleichem Format; eine fehlende Quelle wird gemeldet. Das Dashboard zeigt den
+  letzten Terminal-Import mit seinen Befehlen. Im Browser gewählte Dateien werden
+  nie gemerkt.
+- Leere, zu große oder unlesbare Elemente werden lokal mit relativem Pfad oder
+  mbox-Nummer vermerkt, und `import --retry-failed` liest nur diese.
+- `import --check` zählt Nachrichten, Größe, neue, unveränderte und zu große
+  Elemente einer Quelle, ohne zu importieren oder auszuwerten.
+
 # Änderungen – Version 2.2.0, Paket C: lokale Vorarbeit (noch ohne Tag)
 
 ## Neu seit deiner letzten Durchsicht (A1–A4, A7, A28, Prioritäten 05 und 06)

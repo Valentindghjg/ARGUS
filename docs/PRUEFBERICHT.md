@@ -25,6 +25,13 @@ Unterbrechung, den Index nur aus Fingerabdrücken und die CLI-Optionen. Frühere
 Tests für Neuimporte erwarten jetzt `unchanged`; Tests, die ältere gespeicherte
 Hinweise nachbilden, entfernen auch den Index, weil Profile vor 2.3 keinen haben.
 
+Schritt S14b: **314 Python-Tests** und **36 Browser-Prüfgruppen**. Neue Tests
+prüfen das Merken und Wiederholen der letzten Quelle, eine fehlende Quelle, die
+Ablehnung von Pfad plus `--again`, das gezielte Nachholen fehlgeschlagener
+Elemente (danach keine mehr), nummerierte mbox-Elemente, die Vorprüfung ohne
+Vorgänge oder Hinweise und dass das Dashboard nur die Anzahl fehlgeschlagener
+Elemente sieht. Der Browser zeigt den letzten Terminal-Import mit Befehlen.
+
 # Prüfbericht – Version 2.2.0 (Paket C, noch ohne Tag)
 
 Schritt S11: **283 Python-Tests** und **32 Browser-Prüfgruppen**. Neue Tests

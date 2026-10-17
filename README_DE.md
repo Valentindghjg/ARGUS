@@ -211,9 +211,20 @@ vollständig. Derselbe Import setzt beim nächsten Mal fort, auch nach einer
 Unterbrechung oder Pause. `--recheck` wertet jede Nachricht erneut aus. Der Index
 enthält nur Fingerabdrücke, nie Nachrichteninhalte.
 
+ARGUS merkt sich den letzten Terminal-Import (Quelle und Format) für
+`import --again`; das Dashboard zeigt ihn unter „Postfach & Import“ mit dem
+Befehl. Leere, zu große oder unlesbare Elemente werden lokal vermerkt, und
+`import --retry-failed` liest nach dem Beheben nur diese. Eine fehlende Quelle
+wird gemeldet, nie stillschweigend ersetzt. Für ein großes Archiv zählt
+`import --check` zuerst Nachrichten, Größe, neue und unveränderte Nachrichten und
+zu große Elemente, ohne etwas zu importieren. Im Browser ausgewählte Dateien
+merkt sich ARGUS nie.
+
 ```bash
+python -m argus_security import /pfad/zu/postfach.mbox --format mbox --check
 python -m argus_security import /pfad/zu/postfach.mbox --format mbox --max-messages 5000
-python -m argus_security import /pfad/zu/postfach.mbox --format mbox   # setzt fort
+python -m argus_security import --again          # setzt dieselbe Quelle fort
+python -m argus_security import --retry-failed   # nur fehlgeschlagene Elemente
 ```
 
 ## Mailanbieter ermitteln
