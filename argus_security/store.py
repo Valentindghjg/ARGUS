@@ -17,6 +17,7 @@ from .review import SCHEMA as REVIEW_SCHEMA
 from .identity import SCHEMA as IDENTITY_SCHEMA, explain_priorities, load as load_identity
 from .jobs import SCHEMA as JOBS_SCHEMA
 from .imports import SCHEMA as IMPORTS_SCHEMA
+from .history import SCHEMA as HISTORY_SCHEMA
 from .changes import ChangeBatch, planning
 from .digest import acknowledge, change_digest, next_revision, return_summary, review_mark, undo_acknowledge
 from .states import (DECISIONS, LEGACY_CHECKLIST, LEGACY_STEPS, REJECT_REASONS, STEPS, default_steps,
@@ -32,7 +33,7 @@ CHECKLIST = LEGACY_CHECKLIST
 #   2: ADR-0001 axes: decision, dated steps, planning only in the worklist, change log
 #   3: rule features per clue (plan E1); older clues gain them on their next import
 #   4: reversible sender-domain exclusions and relations between own addresses (E4, A9)
-SCHEMA_VERSION = 8
+SCHEMA_VERSION = 9
 
 
 def now():
@@ -196,6 +197,7 @@ class Store:
             db.executescript(IDENTITY_SCHEMA)
             db.executescript(JOBS_SCHEMA)
             db.executescript(IMPORTS_SCHEMA)
+            db.executescript(HISTORY_SCHEMA)
             queue_columns = {row["name"] for row in db.execute("PRAGMA table_info(instance_work_queue)")}
             if "resume_after" not in queue_columns:
                 db.execute("ALTER TABLE instance_work_queue ADD COLUMN resume_after TEXT")
@@ -514,6 +516,16 @@ class Store:
         for account in accounts:
             account["review_proposal"] = proposals.get(account["id"])
         snapshot["review_rule"] = rule
+        # Plan P2: one row of counts per day, compared over a week, a month and a quarter.
+        from . import history
+        from .profiles import profile_name
+        today = history.counts(snapshot)
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            history.record(db, today)
+            snapshot["history"] = {"day": datetime.now(timezone.utc).date().isoformat(), "today": today,
+                                   "comparisons": history.comparisons(db, today)}
+        snapshot["profile_name"] = profile_name(self.data_dir)
         # Plan A11/A16: the remembered local source, shown with its commands; failed keys stay local.
         preset, failures = self.meta("import_preset"), self.meta("import_failures")
         snapshot["last_local_import"] = ({**preset, "failed": len(failures.get("items", []))
@@ -768,6 +780,11 @@ class Store:
             control = overview(db, schedule, watch=watch)
         control["watch"] = watch
         return control
+
+    def report_text(self, level="numbers", include_addresses=False, language="en"):
+        """Plan P5: a data-minimal progress report; addresses only when asked for."""
+        from .reports import build
+        return build(self.snapshot(), level, include_addresses, language)
 
     def mark_in_vault(self, ids):
         """Plan B1: the person states these accounts are already in their vault; ARGUS reads nothing."""

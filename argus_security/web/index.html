@@ -24,7 +24,7 @@
       <button data-view="control" class="nav-item"><span>⏯</span><span data-i18n="Control" class="translation-text"> Control </span><b id="nav-control-state" class="hidden">II</b></button>
       <button data-view="setup" class="nav-item"><span>⚙</span><span data-i18n="Mailbox &amp; Import" class="translation-text"> Mailbox &amp; Import</span></button>
     </nav>
-    <div class="sidebar-bottom"><span class="green-dot"></span><strong data-i18n="Local. Under your control.">Local. Under your control.</strong><p data-i18n="Email content is processed here. No external AI services.">Email content is processed here. No external AI services.</p><span class="version">ARGUS / __APP_VERSION__</span></div>
+    <div class="sidebar-bottom"><span class="green-dot"></span><strong data-i18n="Local. Under your control.">Local. Under your control.</strong><p data-i18n="Email content is processed here. No external AI services.">Email content is processed here. No external AI services.</p><span id="profile-label" class="version hidden"></span><span class="version">ARGUS / __APP_VERSION__</span></div>
   </aside>
   <div class="workspace">
     <header class="topbar"><span><span class="translation-text">ARGUS </span><span class="slash">/</span> <span id="breadcrumb" data-i18n="Overview">Overview</span></span><div class="topbar-controls"><label class="language-picker" for="language"><span data-i18n="Language">Language</span><select id="language" aria-label="Language" data-i18n-aria-label="Language" class="language-control"><option value="en">English</option><option value="de">Deutsch</option></select></label><span class="local-pill"><span class="green-dot"></span><span data-i18n="Local mode" class="translation-text"> Local mode</span></span></div></header>
@@ -52,6 +52,8 @@
           <section id="next-task" class="panel next-step"><span class="step-number">01</span><div><p class="eyebrow" data-i18n="NEXT TASK">NEXT TASK</p><h2 id="next-task-title"></h2><p id="next-task-reason"></p><button id="next-task-action" class="text-button"></button></div></section>
         </div>
         <section id="result-summary" class="panel guide result-summary"><h2 data-i18n="What ARGUS knows so far">What ARGUS knows so far</h2><ul id="result-lines" class="next-steps"></ul><p class="notice" data-i18n="ARGUS knows only what is in the emails you imported. Accounts without such emails stay unknown; this is not a complete list.">ARGUS knows only what is in the emails you imported. Accounts without such emails stay unknown; this is not a complete list.</p></section>
+        <section id="trend-panel" class="panel guide result-summary"><h2 data-i18n="Progress over time">Progress over time</h2><ul id="trend-lines" class="next-steps"></ul><p class="small-muted" data-i18n="For this, ARGUS keeps only daily counts, never names, addresses or evidence.">For this, ARGUS keeps only daily counts, never names, addresses or evidence.</p>
+          <div class="relation-form"><select id="report-level" aria-label="Report content" data-i18n-aria-label="Report content"><option value="numbers" data-i18n="Numbers only">Numbers only</option><option value="tasks" data-i18n="Numbers and tasks">Numbers and tasks</option></select><label class="alias-confirm"><input id="report-addresses" type="checkbox" disabled><span data-i18n="Include sign-in addresses" class="translation-text"> Include sign-in addresses</span></label><button id="report-create" class="button secondary" data-i18n="Preview report">Preview report</button></div></section>
         <section id="scan-card" class="panel scan-card hidden"><div class="panel-head"><h2 data-i18n="Latest email scan">Latest email scan</h2><span id="scan-badge" class="chip soft"></span></div><p id="scan-summary"></p><div id="scan-rule-changes" class="hidden"><p class="small-muted" id="scan-rule-changes-title"></p><ul id="scan-rule-change-items" class="next-steps"></ul></div><ul id="scan-next-steps" class="next-steps hidden" aria-label="Next steps" data-i18n-aria-label="Next steps"></ul><progress id="scan-meter" aria-label="Email scan progress" data-i18n-aria-label="Email scan progress"></progress><button class="text-button" data-go="setup" data-i18n="Open import and setup →">Open import and setup →</button></section>
       </section>
       <section id="inventory-view">
@@ -179,8 +181,8 @@
     <div class="dialog-actions"><button id="defer-account" class="button secondary" data-i18n="Defer">Defer</button></div><p id="detail-error" class="error hidden" role="alert"></p>
   </dialog>
   <dialog id="report-dialog" aria-labelledby="report-title">
-    <div class="dialog-header"><div><p class="eyebrow" data-i18n="CHECK BEFORE SAVING">CHECK BEFORE SAVING</p><h2 id="report-title" data-i18n="Your session report">Your session report</h2></div><button id="report-close" class="icon-button" aria-label="Close" data-i18n-aria-label="Close">×</button></div>
-    <p class="notice" data-i18n="This is the complete file. It names accounts and steps only: no email addresses, evidence or passwords.">This is the complete file. It names accounts and steps only: no email addresses, evidence or passwords.</p>
+    <div class="dialog-header"><div><p class="eyebrow" data-i18n="CHECK BEFORE SAVING">CHECK BEFORE SAVING</p><h2 id="report-title"></h2></div><button id="report-close" class="icon-button" aria-label="Close" data-i18n-aria-label="Close">×</button></div>
+    <p id="report-note" class="notice"></p>
     <pre id="report-text" class="report-text"></pre>
     <div class="dialog-actions"><button type="button" id="report-cancel" class="button secondary" data-i18n="Close">Close</button><button id="report-save" class="button primary" data-i18n="Save as text file">Save as text file</button></div>
   </dialog>

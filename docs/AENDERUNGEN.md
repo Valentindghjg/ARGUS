@@ -1,3 +1,18 @@
+# Änderungen – unveröffentlicht (frühere Pro-Funktionen, kostenlos)
+
+## Getrennte Profile, Fortschritt im Zeitverlauf und datensparsame Berichte (P1, P2, P5)
+
+- `--profile NAME` nutzt einen getrennten, benannten Profilordner mit eigener
+  Datenbank, eigenen Einstellungen, Katalogergänzungen, Sicherungen und
+  Freigaben; `profiles` listet nur Namen. Das Dashboard zeigt den Profilnamen.
+- Eine Zeile Zahlen je Tag (keine Namen, Adressen oder Belege; etwa dreizehn
+  Monate) speist „Fortschritt im Zeitverlauf“ mit Vergleichen über Woche, Monat
+  und Quartal.
+- Fortschrittsberichte nur mit Zahlen oder mit Zahlen und Aufgaben;
+  Anmeldeadressen nur nach ausdrücklichem Ankreuzen; vollständige Vorschau vor
+  dem Speichern (`report --text|--export`, `GET /api/report`). Schemaversion 9
+  ergänzt die Verlaufstabelle nach der automatischen Sicherung.
+
 # Änderungen – Version 2.4.0, Paket E: Bitwarden ohne Überraschungen (noch ohne Tag)
 
 ## Drei gleichwertige Wege, Bereitschaft und ein Journal (B1, B3, A19)

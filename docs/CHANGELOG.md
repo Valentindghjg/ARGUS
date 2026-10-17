@@ -1,5 +1,19 @@
 # Change log
 
+## Unreleased — Former Pro features, free
+
+### Separate profiles, progress over time and data-minimal reports (P1, P2, P5)
+
+- `--profile NAME` uses a separate named profile folder with its own database,
+  settings, catalog additions, backups and approvals; `profiles` lists names
+  only. The dashboard shows the profile name.
+- One row of counts per day (no names, addresses or evidence; about thirteen
+  months) feeds “Progress over time” with week, month and quarter comparisons.
+- Progress reports with numbers only, or numbers and tasks; sign-in addresses
+  only when explicitly ticked; full preview before saving
+  (`report --text|--export`, `GET /api/report`). Schema version 9 adds the
+  history table after the automatic backup.
+
 ## 2.4.0 — Package E: Bitwarden without surprises (not yet tagged)
 
 ### Three equal ways, readiness and one journal (B1, B3, A19)

@@ -174,7 +174,7 @@ function renderState() {
   $("alias-email").disabled=state.demo;$("alias-owned").disabled=state.demo;
   if(state.demo)setMessage("alias-message","Add real own addresses in a personal profile on your computer. The demo profile stays separate.");
   renderRows();renderCandidates();renderExport();renderBitwardenAudit();renderWorklist();renderGuided();renderHandoffs();renderHistory();
-  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();renderChanges();renderMailboxes();renderSession();renderReviewRule();renderControl();renderLastImport();
+  renderStart();renderResult();renderNextTask();renderUnclear();renderRelations();renderPersonalProviders();renderChanges();renderMailboxes();renderSession();renderReviewRule();renderControl();renderLastImport();renderTrend();
 }
 // Plan A1-A4, A7, A28: what is new since the last review, in one place and one summary.
 const changeReasons={
@@ -928,14 +928,40 @@ async function sessionAction(body,message){
   try{await api("/api/session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});await refresh();toast(t(message));}
   catch(e){failure(e);}
 }
-let reportText="";
+// One dialog shows a report in full before the browser saves it (plan A20, P5).
+let reportText="",reportFile="argus-report.txt";
+function showReport(text,title,note,file){
+  reportText=text;reportFile=file;$("report-text").textContent=text;
+  $("report-title").textContent=t(title);$("report-note").textContent=t(note);$("report-dialog").showModal();
+}
 async function previewReport(){
-  try{const result=await api(`/api/session/report?language=${encodeURIComponent(language)}`);reportText=result.text;$("report-text").textContent=reportText;$("report-dialog").showModal();}
+  try{const result=await api(`/api/session/report?language=${encodeURIComponent(language)}`);
+    showReport(result.text,"Your session report","This is the complete file. It names accounts and steps only: no email addresses, evidence or passwords.","argus-session.txt");}
   catch(e){failure(e);}
+}
+async function previewProgressReport(){
+  const level=$("report-level").value,addresses=level==="tasks"&&$("report-addresses").checked;
+  try{const result=await api(`/api/report?level=${level}&addresses=${addresses?1:0}&language=${encodeURIComponent(language)}`);
+    showReport(result.text,"Your progress report",addresses?"This is the complete file. It includes the sign-in addresses you chose to add.":"This is the complete file. It contains no email addresses, evidence or passwords.","argus-report.txt");}
+  catch(e){failure(e);}
+}
+// Plan P2: how the counts moved; only daily numbers are kept for this.
+const trendLabels={clues:"Clues",found:"Accounts found",confirmed:"Confirmed by you",complete:"Complete",open:"Still open",unclear:"Unclear items",high_priority_open:"Open with high priority"};
+function renderTrend(){
+  const history=state.history,lines=history.comparisons.map(c=>{
+    const changes=Object.entries(c.delta).filter(([,v])=>v).map(([k,v])=>`${t(trendLabels[k])} ${v>0?"+":""}${v}`);
+    return node("li",t("Since {date}: {changes}",{date:localDate(c.since),changes:changes.length?changes.join(", "):t("no change")}));
+  });
+  $("trend-lines").replaceChildren(...lines);
+  if(!lines.length)$("trend-lines").append(node("li",t("Comparisons appear after a few days of use.")));
+  $("report-addresses").disabled=$("report-level").value!=="tasks";
+  if($("report-addresses").disabled)$("report-addresses").checked=false;
+  $("profile-label").classList.toggle("hidden",!state.profile_name);
+  $("profile-label").textContent=state.profile_name?t("Profile: {name}",{name:state.profile_name}):"";
 }
 function saveReport(){
   const url=URL.createObjectURL(new Blob([reportText],{type:"text/plain"}));
-  const a=document.createElement("a");a.href=url;a.download="argus-session.txt";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  const a=document.createElement("a");a.href=url;a.download=reportFile;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   $("report-dialog").close();toast(t("Report saved by your browser. It stays on this computer."));
 }
 // Plan A10: proposals only; applying them is one undoable change.
@@ -1170,6 +1196,7 @@ $("session-three").onclick=()=>sessionAction({action:"start",size:3},"Session st
 $("session-end").onclick=()=>sessionAction({action:"end"},"Session ended. Your steps stay saved.");
 $("session-report").onclick=previewReport;
 $("report-save").onclick=saveReport;
+$("report-create").onclick=previewProgressReport;$("report-level").onchange=renderTrend;
 for(const id of ["report-close","report-cancel"])$(id).onclick=()=>$("report-dialog").close();
 $("review-save").onclick=saveReviewRule;$("review-apply").onclick=applyReviewProposals;
 $("review-proposal-use").onclick=()=>{const a=state.accounts.find(x=>x.id===selected);if(a&&a.review_proposal)setStep("identity",{review_after:a.review_proposal});};

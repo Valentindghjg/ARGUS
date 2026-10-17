@@ -230,6 +230,17 @@ class Handler(BaseHTTPRequestHandler):
             control = self.server.store.control_overview(self.server.background_snapshot())
             control["approval"] = self.server.approval_snapshot()
             self._send(200, control)
+        elif path == "/api/report":
+            from urllib.parse import parse_qs
+            query = parse_qs(urlsplit(self.path).query)
+            try:
+                self._send(200, {"text": self.server.store.report_text(
+                    query.get("level", ["numbers"])[0], query.get("addresses", ["0"])[0] == "1",
+                    query.get("language", ["en"])[0])})
+            except UserFacingError as exc:
+                self._error(400, str(exc))
+            except ValueError:
+                self._error(400, "Unsupported language; choose en or de")
         elif path == "/api/session/report":
             from urllib.parse import parse_qs
             language = parse_qs(urlsplit(self.path).query).get("language", ["en"])[0]

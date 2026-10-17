@@ -656,6 +656,30 @@ A password link requires `password_url`, `password_source` and
 emails or run `scan-imap --allow-imap --full-scan` afterwards, and restart the
 dashboard with the same additional catalog.
 
+## Separate profiles, progress over time and reports
+
+`--profile NAME` uses a separate named profile, for example one for work and one
+for private accounts. Each profile is its own folder next to the default one,
+with its own database, mailbox settings, catalog additions, backups and
+approvals; nothing is shared or read across profiles. Run a second dashboard
+with its own `--port`. `argus profiles` lists the names only.
+
+The overview shows how your counts moved over the last week, month and quarter.
+For this ARGUS keeps one row of counts per day (clues, accounts found, confirmed,
+complete, still open, unclear, open with high priority), never names, addresses
+or evidence, for about thirteen months. **Preview report** creates a
+data-minimal progress report: numbers only, or numbers and one line per account.
+Sign-in addresses are added only when you tick them. The text is shown in full
+before your browser saves it.
+
+```bash
+python -m argus_security --profile work init --email you@work.example
+python -m argus_security --profile work dashboard --port 8766
+python -m argus_security profiles
+python -m argus_security report --text --level tasks
+python -m argus_security report --level numbers --export /local/path/argus-report.txt
+```
+
 ## Back up and restore your profile
 
 ARGUS saves a backup automatically before a new version updates the profile
@@ -759,6 +783,7 @@ report.
 | `argus_security/jobs.py` | Shared job states, the global pause and the minimal activity log |
 | `argus_security/imports.py` | Processed-message index, import budget and continuation |
 | `argus_security/watch.py` | The narrow, opt-in watch of one export folder |
+| `argus_security/profiles.py`, `history.py`, `reports.py` | Named profiles, daily counts and data-minimal reports |
 | `argus_security/backup.py` | Local profile backups and restore |
 | `argus_security/workflow.py` | Local security worklist and guided next step |
 | `argus_security/handoffs.py` | Durable Bitwarden transfer journal |

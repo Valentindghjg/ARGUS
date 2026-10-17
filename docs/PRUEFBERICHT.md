@@ -1,3 +1,12 @@
+# Prüfbericht – unveröffentlicht (frühere Pro-Funktionen)
+
+Schritt S17: **326 Python-Tests** und **39 Browser-Prüfgruppen**. Neue Tests
+prüfen getrennte Profilordner, die einander nie lesen, Profilnamen, den Konflikt
+`--profile`/`--data-dir`, tägliche Zahlen mit Vergleichen und Bereinigung, die
+Spalten der Verlaufstabelle, Berichtsstufen mit und ohne Adressen, ungültige
+Kombinationen, die private Exportdatei und die Berichts-API. Der Browser zeigt
+einen Fortschrittsbericht ohne Adressen in der Vorschau.
+
 # Prüfbericht – Version 2.4.0 (Paket E, noch ohne Tag)
 
 Schritt S16: **323 Python-Tests** und **38 Browser-Prüfgruppen**. Neue Tests
