@@ -1,4 +1,4 @@
-# Prüfbericht – Version 2.7.0 (noch ohne Tag)
+# Prüfbericht – Version 2.7.0 (veröffentlicht am 17. Oktober 2026)
 
 Dauerhafte Abdeckung: **403 Python-Tests**. Ein neuer Test lässt alle Import-Jobs
 aus einer verkürzten Jobliste fallen und prüft, dass Läufe und Nachrichten
@@ -25,7 +25,15 @@ als „needs review“ in der Ausgabe und wurden von Hand geprüft: Keines hat e
 gemessenen Kontrast unter 4,5:1. Neue Tests prüfen das gepinnte, nur für Tests
 genutzte axe-core, seinen Lock-Eintrag und den CI-Schritt.
 
-# Prüfbericht – Version 2.6.1 (Korrekturen aus dem Review, noch ohne Tag)
+Release: **406 Python-Tests**. Der Test des Release-Workflows prüft die drei
+Jobs: Build nur mit Leserechten, Bestätigung und Veröffentlichung nur bei einem
+Tag, die Veröffentlichung erst nach der Bestätigung, nur mit `contents: write`,
+ohne Projektcode und mit genau den bestätigten Dateien. Ein zweiter Test lehnt
+einen Tag ab, dessen Hinweise fehlen, einen Abschnitt der Vorlage auslassen,
+ein angegebenes Modul nicht nennen oder einen falschen Titel tragen.
+`actionlint` akzeptiert den Workflow.
+
+# Prüfbericht – Version 2.6.1 (Korrekturen aus dem Review, nicht einzeln getaggt)
 
 Review-Korrekturen, Teil 1: **359 Python-Tests**. Neue Regressionstests
 reproduzieren jeden behobenen Fund zuerst: ein Stapel über der Protokollgrenze,
@@ -74,7 +82,7 @@ endet, die Demo außerhalb des Standardprofils, ungültige Ports, fehlende Datei
 ohne Pfade, `setup-imap` ohne Terminal oder mit vorhandenen Einstellungen, die
 Prüfregel, die ihren anderen Teil behält, und deutsche JSON-Texte.
 
-# Prüfbericht – Version 2.6.0 (Qualität und Vertrauen, noch ohne Tag)
+# Prüfbericht – Version 2.6.0 (Qualität und Vertrauen, nicht einzeln getaggt)
 
 Schritt S19: **336 Python-Tests** und **42 Browser-Prüfgruppen**. Neue Tests
 prüfen die Abdeckung (Quellen, Zeitraum, Monate ohne Hinweis, Adressen ohne
@@ -97,7 +105,7 @@ Test prüft, dass jeder relative Markdown-Link in den README-Dateien, `docs/` un
 synthetischen Demo neu erzeugt und auf Desktop und Mobil in beiden Sprachen
 angesehen.
 
-# Prüfbericht – Version 2.5.0 (frühere Pro-Funktionen, noch ohne Tag)
+# Prüfbericht – Version 2.5.0 (frühere Pro-Funktionen, nicht einzeln getaggt)
 
 Schritt S17: **326 Python-Tests** und **39 Browser-Prüfgruppen**. Neue Tests
 prüfen getrennte Profilordner, die einander nie lesen, Profilnamen, den Konflikt
@@ -119,7 +127,7 @@ die Ablehnung ohne Treffer, die Prüfung jedes Vorlagenfelds, eigene Vorlagen mi
 API-Formen. Der Browser zeigt eine Vorlage in der Vorschau, wendet sie an und
 nimmt sie zurück.
 
-# Prüfbericht – Version 2.4.0 (Paket E, noch ohne Tag)
+# Prüfbericht – Version 2.4.0 (Paket E, nicht einzeln getaggt)
 
 Schritt S16: **323 Python-Tests** und **38 Browser-Prüfgruppen**. Neue Tests
 prüfen die Bereitschaft (bereit, erst prüfen, jeden sperrenden Grund),
@@ -130,7 +138,7 @@ Zuordnung über Store, CLI und API. Der Browser klärt eine unklare Übertragung
 sieht einen Download im Journal samt Freigabe und ordnet einen Account ohne
 Tresor-Lesen zu und wieder zurück.
 
-# Prüfbericht – Version 2.3.0 (Paket D, noch ohne Tag)
+# Prüfbericht – Version 2.3.0 (Paket D, nicht einzeln getaggt)
 
 Schritt S13a: **301 Python-Tests** und **35 Browser-Prüfgruppen**. Neue Tests
 prüfen Vorgangszustände für Importe, Fehler, Abbrüche und unterbrochene
@@ -173,7 +181,7 @@ fehlenden Ordner, das Beenden mit Protokolleinträgen sowie CLI und Kontroll-API
 Der Browser zeigt die Überwachung als Berechtigung und wartenden Vorgang und
 beendet sie.
 
-# Prüfbericht – Version 2.2.0 (Paket C, noch ohne Tag)
+# Prüfbericht – Version 2.2.0 (Paket C, nicht einzeln getaggt)
 
 Schritt S11: **283 Python-Tests** und **32 Browser-Prüfgruppen**. Neue Tests
 prüfen neue gegenüber geänderten Hinweisen, stille identische Neuimporte, die
@@ -201,7 +209,7 @@ Exportangaben sowie CLI- und API-Formen. Der Browser prüft die
 Single-Sign-on-Checkliste, eine Sitzung mit Berichtsvorschau und Download und das
 Übernehmen und Zurücknehmen vorgeschlagener Prüfdaten.
 
-# Prüfbericht – Version 2.1.0 (Paket B, noch ohne Tag)
+# Prüfbericht – Version 2.1.0 (Paket B, nicht einzeln getaggt)
 
 Schritt S8: **257 Python-Tests** und **28 Browser-Prüfgruppen**. Geprüft werden
 Regelmerkmale für Treffer in Betreff und Text, direkte, indirekte und mehrfache
@@ -234,7 +242,7 @@ wahrscheinlich, 3 bleiben zur Prüfung, 2 werden verfehlt (dokumentierte
 Grenzen); von 7 Nicht-Accounts ist 1 ein Fehlalarm (gefälschter Absender,
 dokumentierte Grenze).
 
-# Prüfbericht – Version 2.0.0 (Paket A, noch ohne Tag)
+# Prüfbericht – Version 2.0.0 (Paket A, nicht einzeln getaggt)
 
 Die Änderungen der Sicherheitsreview bestehen **208 Python-Tests** (vorher 166)
 und **24 Chromium-Prüfgruppen**, ohne Seitenfehler und ohne externe

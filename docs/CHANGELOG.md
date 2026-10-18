@@ -1,6 +1,6 @@
 # Change log
 
-## 2.7.0 — Lasting coverage, build provenance and an accessibility audit (not yet tagged)
+## 2.7.0 — Lasting coverage, build provenance and an accessibility audit, 17 October 2026
 
 ### Coverage that outlives the job list (D4)
 
@@ -18,8 +18,14 @@
   through Sigstore). `gh attestation verify <file> --repo Valentindghjg/ARGUS`
   confirms that a file was built by this workflow from the tag. Only a separate
   job that runs no project code may request the signing identity; the build job
-  keeps read access. The files are kept as the run's `release-files` artifact
-  for the owner's hand-made release. Still no workflow creates a release.
+  keeps read access. The files are kept as the run's `release-files` artifact.
+- Releases are published from the tag (owner decision, 17 October 2026): after
+  the attestation, a third job creates the GitHub release with exactly the
+  attested files, `SHA256SUMS` and the notes from `docs/releases/<tag>.md`.
+  It is the only job with write access to the repository and runs no project
+  code. `release_check.py tag` refuses a tag whose notes are missing, lack a
+  template section or leave out a declared module. A manual run still only
+  builds and checks.
 
 ### WCAG 2.2 AA audit (D6)
 
@@ -38,7 +44,7 @@
 - An automated audit covers only part of WCAG; a screen reader review is still
   to come.
 
-## 2.6.1 — Fixes from the review of 2.0–2.6 (not yet tagged)
+## 2.6.1 — Fixes from the review of 2.0–2.6 (not tagged on its own; released with 2.7.0)
 
 ### Change log, undo, backups and migrations
 
@@ -160,7 +166,7 @@
   follows `--language`.
 - The German FAQ links the private reporting policy, and the plan coverage says
   that G6 is partly done.
-## 2.6.0 — Quality and trust (not yet tagged)
+## 2.6.0 — Quality and trust (not tagged on its own; released with 2.7.0)
 
 ### Plan complete (S21)
 
@@ -202,7 +208,7 @@
   clean IDs, no shared senders, HTTPS links on own domains and dated
   password-page sources.
 
-## 2.5.0 — Former Pro features, free (not yet tagged)
+## 2.5.0 — Former Pro features, free (not tagged on its own; released with 2.7.0)
 
 ### Separate profiles, progress over time and data-minimal reports (P1, P2, P5)
 
@@ -237,7 +243,7 @@
   `POST /api/templates`, `/api/templates/preview`, `/api/templates/apply` and
   `/api/templates/delete`.
 
-## 2.4.0 — Package E: Bitwarden without surprises (not yet tagged)
+## 2.4.0 — Package E: Bitwarden without surprises (not tagged on its own; released with 2.7.0)
 
 ### Three equal ways, readiness and one journal (B1, B3, A19)
 
@@ -253,7 +259,7 @@
   its date. An existing export file is reported before anything is journaled.
 - New API `POST /api/bitwarden/assign`; snapshot field `bitwarden_readiness`.
 
-## 2.3.0 — Package D: dependable automation (not yet tagged)
+## 2.3.0 — Package D: dependable automation (not tagged on its own; released with 2.7.0)
 
 ### Jobs, activity log and one pause for everything (A24, A25, A27, D5, priority 07)
 
@@ -317,7 +323,7 @@
   pass and reports a missing folder. The dashboard names it at start and can stop
   it (`POST /api/watch/disable`).
 
-## 2.2.0 — Package C: local preparation (not yet tagged)
+## 2.2.0 — Package C: local preparation (not tagged on its own; released with 2.7.0)
 
 ### What's new since your last review (A1–A4, A7, A28, priorities 05 and 06)
 
@@ -369,7 +375,7 @@
   `GET /api/session/report`, `POST /api/review-rule` and
   `POST /api/review-rule/apply`.
 
-## 2.1.0 — Package B: explainable, correctable detection (not yet tagged)
+## 2.1.0 — Package B: explainable, correctable detection (not tagged on its own; released with 2.7.0)
 
 ### Why a clue counts, what kind it is and how old (E1, E2, priority 03)
 
@@ -426,7 +432,7 @@
   wording). It is not proof of accuracy on real mailboxes; a test keeps every
   outcome documented.
 
-## 2.0.0 — Package A: clear states and a controllable core (not yet tagged)
+## 2.0.0 — Package A: clear states and a controllable core (not tagged on its own; released with 2.7.0)
 
 See [the security review](SECURITY_REVIEW_2026-10.md) and
 [the master plan status](strategy/README.md).

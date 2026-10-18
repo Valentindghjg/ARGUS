@@ -10,6 +10,7 @@ from pathlib import Path
 import re
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from argus_security.about import about
 from argus_security.cli import main
@@ -66,24 +67,57 @@ class ReleaseCheckTests(unittest.TestCase):
         self.assertEqual(lines, [f"{sha256(b'also synthetic').hexdigest()}  argus-2.6.0-py3-none-any.whl",
                                  f"{sha256(b'synthetic').hexdigest()}  argus-2.6.0.tar.gz"])
 
-    def test_release_workflow_publishes_nothing_and_only_the_attestation_may_sign(self):
+    def test_release_workflow_signs_and_publishes_only_from_a_tag(self):
         workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
-        build, attest = workflow.split("\n  attest:\n")
-        self.assertIn("contents: read", build)
-        self.assertNotIn(": write", build)
-        self.assertIn("scripts/release_check.py", build)
-        self.assertNotIn("gh release", workflow)
+        parts = re.split(r"^  ([a-z]+):$", workflow.split("\njobs:\n", 1)[1], flags=re.M)
+        jobs = dict(zip(parts[1::2], parts[2::2]))
+        self.assertEqual(list(jobs), ["build", "attest", "publish"])
+
+        def writes(job):
+            return sorted(re.findall(r"^ +([a-z-]+): write$", job, re.M))
+        # The build installs a third-party tool, so it keeps the read-only default.
+        self.assertIn("\npermissions:\n  contents: read\n", workflow.split("\njobs:\n", 1)[0])
+        self.assertNotIn("permissions:", jobs["build"])
+        self.assertIn("scripts/release_check.py tag", jobs["build"])
         # The signing identity belongs to a tag-only job that runs no project code.
-        self.assertIn("if: github.ref_type == 'tag'", attest)
-        self.assertEqual(sorted(re.findall(r"^ +([a-z-]+): write$", attest, re.M)), ["attestations", "id-token"])
-        self.assertNotIn("run:", attest)
-        self.assertNotIn("actions/checkout", attest)
-        self.assertIn("subject-path: 'dist/*.whl, dist/*.tar.gz'", attest)
+        self.assertIn("if: github.ref_type == 'tag'", jobs["attest"])
+        self.assertEqual(writes(jobs["attest"]), ["attestations", "id-token"])
+        self.assertNotIn("run:", jobs["attest"])
+        self.assertNotIn("actions/checkout", jobs["attest"])
+        self.assertIn("subject-path: 'dist/*.whl, dist/*.tar.gz'", jobs["attest"])
+        # Publishing waits for the attestation, writes only contents and runs no project code.
+        publish = jobs["publish"]
+        self.assertIn("if: github.ref_type == 'tag'", publish)
+        self.assertIn("needs: [build, attest]", publish)
+        self.assertEqual(writes(publish), ["contents"])
+        self.assertNotIn("python", publish)
+        self.assertNotIn("pip ", publish)
+        self.assertIn("gh release create \"$TAG\" dist/*.whl dist/*.tar.gz dist/SHA256SUMS", publish)
+        self.assertIn("--verify-tag", publish)
+        self.assertIn('notes="docs/releases/$TAG.md"', publish)
+        self.assertEqual(workflow.count("gh release"), 1)
         # Every action is pinned to a full commit.
         actions = re.findall(r"uses: (\S+)", workflow)
         self.assertIn("actions/attest", " ".join(actions))
         for action in actions:
             self.assertRegex(action, r"^[\w.-]+/[\w.-]+@[0-9a-f]{40}$")
+
+    def test_a_tag_needs_complete_release_notes(self):
+        tag = f"v{release_check.package_version()}"
+        with redirect_stdout(StringIO()):
+            self.assertEqual(release_check.main(["tag", tag]), 0)
+        notes = (ROOT / "docs" / "releases" / f"{tag}.md").read_text(encoding="utf-8")
+        with tempfile.TemporaryDirectory() as folder, patch.object(release_check, "ROOT", Path(folder)):
+            root = Path(folder)
+            (root / "docs" / "releases").mkdir(parents=True)
+            (root / "docs" / "RELEASE_NOTES_TEMPLATE.md").write_text(
+                (ROOT / "docs" / "RELEASE_NOTES_TEMPLATE.md").read_text(encoding="utf-8"), encoding="utf-8")
+            self.assertIn("is missing", release_check.notes_problems(tag)[0])
+            for broken, message in ((notes.replace("## New connections and permissions\n", ""), "no section"),
+                                    (notes.replace("`bitwarden.py`", "Bitwarden"), "bitwarden.py"),
+                                    (notes.replace(f"# ARGUS {tag} — ", "# ARGUS "), "must start with")):
+                (root / "docs" / "releases" / f"{tag}.md").write_text(broken, encoding="utf-8")
+                self.assertTrue(any(message in issue for issue in release_check.notes_problems(tag)), message)
 
 
 class AboutTests(unittest.TestCase):
